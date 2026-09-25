@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom';
 import { ShellLayout } from '../shared/components/layout/ShellLayout';
 import { DashboardPage } from '../pages/dashboard/DashboardPage';
+import { PdfToolsPage } from '../pages/pdf-tools/PdfToolsPage';
 import { PlaceholderPage } from '../pages/placeholder/PlaceholderPage';
 import { NotFoundPage } from '../pages/not-found/NotFoundPage';
 
@@ -9,16 +10,7 @@ export function App() {
     <Routes>
       <Route path="/" element={<ShellLayout />}>
         <Route index element={<DashboardPage />} />
-        <Route
-          path="pdf-tools"
-          element={
-            <PlaceholderPage
-              title="PDF 처리 엔진"
-              description="PDF 문서 병합, 분할, 메타데이터 제거 및 최적화 도구가 곧 제공됩니다."
-              icon="picture_as_pdf"
-            />
-          }
-        />
+        <Route path="pdf-tools" element={<PdfToolsPage />} />
         <Route
           path="dbml-tools"
           element={

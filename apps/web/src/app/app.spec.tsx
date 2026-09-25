@@ -64,14 +64,14 @@ describe('App', () => {
   });
 
   describe('플레이스홀더 및 404 라우팅', () => {
-    it('/pdf-tools 경로 접속 시 PDF 처리 엔진 플레이스홀더를 렌더링해야 한다', () => {
+    it('/pdf-tools 경로 접속 시 PDF 처리 엔진 페이지를 렌더링해야 한다', () => {
       renderApp(['/pdf-tools']);
 
       expect(
         screen.getByRole('heading', { name: 'PDF 처리 엔진' }),
       ).toBeTruthy();
       expect(
-        screen.getByText(/PDF 문서 병합, 분할, 메타데이터 제거 및 최적화 도구/),
+        screen.getByText(/외부 클라우드 전송 없이 안전하게 PDF를 병합, 분할, 암호 해제합니다/),
       ).toBeTruthy();
     });
 

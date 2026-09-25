@@ -1,0 +1,636 @@
+/* ==========================================================================
+   PDF Processing Engine Page Styles (Responsive 3-Tier)
+   ========================================================================== */
+
+.pdf-tools-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+/* --------------------------------------------------------------------------
+   1. Header Section
+   -------------------------------------------------------------------------- */
+.pdf-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+}
+
+.pdf-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pdf-title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.pdf-title-row h1 {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--on-surface);
+  line-height: 1.25;
+}
+
+.pdf-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  background-color: var(--surface-container-highest);
+  border: 1px solid var(--outline-variant);
+  color: var(--text-muted);
+}
+
+.pdf-title-desc {
+  font-size: 13px;
+  color: var(--on-surface-variant);
+}
+
+.pdf-telemetry-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background-color: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-lg);
+  font-size: 12px;
+  color: var(--on-surface);
+}
+
+.pdf-telemetry-chip .status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background-color: var(--secondary);
+  box-shadow: 0 0 8px rgba(78, 222, 163, 0.4);
+}
+
+.pdf-telemetry-chip .status-code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--secondary);
+}
+
+/* --------------------------------------------------------------------------
+   2. Main Workflow Layout (Desktop 7:5 Split)
+   -------------------------------------------------------------------------- */
+.pdf-workflow-grid {
+  display: grid;
+  grid-template-columns: 7fr 5fr;
+  gap: var(--space-xl);
+  align-items: start;
+}
+
+.pdf-workflow-left {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.pdf-workflow-right {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+/* --------------------------------------------------------------------------
+   3. Operation Mode Tabs
+   -------------------------------------------------------------------------- */
+.pdf-tabs-panel {
+  background-color: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-xl);
+  padding: 6px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.pdf-tab-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: var(--radius-lg);
+  background-color: transparent;
+  border: 1px solid transparent;
+  color: var(--on-surface-variant);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  white-space: nowrap;
+}
+
+.pdf-tab-btn .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.pdf-tab-btn:hover {
+  color: var(--on-surface);
+  background-color: var(--surface-container-high);
+}
+
+.pdf-tab-btn.active {
+  background-color: var(--surface-container-highest);
+  border-color: var(--outline-variant);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   4. Dropzone Component
+   -------------------------------------------------------------------------- */
+.pdf-dropzone {
+  border: 2px dashed var(--outline-variant);
+  border-radius: var(--radius-xl);
+  background-color: var(--surface-container-lowest);
+  padding: 36px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.pdf-dropzone:hover,
+.pdf-dropzone.dragging {
+  border-color: var(--primary);
+  background-color: var(--surface-container-low);
+  box-shadow: 0 0 12px rgba(173, 198, 255, 0.1);
+}
+
+.pdf-dropzone-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-xl);
+  background-color: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--error);
+  margin-bottom: 4px;
+}
+
+.pdf-dropzone-icon-box .material-symbols-outlined {
+  font-size: 24px;
+}
+
+.pdf-dropzone-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--on-surface);
+}
+
+.pdf-dropzone-title .accent-text {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.pdf-dropzone-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.pdf-dropzone-input {
+  display: none;
+}
+
+/* --------------------------------------------------------------------------
+   5. File List & File Item Cards
+   -------------------------------------------------------------------------- */
+.pdf-file-list-card {
+  background-color: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.pdf-file-list-header {
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--outline-variant);
+  background-color: var(--surface-container);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pdf-file-list-header h3 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--on-surface);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pdf-file-list-header h3 .material-symbols-outlined {
+  font-size: 16px;
+  color: var(--text-muted);
+}
+
+.pdf-files-container {
+  display: flex;
+  flex-direction: column;
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+.pdf-file-item {
+  padding: 12px var(--space-lg);
+  border-bottom: 1px solid var(--outline-variant);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: background-color 0.1s ease;
+}
+
+.pdf-file-item:last-child {
+  border-bottom: none;
+}
+
+.pdf-file-item:hover {
+  background-color: var(--surface-container);
+}
+
+.pdf-file-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.pdf-file-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.pdf-file-icon {
+  color: var(--error);
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.pdf-file-texts {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.pdf-file-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--on-surface);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pdf-file-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.pdf-file-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.pdf-file-delete-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.pdf-file-delete-btn:hover {
+  background-color: var(--surface-container-highest);
+  color: var(--error);
+}
+
+.pdf-file-delete-btn .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.pdf-password-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background-color: var(--surface-container-lowest);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-sm);
+}
+
+.pdf-password-field .material-symbols-outlined {
+  font-size: 14px;
+  color: var(--tertiary);
+}
+
+.pdf-password-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--on-surface);
+}
+
+.pdf-password-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* --------------------------------------------------------------------------
+   6. Operation Config Panel
+   -------------------------------------------------------------------------- */
+.pdf-config-card {
+  background-color: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-xl);
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.pdf-config-header h3 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--on-surface);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pdf-config-header h3 .material-symbols-outlined {
+  font-size: 16px;
+  color: var(--text-muted);
+}
+
+.pdf-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pdf-input-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--on-surface);
+  display: flex;
+  justify-content: space-between;
+}
+
+.pdf-input-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.pdf-text-input {
+  padding: 8px 12px;
+  background-color: var(--surface-container-lowest);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--on-surface);
+  outline: none;
+  transition: border-color 0.12s ease;
+}
+
+.pdf-text-input:focus {
+  border-color: var(--primary);
+}
+
+.pdf-input-error {
+  font-size: 11px;
+  color: var(--error);
+}
+
+/* --------------------------------------------------------------------------
+   7. Right Column: Execution Summary & Security Card
+   -------------------------------------------------------------------------- */
+.pdf-summary-card {
+  background-color: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.pdf-summary-header {
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--outline-variant);
+  background-color: var(--surface-container);
+}
+
+.pdf-summary-header h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--on-surface);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pdf-summary-header h3 .material-symbols-outlined {
+  font-size: 18px;
+  color: var(--text-muted);
+}
+
+.pdf-summary-body {
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.pdf-summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.pdf-summary-row .label {
+  color: var(--on-surface-variant);
+}
+
+.pdf-summary-row .val {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--on-surface);
+  font-weight: 500;
+}
+
+.pdf-summary-divider {
+  height: 1px;
+  background-color: var(--outline-variant);
+  margin: 4px 0;
+}
+
+.pdf-security-card {
+  background-color: var(--surface-container-lowest);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pdf-security-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--secondary);
+}
+
+.pdf-security-title .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.pdf-security-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.pdf-action-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.pdf-reset-btn {
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  background-color: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  color: var(--on-surface-variant);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  white-space: nowrap;
+}
+
+.pdf-reset-btn:hover {
+  background-color: var(--surface-container-high);
+  color: var(--on-surface);
+}
+
+.pdf-execute-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  background-color: var(--primary);
+  color: var(--surface-container-lowest);
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.pdf-execute-btn:hover:not(:disabled) {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
+.pdf-execute-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.pdf-execute-btn .material-symbols-outlined {
+  font-size: 18px;
+}
+
+/* --------------------------------------------------------------------------
+   8. Responsive Tier Rules (DESIGN.md Compliance)
+   -------------------------------------------------------------------------- */
+/* Tablet Tier: 768px ~ 1023px */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .pdf-workflow-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-lg);
+  }
+
+  .pdf-tabs-panel {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Mobile Tier: < 768px */
+@media (max-width: 767px) {
+  .pdf-workflow-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+  }
+
+  .pdf-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .pdf-tabs-panel {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .pdf-dropzone {
+    padding: 24px 16px;
+  }
+
+  .pdf-action-toolbar {
+    position: sticky;
+    bottom: 64px; /* 바텀바(56px) 위 */
+    background-color: var(--surface-container-low);
+    border: 1px solid var(--outline-variant);
+    border-radius: var(--radius-lg);
+    padding: 10px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    z-index: 30;
+  }
+}
