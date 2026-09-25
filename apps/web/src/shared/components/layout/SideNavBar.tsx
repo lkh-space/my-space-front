@@ -40,7 +40,7 @@ export const SideNavBar: React.FC<SideNavBarProps> = ({ onOpenCommandPalette }) 
         </div>
       </div>
 
-      {/* 2. Quick Command Palette Trigger Button */}
+      {/* 2. Quick Command Palette Trigger Button (Desktop Only) */}
       <div className="sidebar-command-trigger-wrap">
         <button
           type="button"
@@ -66,6 +66,7 @@ export const SideNavBar: React.FC<SideNavBarProps> = ({ onOpenCommandPalette }) 
             key={item.to}
             to={item.to}
             end={item.end}
+            title={item.label}
             className={({ isActive }) =>
               `nav-tab-item ${isActive ? 'active' : ''}`
             }
@@ -73,7 +74,7 @@ export const SideNavBar: React.FC<SideNavBarProps> = ({ onOpenCommandPalette }) 
             <span className="material-symbols-outlined nav-tab-icon">
               {item.icon}
             </span>
-            <span>{item.label}</span>
+            <span className="nav-tab-label">{item.label}</span>
             {item.badge && <span className="nav-tab-badge">{item.badge}</span>}
           </NavLink>
         ))}
@@ -81,9 +82,9 @@ export const SideNavBar: React.FC<SideNavBarProps> = ({ onOpenCommandPalette }) 
 
       {/* 4. Engine & Local Telemetry Footer */}
       <div className="sidebar-footer">
-        <div className="telemetry-badge">
+        <div className="telemetry-badge" title="Zero Telemetry Local Process">
           <span className="telemetry-badge-dot" />
-          <span>Zero Telemetry</span>
+          <span className="telemetry-badge-text">Zero Telemetry</span>
         </div>
         <div className="engine-runtime-meta">
           Local Process Engine<br />

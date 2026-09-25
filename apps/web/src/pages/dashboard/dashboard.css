@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Dashboard Page Styles
+   Dashboard Page Styles (Responsive)
    ========================================================================== */
 
 .dashboard-page {
@@ -8,7 +8,9 @@
   gap: var(--space-xl);
 }
 
-/* 1. Workspace Header */
+/* --------------------------------------------------------------------------
+   1. Workspace Header
+   -------------------------------------------------------------------------- */
 .workspace-header {
   display: flex;
   align-items: center;
@@ -57,10 +59,12 @@
   color: var(--secondary);
 }
 
-/* 2. Bento Grid (Installed Utilities) */
+/* --------------------------------------------------------------------------
+   2. Bento Grid (Installed Utilities)
+   -------------------------------------------------------------------------- */
 .bento-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--space-md);
 }
 
@@ -156,17 +160,13 @@
   font-weight: 500;
 }
 
-/* 3. Split Monitoring Section */
+/* --------------------------------------------------------------------------
+   3. Split Monitoring Section
+   -------------------------------------------------------------------------- */
 .split-monitoring-section {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 7fr 5fr;
   gap: var(--space-lg);
-}
-
-@media (min-width: 1024px) {
-  .split-monitoring-section {
-    grid-template-columns: 7fr 5fr;
-  }
 }
 
 .monitoring-card {
@@ -216,7 +216,6 @@
 .tasks-list {
   display: flex;
   flex-direction: column;
-  divide-y: 1px solid var(--outline-variant);
 }
 
 .task-item {
@@ -293,6 +292,7 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 4px;
+  flex-shrink: 0;
 }
 
 .task-status-tag {
@@ -397,4 +397,122 @@
 
 .security-box-row .val.green {
   color: var(--secondary);
+}
+
+/* --------------------------------------------------------------------------
+   4. Responsive Breakpoints: Tablet (768px ~ 1023px)
+   -------------------------------------------------------------------------- */
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* 2-Column Bento Grid */
+  .bento-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-md);
+  }
+
+  /* Single Column Monitoring Section */
+  .split-monitoring-section {
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+  }
+
+  .dashboard-page {
+    gap: var(--space-lg);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   5. Responsive Breakpoints: Mobile (< 768px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+  .dashboard-page {
+    gap: var(--space-md);
+  }
+
+  /* Vertical Stack Workspace Header */
+  .workspace-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .workspace-title-group h1 {
+    font-size: 19px;
+  }
+
+  .workspace-title-group p {
+    font-size: 12px;
+  }
+
+  .isolation-status-chip {
+    padding: 4px 10px;
+    font-size: 11px;
+  }
+
+  /* 1-Column Bento Grid: Compact Mobile Cards */
+  .bento-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .utility-card {
+    padding: 12px 14px;
+    border-radius: var(--radius-lg);
+  }
+
+  .utility-card-top {
+    margin-bottom: 8px;
+  }
+
+  .utility-icon-box {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-md);
+  }
+
+  .utility-title {
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+
+  .utility-desc {
+    font-size: 11px;
+    line-height: 1.4;
+    margin-bottom: 12px;
+  }
+
+  .utility-footer {
+    padding-top: 8px;
+  }
+
+  /* 1-Column Monitoring Section */
+  .split-monitoring-section {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .monitoring-card-header {
+    padding: 10px 14px;
+  }
+
+  .task-item {
+    padding: 10px 14px;
+    gap: 10px;
+  }
+
+  .task-main {
+    gap: 8px;
+  }
+
+  .task-title {
+    font-size: 12px;
+  }
+
+  .task-detail {
+    font-size: 10px;
+  }
+
+  .runtime-content {
+    padding: 14px;
+    gap: 14px;
+  }
 }

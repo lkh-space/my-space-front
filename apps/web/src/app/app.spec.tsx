@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import App from './app';
 
@@ -19,7 +19,7 @@ describe('App', () => {
       </BrowserRouter>,
     );
 
-    // 브랜드 로고명 (사이드바 및 상단 브레드크럼)
+    // 브랜드 로고명 (사이드바, 상단 브레드크럼, 모바일 헤더)
     const brandElements = screen.getAllByText('my-space');
     expect(brandElements.length).toBeGreaterThanOrEqual(1);
 
@@ -36,5 +36,23 @@ describe('App', () => {
 
     // 런타임 환경 상태 섹션 확인
     expect(screen.getByText('로컬 런타임 환경 상태')).toBeTruthy();
+  });
+
+  it('모바일 하단 바텀 네비게이션이 렌더링되어야 한다', () => {
+    render(
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>,
+    );
+
+    // BottomNavBar 요소 검증
+    const bottomNav = screen.getByRole('navigation', { name: '모바일 하단 네비게이션' });
+    expect(bottomNav).toBeTruthy();
+
+    // 모바일 바텀바 내부 탭 라벨 검증
+    expect(within(bottomNav).getByText('대시보드')).toBeTruthy();
+    expect(within(bottomNav).getByText('PDF 도구')).toBeTruthy();
+    expect(within(bottomNav).getByText('DBML')).toBeTruthy();
+    expect(within(bottomNav).getByText('문서')).toBeTruthy();
   });
 });

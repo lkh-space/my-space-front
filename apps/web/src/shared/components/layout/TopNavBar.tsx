@@ -28,18 +28,35 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({ onOpenCommandPalette }) =>
 
   return (
     <header className="top-navbar" aria-label="상단 네비게이션 헤더">
-      {/* 1. Breadcrumbs */}
+      {/* 1-A. Desktop & Tablet Breadcrumbs */}
       <div className="top-breadcrumbs">
         <span className="breadcrumb-root">my-space</span>
         <span className="breadcrumb-separator">/</span>
-        <span>{category}</span>
+        <span className="breadcrumb-category">{category}</span>
         <span className="breadcrumb-separator">/</span>
         <span className="breadcrumb-current">{page}</span>
       </div>
 
+      {/* 1-B. Mobile Brand & Terminal Trigger Header (Shown on < 768px) */}
+      <div className="top-mobile-brand">
+        <button
+          type="button"
+          className="mobile-terminal-btn"
+          onClick={onOpenCommandPalette}
+          title="명령어 검색 및 실행 (⌘K)"
+          aria-label="명령어 검색 팔레트 열기"
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+            terminal
+          </span>
+        </button>
+        <span className="mobile-brand-title">my-space</span>
+        <span className="mobile-brand-version">v0.1</span>
+      </div>
+
       {/* 2. Right Action Cluster */}
       <div className="top-actions-cluster">
-        {/* Language Switcher */}
+        {/* Language Switcher (Desktop & Tablet) */}
         <div className="lang-toggle-segment" role="group" aria-label="언어 선택">
           <button
             type="button"
@@ -59,10 +76,10 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({ onOpenCommandPalette }) =>
           </button>
         </div>
 
-        {/* Utility Action Buttons */}
+        {/* Desktop Terminal Command Button */}
         <button
           type="button"
-          className="header-icon-btn"
+          className="header-icon-btn desktop-only-action"
           onClick={onOpenCommandPalette}
           title="터미널 / 명령어 실행 (⌘K)"
           aria-label="명령어 실행창 열기"
@@ -72,6 +89,13 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({ onOpenCommandPalette }) =>
           </span>
         </button>
 
+        {/* Mobile Local Status Tag */}
+        <div className="mobile-local-tag" title="100% 로컬 격리 실행 중">
+          <span className="sidebar-status-dot" style={{ width: 6, height: 6 }} />
+          <span>LOCAL</span>
+        </div>
+
+        {/* Notifications Button */}
         <button
           type="button"
           className="header-icon-btn"
@@ -84,9 +108,10 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({ onOpenCommandPalette }) =>
           <span className="header-notification-dot" />
         </button>
 
+        {/* Dark Mode Icon */}
         <button
           type="button"
-          className="header-icon-btn"
+          className="header-icon-btn desktop-only-action"
           title="테마 (Deep Dark 모드 적용 중)"
           aria-label="테마 설정"
         >
@@ -95,10 +120,10 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({ onOpenCommandPalette }) =>
           </span>
         </button>
 
-        {/* Primary Action Button */}
+        {/* Primary Action Button (Desktop Only) */}
         <button
           type="button"
-          className="header-cta-btn"
+          className="header-cta-btn desktop-only-action"
           onClick={onOpenCommandPalette}
           aria-label="작업 실행"
         >

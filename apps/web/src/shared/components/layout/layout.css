@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Common Workspace Shell Layout Styles
+   Common Workspace Shell Layout Styles (Responsive)
    ========================================================================== */
 
 /* Shell Container */
@@ -9,7 +9,9 @@
   background-color: var(--background);
 }
 
-/* Side Navigation Bar */
+/* --------------------------------------------------------------------------
+   1. Side Navigation Bar
+   -------------------------------------------------------------------------- */
 .side-navbar {
   position: fixed;
   top: 0;
@@ -22,6 +24,7 @@
   flex-direction: column;
   z-index: 40;
   user-select: none;
+  transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .sidebar-header {
@@ -51,6 +54,7 @@
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 700;
+  flex-shrink: 0;
 }
 
 .brand-title-group {
@@ -173,6 +177,7 @@
   font-weight: 400;
   transition: all 0.12s ease;
   position: relative;
+  text-decoration: none;
 }
 
 .nav-tab-item:hover {
@@ -191,6 +196,7 @@
   font-size: 18px;
   color: var(--text-muted);
   transition: color 0.12s ease;
+  flex-shrink: 0;
 }
 
 .nav-tab-item.active .nav-tab-icon {
@@ -232,6 +238,7 @@
   height: 6px;
   border-radius: var(--radius-full);
   background-color: var(--secondary);
+  flex-shrink: 0;
 }
 
 .engine-runtime-meta {
@@ -241,13 +248,16 @@
   line-height: 1.4;
 }
 
-/* Main Canvas Content Area */
+/* --------------------------------------------------------------------------
+   2. Main Canvas Content Area
+   -------------------------------------------------------------------------- */
 .main-canvas-area {
   flex: 1;
   margin-left: var(--sidebar-width);
   display: flex;
   flex-direction: column;
   min-width: 0;
+  transition: margin-left 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Top Navigation Bar */
@@ -286,6 +296,15 @@
 .breadcrumb-current {
   color: var(--on-surface);
   font-weight: 500;
+}
+
+/* Mobile Brand Header elements (hidden on Desktop/Tablet) */
+.top-mobile-brand {
+  display: none;
+}
+
+.mobile-local-tag {
+  display: none;
 }
 
 .top-actions-cluster {
@@ -379,4 +398,233 @@
   max-width: 1440px;
   width: 100%;
   margin: 0 auto;
+}
+
+/* --------------------------------------------------------------------------
+   3. Mobile Bottom Navigation Bar (< 768px only)
+   -------------------------------------------------------------------------- */
+.bottom-navbar {
+  display: none;
+}
+
+/* --------------------------------------------------------------------------
+   4. Responsive Breakpoints: Tablet (768px ~ 1023px)
+   -------------------------------------------------------------------------- */
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* Tablet Icon-Only Sidebar (64px width) */
+  .side-navbar {
+    width: 64px;
+  }
+
+  .sidebar-header {
+    padding: var(--space-md) var(--space-xs);
+    justify-content: center;
+  }
+
+  .brand-wrapper {
+    justify-content: center;
+  }
+
+  .brand-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-lg);
+    font-size: 12px;
+  }
+
+  .brand-title-group,
+  .sidebar-status-tag,
+  .sidebar-command-trigger-wrap,
+  .nav-section-title,
+  .nav-tab-label,
+  .nav-tab-badge,
+  .telemetry-badge-text,
+  .engine-runtime-meta {
+    display: none !important;
+  }
+
+  .sidebar-nav-section {
+    padding: var(--space-sm) var(--space-xs);
+    align-items: center;
+  }
+
+  .nav-tab-item {
+    width: 44px;
+    height: 40px;
+    padding: 0;
+    justify-content: center;
+    border-radius: var(--radius-lg);
+  }
+
+  .nav-tab-icon {
+    font-size: 22px;
+  }
+
+  .sidebar-footer {
+    padding: var(--space-md) var(--space-xs);
+    align-items: center;
+    justify-content: center;
+  }
+
+  .telemetry-badge {
+    justify-content: center;
+  }
+
+  /* Tablet Canvas Offset */
+  .main-canvas-area {
+    margin-left: 64px;
+  }
+
+  .top-navbar {
+    padding: 0 var(--space-lg);
+  }
+
+  .header-cta-btn {
+    display: none;
+  }
+
+  .workspace-content {
+    padding: var(--space-lg);
+    max-width: 1024px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   5. Responsive Breakpoints: Mobile (< 768px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+  /* Hide Left Sidebar completely */
+  .side-navbar {
+    display: none !important;
+  }
+
+  /* Reset Canvas Offset */
+  .main-canvas-area {
+    margin-left: 0 !important;
+  }
+
+  /* Mobile Compact Header */
+  .top-navbar {
+    height: 48px;
+    padding: 0 12px;
+    background-color: rgba(26, 27, 34, 0.95);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--outline-variant);
+  }
+
+  .top-breadcrumbs,
+  .desktop-only-action,
+  .lang-toggle-segment {
+    display: none !important;
+  }
+
+  .top-mobile-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .mobile-terminal-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-md);
+    background-color: var(--surface-container-highest);
+    border: 1px solid var(--outline-variant);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.1s ease;
+  }
+
+  .mobile-terminal-btn:active {
+    transform: scale(0.92);
+  }
+
+  .mobile-brand-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--on-surface);
+    letter-spacing: -0.01em;
+  }
+
+  .mobile-brand-version {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    background-color: var(--surface-container);
+    border: 1px solid var(--outline-variant);
+    padding: 1px 5px;
+    border-radius: var(--radius-sm);
+  }
+
+  .mobile-local-tag {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    background-color: var(--surface-container-highest);
+    border: 1px solid var(--outline-variant);
+    color: var(--secondary);
+  }
+
+  /* Mobile Content Padding (pb-20 ensures no overlap with 56px bottom nav) */
+  .workspace-content {
+    padding: 16px 12px 80px 12px;
+    max-width: 640px;
+  }
+
+  /* Mobile Fixed Bottom Navigation Bar */
+  .bottom-navbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 56px;
+    background-color: var(--surface-container-lowest);
+    border-top: 1px solid var(--outline-variant);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 4px;
+    z-index: 50;
+    user-select: none;
+  }
+
+  .bottom-tab-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    flex: 1;
+    height: 100%;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.12s ease, transform 0.12s ease;
+  }
+
+  .bottom-tab-item:active {
+    transform: scale(0.94);
+  }
+
+  .bottom-tab-item.active {
+    color: var(--primary);
+  }
+
+  .bottom-tab-icon {
+    font-size: 20px;
+    line-height: 1;
+  }
+
+  .bottom-tab-label {
+    font-family: var(--font-sans);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
 }

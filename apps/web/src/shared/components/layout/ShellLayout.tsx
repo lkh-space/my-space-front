@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { Outlet } from 'react-router-dom';
 import { SideNavBar } from './SideNavBar';
 import { TopNavBar } from './TopNavBar';
+import { BottomNavBar } from './BottomNavBar';
 import { CommandPalette } from './CommandPalette';
 import './layout.css';
 
@@ -13,7 +14,6 @@ export const ShellLayout: React.FC = () => {
   }, []);
 
   const handleTasksCleared = useCallback(() => {
-    // 최근 작업 이력이 비워졌을 때 대시보드 화면 등이 즉시 반응할 수 있도록 이벤트 전파
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('recent-tasks-updated'));
     }
@@ -21,7 +21,7 @@ export const ShellLayout: React.FC = () => {
 
   return (
     <div className="shell-container">
-      {/* 1. Left Fixed Sidebar */}
+      {/* 1. Left Sidebar (Desktop 240px, Tablet 64px, Mobile Hidden) */}
       <SideNavBar onOpenCommandPalette={handleOpenCommandPalette} />
 
       {/* 2. Main Content Canvas */}
@@ -32,7 +32,10 @@ export const ShellLayout: React.FC = () => {
         </main>
       </div>
 
-      {/* 3. Global Command Palette Modal */}
+      {/* 3. Mobile Fixed Bottom Navigation Bar (< 768px only) */}
+      <BottomNavBar />
+
+      {/* 4. Global Command Palette Modal */}
       <CommandPalette
         open={commandPaletteOpen}
         onOpenChange={setCommandPaletteOpen}
