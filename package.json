@@ -6,7 +6,8 @@
     "dev": "nx serve @my-space-front/web",
     "build": "nx build @my-space-front/web",
     "lint": "nx lint @my-space-front/web",
-    "test": "nx test @my-space-front/web --run"
+    "test": "nx test @my-space-front/web --run",
+    "typecheck": "nx typecheck @my-space-front/web"
   },
   "private": true,
   "dependencies": {

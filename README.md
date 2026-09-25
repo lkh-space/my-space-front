@@ -58,6 +58,9 @@ pnpm start
 ### 3. 검증 및 빌드
 
 ```bash
+# 타입스크립트 정적 타입 검사
+pnpm typecheck
+
 # 단위 테스트 실행
 pnpm test
 

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { ShellLayout } from '../shared/components/layout/ShellLayout';
 import { DashboardPage } from '../pages/dashboard/DashboardPage';
