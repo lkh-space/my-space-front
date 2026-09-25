@@ -4,6 +4,7 @@ import { SideNavBar } from './SideNavBar';
 import { TopNavBar } from './TopNavBar';
 import { BottomNavBar } from './BottomNavBar';
 import { CommandPalette } from './CommandPalette';
+import { ErrorBoundary } from '../error/ErrorBoundary';
 import './layout.css';
 
 export const ShellLayout: React.FC = () => {
@@ -28,7 +29,9 @@ export const ShellLayout: React.FC = () => {
       <div className="main-canvas-area">
         <TopNavBar onOpenCommandPalette={handleOpenCommandPalette} />
         <main className="workspace-content bg-grid-dots">
-          <Outlet />
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
         </main>
       </div>
 

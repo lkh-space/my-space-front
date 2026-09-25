@@ -3,12 +3,13 @@ import {
   WORKSPACE_NAV_ENTRIES,
   INSTALLED_UTILITIES,
   getBreadcrumbByPath,
+  type WorkspaceNavEntry,
 } from './navigation';
 
 describe('navigation constants & utilities', () => {
   describe('WORKSPACE_NAV_ENTRIES', () => {
     it('필수 네비게이션 항목(대시보드, PDF, DBML, 문서)이 모두 정의되어 있어야 한다', () => {
-      const ids = WORKSPACE_NAV_ENTRIES.map((entry) => entry.id);
+      const ids = WORKSPACE_NAV_ENTRIES.map((entry: WorkspaceNavEntry) => entry.id);
       expect(ids).toContain('dashboard');
       expect(ids).toContain('pdf-tools');
       expect(ids).toContain('dbml-tools');
@@ -16,7 +17,7 @@ describe('navigation constants & utilities', () => {
     });
 
     it('각 네비게이션 항목은 필수 프로퍼티(id, path, title, icon 등)를 유효하게 포함해야 한다', () => {
-      WORKSPACE_NAV_ENTRIES.forEach((entry) => {
+      WORKSPACE_NAV_ENTRIES.forEach((entry: WorkspaceNavEntry) => {
         expect(entry.id).toBeTruthy();
         expect(entry.path).toMatch(/^\//);
         expect(entry.title).toBeTruthy();
@@ -30,14 +31,16 @@ describe('navigation constants & utilities', () => {
   describe('INSTALLED_UTILITIES', () => {
     it('isInstalledUtility가 true인 항목만 필터링되어야 한다', () => {
       expect(INSTALLED_UTILITIES.length).toBeGreaterThan(0);
-      INSTALLED_UTILITIES.forEach((utility) => {
+      INSTALLED_UTILITIES.forEach((utility: WorkspaceNavEntry) => {
         expect(utility.isInstalledUtility).toBe(true);
         expect(utility.utilityTitle).toBeTruthy();
         expect(utility.description).toBeTruthy();
       });
 
       // 대시보드는 설치된 유틸리티가 아님
-      const dashboardInUtils = INSTALLED_UTILITIES.find((u) => u.id === 'dashboard');
+      const dashboardInUtils = INSTALLED_UTILITIES.find(
+        (u: WorkspaceNavEntry) => u.id === 'dashboard',
+      );
       expect(dashboardInUtils).toBeUndefined();
     });
   });
