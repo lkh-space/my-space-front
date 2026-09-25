@@ -1,15 +1,39 @@
 <!doctype html>
-<html lang="en">
+<html lang="ko" class="dark">
   <head>
     <meta charset="utf-8" />
-    <title>Web</title>
+    <title>my-space | Personal Workspace</title>
     <base href="/" />
-
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+
+    <!-- Google Fonts Preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Fonts: Geist & JetBrains Mono -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Font: Pretendard for Korean glyphs -->
+    <link
+      rel="stylesheet"
+      as="style"
+      crossorigin
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+    />
+
+    <!-- Material Symbols Outlined -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+
     <link rel="stylesheet" href="/src/styles.css" />
   </head>
-  <body>
+  <body class="bg-background text-on-surface antialiased">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
