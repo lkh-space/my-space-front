@@ -634,3 +634,30 @@
     z-index: 30;
   }
 }
+
+/* --------------------------------------------------------------------------
+   8. Alert Banner (Success / Error)
+   -------------------------------------------------------------------------- */
+.pdf-alert-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  line-height: 1.5;
+  transition: all var(--motion-duration-short2) var(--motion-easing-standard);
+}
+
+.pdf-alert-banner.success {
+  background-color: rgba(128, 222, 234, 0.12);
+  border: 1px solid var(--primary);
+  color: var(--primary);
+}
+
+.pdf-alert-banner.error {
+  background-color: rgba(239, 83, 80, 0.12);
+  border: 1px solid var(--error, #ef5350);
+  color: var(--error, #ef5350);
+}
+

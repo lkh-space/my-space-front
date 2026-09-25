@@ -31,10 +31,15 @@ export const PdfFileCard: React.FC<PdfFileCardProps> = ({
             </span>
             <div className="pdf-file-meta-row">
               <span>{formatFileSize(file.size)}</span>
-              {file.pageCount !== undefined && (
+              {file.isInspecting && (
+                <span style={{ color: 'var(--on-surface-variant)' }}>
+                  • 검사 중...
+                </span>
+              )}
+              {!file.isInspecting && file.pageCount !== undefined && (
                 <span>• {file.pageCount} 페이지</span>
               )}
-              {file.isEncrypted && (
+              {!file.isInspecting && file.isEncrypted && (
                 <span style={{ color: 'var(--tertiary)' }}>• 암호화됨</span>
               )}
             </div>
