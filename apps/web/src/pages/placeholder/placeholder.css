@@ -1,0 +1,82 @@
+/* ==========================================================================
+   Placeholder & Status Card Styles
+   ========================================================================== */
+
+.status-page-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+  text-align: center;
+  background-color: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-xl);
+  margin-top: 24px;
+}
+
+.status-icon-box {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-xl);
+  background-color: var(--surface-container-highest);
+  border: 1px solid var(--outline-variant);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  margin-bottom: 16px;
+}
+
+.status-page-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--on-surface);
+  margin-bottom: 8px;
+}
+
+.status-page-desc {
+  font-size: 13px;
+  color: var(--on-surface-variant);
+  max-width: 420px;
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+.status-page-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  background-color: var(--surface-container-highest);
+  border: 1px solid var(--outline-variant);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--tertiary);
+  margin-bottom: 24px;
+}
+
+.status-page-badge .status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background-color: var(--tertiary);
+}
+
+.status-action-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background-color: var(--on-surface);
+  color: var(--surface-dim);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  transition: background-color 0.12s ease;
+}
+
+.status-action-link:hover {
+  background-color: #ffffff;
+}

@@ -1,0 +1,55 @@
+/* ==========================================================================
+   Not Found (404) Page Styles
+   ========================================================================== */
+
+.not-found-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+  text-align: center;
+  background-color: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-xl);
+  margin-top: 24px;
+}
+
+.not-found-code-hero {
+  font-family: var(--font-mono);
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--primary);
+  letter-spacing: -0.03em;
+  margin-bottom: 8px;
+}
+
+.not-found-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--on-surface);
+  margin-bottom: 8px;
+}
+
+.not-found-desc {
+  font-size: 13px;
+  color: var(--on-surface-variant);
+  margin-bottom: 24px;
+}
+
+.not-found-action-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background-color: var(--on-surface);
+  color: var(--surface-dim);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  transition: background-color 0.12s ease;
+}
+
+.not-found-action-link:hover {
+  background-color: #ffffff;
+}
