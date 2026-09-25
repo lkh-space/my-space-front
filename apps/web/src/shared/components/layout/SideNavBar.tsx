@@ -1,24 +1,10 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import { WORKSPACE_NAV_ENTRIES } from '../../constants/navigation';
 
 interface SideNavBarProps {
   onOpenCommandPalette: () => void;
 }
-
-interface NavItem {
-  to: string;
-  label: string;
-  icon: string;
-  badge?: string;
-  end?: boolean;
-}
-
-const NAV_ITEMS: NavItem[] = [
-  { to: '/', label: '대시보드', icon: 'dashboard', badge: 'Home', end: true },
-  { to: '/pdf-tools', label: 'PDF 유틸리티', icon: 'picture_as_pdf', badge: 'v1.2' },
-  { to: '/dbml-tools', label: 'DBML 유틸리티', icon: 'schema', badge: 'v0.9' },
-  { to: '/docs', label: '마크다운 문서', icon: 'description', badge: 'Docs' },
-];
 
 export const SideNavBar: React.FC<SideNavBarProps> = ({ onOpenCommandPalette }) => {
   return (
@@ -61,12 +47,12 @@ export const SideNavBar: React.FC<SideNavBarProps> = ({ onOpenCommandPalette }) 
       {/* 3. Navigation Links */}
       <nav className="sidebar-nav-section">
         <span className="nav-section-title">Utilities & Navigation</span>
-        {NAV_ITEMS.map((item) => (
+        {WORKSPACE_NAV_ENTRIES.map((item) => (
           <NavLink
-            key={item.to}
-            to={item.to}
+            key={item.id}
+            to={item.path}
             end={item.end}
-            title={item.label}
+            title={item.title}
             className={({ isActive }) =>
               `nav-tab-item ${isActive ? 'active' : ''}`
             }
@@ -74,7 +60,7 @@ export const SideNavBar: React.FC<SideNavBarProps> = ({ onOpenCommandPalette }) 
             <span className="material-symbols-outlined nav-tab-icon">
               {item.icon}
             </span>
-            <span className="nav-tab-label">{item.label}</span>
+            <span className="nav-tab-label">{item.title}</span>
             {item.badge && <span className="nav-tab-badge">{item.badge}</span>}
           </NavLink>
         ))}

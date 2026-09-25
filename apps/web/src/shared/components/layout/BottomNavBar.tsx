@@ -1,27 +1,14 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-
-interface BottomNavItem {
-  to: string;
-  label: string;
-  icon: string;
-  end?: boolean;
-}
-
-const BOTTOM_NAV_ITEMS: BottomNavItem[] = [
-  { to: '/', label: '대시보드', icon: 'dashboard', end: true },
-  { to: '/pdf-tools', label: 'PDF 도구', icon: 'picture_as_pdf' },
-  { to: '/dbml-tools', label: 'DBML', icon: 'schema' },
-  { to: '/docs', label: '문서', icon: 'description' },
-];
+import { WORKSPACE_NAV_ENTRIES } from '../../constants/navigation';
 
 export const BottomNavBar: React.FC = () => {
   return (
     <nav className="bottom-navbar" aria-label="모바일 하단 네비게이션">
-      {BOTTOM_NAV_ITEMS.map((item) => (
+      {WORKSPACE_NAV_ENTRIES.map((item) => (
         <NavLink
-          key={item.to}
-          to={item.to}
+          key={item.id}
+          to={item.path}
           end={item.end}
           className={({ isActive }) =>
             `bottom-tab-item ${isActive ? 'active' : ''}`
@@ -37,7 +24,7 @@ export const BottomNavBar: React.FC = () => {
               >
                 {item.icon}
               </span>
-              <span className="bottom-tab-label">{item.label}</span>
+              <span className="bottom-tab-label">{item.shortLabel}</span>
             </>
           )}
         </NavLink>

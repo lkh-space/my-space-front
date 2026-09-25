@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Command } from 'cmdk';
 import { useNavigate } from 'react-router-dom';
 import { clearRecentTasks } from '../../utils/storage';
+import { WORKSPACE_NAV_ENTRIES } from '../../constants/navigation';
 
 interface CommandPaletteProps {
   open: boolean;
@@ -78,49 +79,19 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           </Command.Empty>
 
           <Command.Group heading="도구 및 워크스페이스 바로가기">
-            <Command.Item
-              className="cmdk-item"
-              onSelect={() => handleSelectRoute('/')}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-                dashboard
-              </span>
-              <span>대시보드 (Workspace Overview)</span>
-              <span className="cmdk-item-badge">/</span>
-            </Command.Item>
-
-            <Command.Item
-              className="cmdk-item"
-              onSelect={() => handleSelectRoute('/pdf-tools')}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-                picture_as_pdf
-              </span>
-              <span>PDF 처리 엔진 (Merge, Split, Compress)</span>
-              <span className="cmdk-item-badge">/pdf-tools</span>
-            </Command.Item>
-
-            <Command.Item
-              className="cmdk-item"
-              onSelect={() => handleSelectRoute('/dbml-tools')}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-                schema
-              </span>
-              <span>DBML 스키마 변환기 (PostgreSQL, MySQL, DDL)</span>
-              <span className="cmdk-item-badge">/dbml-tools</span>
-            </Command.Item>
-
-            <Command.Item
-              className="cmdk-item"
-              onSelect={() => handleSelectRoute('/docs')}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-                description
-              </span>
-              <span>마크다운 문서 뷰어</span>
-              <span className="cmdk-item-badge">/docs</span>
-            </Command.Item>
+            {WORKSPACE_NAV_ENTRIES.map((entry) => (
+              <Command.Item
+                key={entry.id}
+                className="cmdk-item"
+                onSelect={() => handleSelectRoute(entry.path)}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+                  {entry.icon}
+                </span>
+                <span>{entry.commandDescription}</span>
+                <span className="cmdk-item-badge">{entry.path}</span>
+              </Command.Item>
+            ))}
           </Command.Group>
 
           <Command.Group heading="시스템 및 데이터 관리">

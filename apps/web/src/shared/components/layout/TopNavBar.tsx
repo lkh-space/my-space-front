@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import { getBreadcrumbByPath } from '../../constants/navigation';
 
 interface TopNavBarProps {
   onOpenCommandPalette: () => void;
@@ -9,22 +10,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({ onOpenCommandPalette }) =>
   const location = useLocation();
   const [lang, setLang] = useState<'KR' | 'EN'>('KR');
 
-  const getBreadcrumbLabel = (pathname: string): { category: string; page: string } => {
-    switch (pathname) {
-      case '/':
-        return { category: '워크스페이스', page: '대시보드' };
-      case '/pdf-tools':
-        return { category: '유틸리티', page: 'PDF 처리 엔진' };
-      case '/dbml-tools':
-        return { category: '유틸리티', page: 'DBML 스키마' };
-      case '/docs':
-        return { category: '워크스페이스', page: '마크다운 문서' };
-      default:
-        return { category: '탐색', page: '페이지' };
-    }
-  };
-
-  const { category, page } = getBreadcrumbLabel(location.pathname);
+  const { category, page } = getBreadcrumbByPath(location.pathname);
 
   return (
     <header className="top-navbar" aria-label="상단 네비게이션 헤더">

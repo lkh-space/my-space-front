@@ -21,14 +21,4 @@ export interface RuntimeMetrics {
   telemetryMode: string;
 }
 
-export interface InstalledUtility {
-  id: string;
-  title: string;
-  titleEn: string;
-  description: string;
-  icon: string;
-  path: string;
-  statusTag: string;
-  lastUsed: string;
-  version: string;
-}
+export type { WorkspaceNavEntry } from '../constants/navigation';
