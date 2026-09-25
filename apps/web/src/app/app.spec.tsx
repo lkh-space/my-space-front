@@ -2,22 +2,23 @@ import { render, screen, within } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import App from './app';
 
+const routerFutureConfig = {
+  v7_startTransition: true,
+  v7_relativeSplatPath: true,
+} as const;
+
+function renderWithRouter(ui: React.ReactElement) {
+  return render(<BrowserRouter future={routerFutureConfig}>{ui}</BrowserRouter>);
+}
+
 describe('App', () => {
   it('성공적으로 셸 레이아웃 및 대시보드를 렌더링해야 한다', () => {
-    const { baseElement } = render(
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>,
-    );
+    const { baseElement } = renderWithRouter(<App />);
     expect(baseElement).toBeTruthy();
   });
 
   it('사이드바 브랜드명과 워크스페이스 개요 헤딩이 표시되어야 한다', () => {
-    render(
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>,
-    );
+    renderWithRouter(<App />);
 
     // 브랜드 로고명 (사이드바, 상단 브레드크럼, 모바일 헤더)
     const brandElements = screen.getAllByText('my-space');
@@ -39,11 +40,7 @@ describe('App', () => {
   });
 
   it('모바일 하단 바텀 네비게이션이 렌더링되어야 한다', () => {
-    render(
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>,
-    );
+    renderWithRouter(<App />);
 
     // BottomNavBar 요소 검증
     const bottomNav = screen.getByRole('navigation', { name: '모바일 하단 네비게이션' });
