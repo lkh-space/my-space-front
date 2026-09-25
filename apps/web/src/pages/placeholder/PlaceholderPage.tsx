@@ -16,9 +16,7 @@ export const PlaceholderPage: React.FC<PlaceholderPageProps> = ({
   return (
     <div className="status-page-card">
       <div className="status-icon-box">
-        <span className="material-symbols-outlined" style={{ fontSize: 28 }}>
-          {icon}
-        </span>
+        <span className="material-symbols-outlined">{icon}</span>
       </div>
 
       <h1 className="status-page-title">{title}</h1>
@@ -31,9 +29,7 @@ export const PlaceholderPage: React.FC<PlaceholderPageProps> = ({
       </div>
 
       <Link to="/" className="status-action-link">
-        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-          arrow_back
-        </span>
+        <span className="material-symbols-outlined">arrow_back</span>
         <span>대시보드로 돌아가기</span>
       </Link>
     </div>

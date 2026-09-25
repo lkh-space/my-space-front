@@ -35,7 +35,7 @@ export const SideNavBar: React.FC<SideNavBarProps> = ({ onOpenCommandPalette }) 
           aria-label="명령어 검색 팔레트 열기 (단축키 ⌘K)"
         >
           <div className="command-trigger-left">
-            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+            <span className="material-symbols-outlined">
               search
             </span>
             <span>도구 및 명령어 검색...</span>

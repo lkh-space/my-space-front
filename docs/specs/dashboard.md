@@ -1,14 +1,14 @@
 ---
-status: review
+status: implemented
 owner: Keunhyeok Lim
-last-updated: 2026-09-24
+last-updated: 2026-09-25
 ---
 
 # 대시보드 및 워크스페이스 셸 사양서 (Dashboard & Workspace Shell Specification)
 
 ## 1. 개요 (Summary)
 
-`my-space` 개인 개발자 워크스페이스의 진입점이자 홈 화면인 **대시보드(Dashboard)**와 전체 웹 애플리케이션의 뼈대를 이루는 **공통 네비게이션 셸(SideNavBar + TopNavBar)**의 사용자 요구사항, 인터랙션 흐름 및 컴포넌트 구조를 정의합니다.
+`my-space` 개인 개발자 워크스페이스의 진입점이자 홈 화면인 **대시보드(Dashboard)**와 전체 웹 애플리케이션의 뼈대를 이루는 **공통 네비게이션 셸(SideNavBar + TopNavBar + BottomNavBar)**의 사용자 요구사항, 인터랙션 흐름 및 컴포넌트 구조를 정의합니다.
 
 사용자는 대시보드를 통해 설치된 로컬 유틸리티(PDF, DBML, 마크다운 등)를 한눈에 파악하고 즉시 실행할 수 있으며, 시스템 리소스 및 최근 작업 이력을 직관적으로 모니터링할 수 있습니다.
 
@@ -20,11 +20,12 @@ last-updated: 2026-09-24
 
 ### 목표 (Goals)
 * **공통 워크스페이스 셸 (Workspace Shell)**:
-  * 좌측 고정 사이드바(`SideNavBar`, 너비 240px)와 상단 고정 헤더(`TopNavBar`, 높이 48px)를 모든 하위 페이지에 일관되게 제공하는 레이아웃 구조 확립
+  * 좌측 고정 사이드바(`SideNavBar`, 너비 240px)와 상단 고정 헤더(`TopNavBar`, 높이 48px), 모바일 하단 네비게이션(`BottomNavBar`, 높이 56px)을 제공하는 레이아웃 구조 확립
   * React Router 6 기반의 중첩 라우팅(`ShellLayout` 및 `<Outlet />`) 구성
 * **네비게이션 및 라우팅 (Navigation & Routing)**:
   * 대시보드(`/`), PDF 유틸리티(`/pdf-tools`), DBML 유틸리티(`/dbml-tools` - 준비 중), 마크다운 문서(`/docs` - 준비 중) 탭 간 매끄러운 화면 전환
-  * 현재 위치한 경로에 따른 사이드바 탭의 활성(Active) 상태 자동 시각화
+  * 공통 네비게이션 메타데이터 단일 레지스트리(`WORKSPACE_NAV_ENTRIES`)를 통한 일관된 라우트, 브레드크럼, 커맨드 팔레트 메타데이터 관리
+  * 현재 위치한 경로에 따른 사이드바 및 바텀 네비게이션 탭의 활성(Active) 상태 자동 시각화
 * **퀵 커맨드 팔레트 (Quick Command & Palette)**:
   * 사이드바 내 검색창 형태의 퀵 커맨드 버튼 및 단축키 배지(`<kbd>⌘K</kbd>`) 노출
   * 키보드 단축키(`⌘K` / `Ctrl+K`) 입력 또는 버튼 클릭 시 열리는 경량 커맨드 팔레트(`cmdk` 기반) 모달 연동
@@ -74,15 +75,17 @@ ShellLayout (전체 웹 애플리케이션 최상위 공통 셸)
  ├── TopNavBar (상단 48px 고정 헤더)
  │    ├── BreadcrumbNav (my-space / 워크스페이스 / 대시보드)
  │    └── TopActionCluster (KR/EN 토글, 터미널/알림/테마 아이콘, Docs 버튼, 작업 실행 CTA)
- └── MainCanvas (본문 영역, pl-60 오프셋, max-w-7xl 중앙 정렬)
-      └── <Outlet />
-           └── DashboardPage (대시보드 메인 뷰)
-                ├── WorkspaceHeader (H1 '워크스페이스 개요', 로컬 격리 환경 태그)
-                ├── InstalledUtilitiesSection (3열 벤토 그리드: PDF, DBML, Markdown)
-                │    └── UtilityCard (아이콘, 최근 사용, 설명, 태그, 실행 링크)
-                └── MonitoringSplitSection (6:4 분할 그리드)
-                     ├── RecentTasksCard (좌측 7열: 최근 로컬 작업 리스트)
-                     └── RuntimeEnvironmentCard (우측 5열: 메모리/캐시 미세 프로그레스 바)
+ ├── MainCanvas (본문 캔버스 영역)
+ │    └── <Outlet />
+ │         ├── DashboardPage (대시보드 메인 뷰)
+ │         │    ├── WorkspaceHeader (H1 '워크스페이스 개요', 로컬 격리 환경 태그)
+ │         │    ├── InstalledUtilitiesGrid (3열 벤토 그리드: PDF, DBML, Markdown)
+ │         │    └── SplitMonitoringSection (6:4 분할 그리드)
+ │         │         ├── RecentTasksCard (최근 로컬 작업 리스트 및 비우기 액션)
+ │         │         └── RuntimeEnvironmentCard (메모리/캐시 프로그레스 바)
+ │         ├── PlaceholderPage (준비 중인 도구 안내 뷰: PDF, DBML, Docs)
+ │         └── NotFoundPage (404 안내 뷰)
+ └── BottomNavBar (모바일 전용 56px 하단 네비게이션)
 ```
 
 ### 4.2. UI 상태 매트릭스 (UI States)
@@ -90,56 +93,67 @@ ShellLayout (전체 웹 애플리케이션 최상위 공통 셸)
 | 상태 | 화면 표현 및 동작 |
 |---|---|
 | **기본 대시보드 뷰 (Ready)** | 셸과 3열 벤토 그리드, 최근 작업 내역, 런타임 지표가 모두 정상 렌더링됨 |
-| **최근 작업 내역 없음 (Empty)** | 최근 작업 목록 대신 "최근 수행된 로컬 작업이 없습니다" 안내 문구 노출 |
-| **엔진 오프라인 (Offline/Error)** | 사이드바 하단 엔진 상태 점이 회색/적색으로 변경되고 '로컬 엔진 중단됨' 표시 |
+| **최근 작업 내역 없음 (Empty)** | 최근 작업 목록 대신 "최근 실행된 로컬 작업 이력이 없습니다" 안내 문구 및 inbox 아이콘 노출 |
+| **도구 준비 중 (Placeholder)** | 해당 도구의 명칭, 아이콘, 안내 문구와 함께 "다음 단계에서 구현 예정" 뱃지 노출 |
+| **잘못된 경로 (404 NotFound)** | "요청하신 페이지를 찾을 수 없습니다" 문구 및 대시보드로 돌아가기 링크 노출 |
 
 ---
 
 ## 5. 클라이언트 상태 및 데이터 흐름 (State & Data Flow)
 
-### 5.1. 라우팅 구조 (React Router 6)
+### 5.1. 네비게이션 메타데이터 레지스트리 단일화 (`navigation.ts`)
 
 ```typescript
-// 앱 전역 라우트 구성 규격
-export const appRoutes = [
-  {
-    path: '/',
-    element: <ShellLayout />,
-    children: [
-      { index: true, element: <DashboardPage /> },
-      { path: 'pdf-tools', element: <PdfToolsPage /> },
-      { path: 'dbml-tools', element: <PlaceholderPage title="DBML 유틸리티" /> },
-      { path: 'docs', element: <PlaceholderPage title="마크다운 문서" /> },
-      { path: '*', element: <NotFoundPage /> },
-    ],
-  },
-];
+export interface WorkspaceNavEntry {
+  id: string;
+  path: string;
+  title: string;
+  shortLabel: string;
+  icon: string;
+  category: '워크스페이스' | '유틸리티' | '시스템' | '탐색';
+  breadcrumbPage: string;
+  badge?: string;
+  end?: boolean;
+  commandDescription: string;
+  isInstalledUtility: boolean;
+  utilityTitle?: string;
+  description?: string;
+  statusTag?: string;
+  lastUsed?: string;
+}
+
+// 벤토 그리드 노출 유틸리티 목록
+export const INSTALLED_UTILITIES = WORKSPACE_NAV_ENTRIES.filter(
+  (entry) => entry.isInstalledUtility
+);
+
+// URL 경로(pathname)에 대응하는 브레드크럼 정보 반환
+export function getBreadcrumbByPath(pathname: string): {
+  category: string;
+  page: string;
+};
 ```
 
-### 5.2. 대시보드 데이터 모델
+### 5.2. 최근 작업 이력 영속화 모델 및 유틸리티 (`storage.ts`)
 
 ```typescript
 export interface RecentTaskItem {
   id: string;
-  toolType: 'pdf' | 'dbml' | 'markdown' | 'system';
   title: string;
-  statusBadge: string;
-  description: string;
+  type: 'pdf' | 'dbml' | 'markdown';
+  status: 'COMPLETED' | 'FAILED' | 'PROCESSING';
   timestamp: string;
+  detail?: string;
 }
 
 // LocalStorage 영속화 키 및 정책
-export const RECENT_TASKS_STORAGE_KEY = 'my-space:recent-tasks';
-export const MAX_RECENT_TASKS_COUNT = 10;
+export const STORAGE_KEY = 'my-space:recent-tasks';
+export const MAX_TASKS = 10;
 
-export interface RuntimeMetrics {
-  storageCacheUsedMB: number;
-  storageCacheTotalMB: number;
-  wasmHeapUsedMB: number;
-  wasmHeapTotalMB: number;
-  isEngineActive: boolean;
-  engineVersion: string;
-}
+// 스토리지 접근 유틸리티 함수
+export function getRecentTasks(): RecentTaskItem[];
+export function addRecentTask(item: Omit<RecentTaskItem, 'id' | 'timestamp'>): RecentTaskItem[];
+export function clearRecentTasks(): RecentTaskItem[];
 ```
 
 ---

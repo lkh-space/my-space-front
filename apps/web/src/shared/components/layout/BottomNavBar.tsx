@@ -14,19 +14,10 @@ export const BottomNavBar: React.FC = () => {
             `bottom-tab-item ${isActive ? 'active' : ''}`
           }
         >
-          {({ isActive }) => (
-            <>
-              <span
-                className="material-symbols-outlined bottom-tab-icon"
-                style={{
-                  fontVariationSettings: isActive ? "'FILL' 1, 'wght' 400" : "'FILL' 0, 'wght' 400",
-                }}
-              >
-                {item.icon}
-              </span>
-              <span className="bottom-tab-label">{item.shortLabel}</span>
-            </>
-          )}
+          <span className="material-symbols-outlined bottom-tab-icon">
+            {item.icon}
+          </span>
+          <span className="bottom-tab-label">{item.shortLabel}</span>
         </NavLink>
       ))}
     </nav>

@@ -11,7 +11,7 @@ export const RecentTasksCard: React.FC<RecentTasksCardProps> = ({ tasks, onClear
     <div className="monitoring-card" aria-label="최근 로컬 작업 이력 패널">
       <div className="monitoring-card-header">
         <h2>
-          <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--text-muted)' }}>
+          <span className="material-symbols-outlined">
             history
           </span>
           <span>최근 로컬 작업 이력</span>
@@ -24,7 +24,7 @@ export const RecentTasksCard: React.FC<RecentTasksCardProps> = ({ tasks, onClear
             title="모든 로컬 작업 이력 삭제"
             aria-label="기록 비우기"
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+            <span className="material-symbols-outlined">
               delete_sweep
             </span>
             <span>기록 비우기</span>
@@ -34,7 +34,7 @@ export const RecentTasksCard: React.FC<RecentTasksCardProps> = ({ tasks, onClear
 
       {tasks.length === 0 ? (
         <div className="empty-tasks-view">
-          <span className="material-symbols-outlined" style={{ fontSize: 32, opacity: 0.5 }}>
+          <span className="material-symbols-outlined">
             inbox
           </span>
           <p>최근 실행된 로컬 작업 이력이 없습니다.</p>

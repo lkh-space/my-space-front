@@ -14,22 +14,13 @@ export const RuntimeEnvironmentCard: React.FC = () => {
     <div className="monitoring-card" aria-label="로컬 런타임 환경 상태 패널">
       <div className="monitoring-card-header">
         <h2>
-          <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--text-muted)' }}>
+          <span className="material-symbols-outlined">
             memory
           </span>
           <span>로컬 런타임 환경 상태</span>
         </h2>
-        <span
-          style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: '10px',
-            color: 'var(--secondary)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 4,
-          }}
-        >
-          <span className="sidebar-status-dot" style={{ width: 5, height: 5 }} />
+        <span className="runtime-status-tag">
+          <span className="sidebar-status-dot runtime-status-dot" />
           ACTIVE
         </span>
       </div>

@@ -28,6 +28,10 @@
   margin-bottom: 16px;
 }
 
+.status-icon-box .material-symbols-outlined {
+  font-size: 28px;
+}
+
 .status-page-title {
   font-size: 20px;
   font-weight: 600;
@@ -75,6 +79,10 @@
   font-size: 13px;
   font-weight: 600;
   transition: background-color 0.12s ease;
+}
+
+.status-action-link .material-symbols-outlined {
+  font-size: 16px;
 }
 
 .status-action-link:hover {

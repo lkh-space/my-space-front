@@ -134,6 +134,10 @@
   gap: 6px;
 }
 
+.command-trigger-left .material-symbols-outlined {
+  font-size: 16px;
+}
+
 .command-kbd {
   font-family: var(--font-mono);
   font-size: 10px;
@@ -357,6 +361,10 @@
   color: var(--on-surface);
 }
 
+.header-icon-btn .material-symbols-outlined {
+  font-size: 18px;
+}
+
 .header-notification-dot {
   position: absolute;
   top: 6px;
@@ -542,6 +550,10 @@
     transform: scale(0.92);
   }
 
+  .mobile-terminal-btn .material-symbols-outlined {
+    font-size: 18px;
+  }
+
   .mobile-brand-title {
     font-size: 14px;
     font-weight: 600;
@@ -619,6 +631,11 @@
   .bottom-tab-icon {
     font-size: 20px;
     line-height: 1;
+    font-variation-settings: 'FILL' 0, 'wght' 400;
+  }
+
+  .bottom-tab-item.active .bottom-tab-icon {
+    font-variation-settings: 'FILL' 1, 'wght' 400;
   }
 
   .bottom-tab-label {

@@ -24,7 +24,7 @@ export const InstalledUtilitiesGrid: React.FC = () => {
             >
               <div className="utility-card-top">
                 <div className={`utility-icon-box ${iconThemeClass}`}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
+                  <span className="material-symbols-outlined">
                     {util.icon}
                   </span>
                 </div>
@@ -38,7 +38,7 @@ export const InstalledUtilitiesGrid: React.FC = () => {
                 <span>{util.lastUsed}</span>
                 <span className="utility-action-link">
                   <span>도구 열기</span>
-                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                  <span className="material-symbols-outlined">
                     arrow_forward
                   </span>
                 </span>

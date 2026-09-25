@@ -62,7 +62,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         label="my-space 커맨드 메뉴"
       >
         <div className="cmdk-input-wrapper">
-          <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--text-muted)' }}>
+          <span className="material-symbols-outlined">
             search
           </span>
           <Command.Input
@@ -85,7 +85,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                 className="cmdk-item"
                 onSelect={() => handleSelectRoute(entry.path)}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+                <span className="material-symbols-outlined">
                   {entry.icon}
                 </span>
                 <span>{entry.commandDescription}</span>
@@ -99,7 +99,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
               className="cmdk-item"
               onSelect={handleClearHistory}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--error)' }}>
+              <span className="material-symbols-outlined cmdk-item-danger-icon">
                 delete_sweep
               </span>
               <span>최근 작업 이력 모두 비우기 (Clear Local Storage)</span>

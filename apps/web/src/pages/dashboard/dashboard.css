@@ -105,6 +105,10 @@
   border: 1px solid var(--outline-variant);
 }
 
+.utility-icon-box .material-symbols-outlined {
+  font-size: 20px;
+}
+
 .utility-icon-box.pdf {
   color: #ff7568;
 }
@@ -160,6 +164,10 @@
   font-weight: 500;
 }
 
+.utility-action-link .material-symbols-outlined {
+  font-size: 14px;
+}
+
 /* --------------------------------------------------------------------------
    3. Split Monitoring Section
    -------------------------------------------------------------------------- */
@@ -196,6 +204,25 @@
   gap: 8px;
 }
 
+.monitoring-card-header h2 .material-symbols-outlined {
+  font-size: 18px;
+  color: var(--text-muted);
+}
+
+.runtime-status-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--secondary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.runtime-status-dot {
+  width: 5px;
+  height: 5px;
+}
+
 .header-action-btn {
   display: flex;
   align-items: center;
@@ -205,6 +232,10 @@
   padding: 4px 8px;
   border-radius: var(--radius-sm);
   transition: all 0.12s ease;
+}
+
+.header-action-btn .material-symbols-outlined {
+  font-size: 14px;
 }
 
 .header-action-btn:hover {
@@ -317,6 +348,11 @@
   flex-direction: column;
   align-items: center;
   gap: 8px;
+}
+
+.empty-tasks-view .material-symbols-outlined {
+  font-size: 32px;
+  opacity: 0.5;
 }
 
 /* Runtime Environment Card */

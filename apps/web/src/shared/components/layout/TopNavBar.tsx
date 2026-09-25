@@ -32,7 +32,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({ onOpenCommandPalette }) =>
           title="명령어 검색 및 실행 (⌘K)"
           aria-label="명령어 검색 팔레트 열기"
         >
-          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+          <span className="material-symbols-outlined">
             terminal
           </span>
         </button>
@@ -70,14 +70,14 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({ onOpenCommandPalette }) =>
           title="터미널 / 명령어 실행 (⌘K)"
           aria-label="명령어 실행창 열기"
         >
-          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+          <span className="material-symbols-outlined">
             terminal
           </span>
         </button>
 
         {/* Mobile Local Status Tag */}
         <div className="mobile-local-tag" title="100% 로컬 격리 실행 중">
-          <span className="sidebar-status-dot" style={{ width: 6, height: 6 }} />
+          <span className="sidebar-status-dot" />
           <span>LOCAL</span>
         </div>
 
@@ -88,7 +88,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({ onOpenCommandPalette }) =>
           title="시스템 알림"
           aria-label="시스템 알림"
         >
-          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+          <span className="material-symbols-outlined">
             notifications
           </span>
           <span className="header-notification-dot" />
@@ -101,7 +101,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({ onOpenCommandPalette }) =>
           title="테마 (Deep Dark 모드 적용 중)"
           aria-label="테마 설정"
         >
-          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+          <span className="material-symbols-outlined">
             dark_mode
           </span>
         </button>

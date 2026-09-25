@@ -47,6 +47,6 @@
 
 | 스펙 문서 | 기능/화면 요약 | 상태 |
 | :--- | :--- | :--- |
-| [dashboard](./dashboard.md) | 대시보드 및 공통 워크스페이스 셸 사양서 (네비게이션 셸, 벤토 그리드, 분할 모니터링) | review |
-| [responsive-layout](./responsive-layout.md) | 반응형 워크스페이스 셸 및 대시보드 사양서 (Desktop/Tablet/Mobile 셸 전환, 바텀바, 그리드 리플로우) | review |
+| [dashboard](./dashboard.md) | 대시보드 및 공통 워크스페이스 셸 사양서 (네비게이션 셸, 벤토 그리드, 분할 모니터링) | implemented |
+| [responsive-layout](./responsive-layout.md) | 반응형 워크스페이스 셸 및 대시보드 사양서 (Desktop/Tablet/Mobile 셸 전환, 바텀바, 그리드 리플로우) | implemented |
 | [pdf-tools](./pdf-tools.md) | PDF 조작 유틸리티 화면 및 인터랙션 사양서 (병합, 범위/전체 분할, 암호 해제) | review |

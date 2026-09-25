@@ -1,5 +1,5 @@
 ---
-status: review
+status: implemented
 owner: limkeunhyeok
 last-updated: 2026-09-25
 ---

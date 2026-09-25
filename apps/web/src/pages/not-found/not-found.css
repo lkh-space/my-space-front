@@ -50,6 +50,10 @@
   transition: background-color 0.12s ease;
 }
 
+.not-found-action-link .material-symbols-outlined {
+  font-size: 16px;
+}
+
 .not-found-action-link:hover {
   background-color: #ffffff;
 }
