@@ -1,7 +1,7 @@
 ---
-status: review
+status: implemented
 owner: Keunhyeok Lim
-last-updated: 2026-09-24
+last-updated: 2026-09-26
 ---
 
 # PDF 유틸리티 화면 및 인터랙션 사양서 (PDF Tools Specification)
@@ -24,7 +24,7 @@ last-updated: 2026-09-24
   2. **범위 분할 (Split by Range)**: 페이지 범위(예: `1-3, 5`) 입력 및 특정 페이지 추출 다운로드
   3. **낱장 분할 (Split to Pages)**: 전체 페이지를 낱장 PDF로 분할한 ZIP 아카이브 다운로드
   4. **암호 해제 (Unlock)**: 비밀번호로 보호된 PDF의 비밀번호 입력 및 암호 없는 PDF 다운로드
-* **암호화된 PDF 처리**: 암호화된 파일 감지 시 비밀번호 입력 인라인 폼 및 실시간 유효성 피드백 제공
+* **암호화된 PDF 처리**: 암호화된 파일 감지 시 비밀번호 입력 인라인 폼 제공 및 작업 실행 시 최종 검증 피드백 제공
 * **반응형 처리 상태 피드백**: 업로드/변환 진행 중 로딩 스피너 및 에러 토스트 제공
 * **브라우저 스트림 다운로드**: 백엔드로부터 수신한 바이너리(`Blob`)를 브라우저 파일 다운로드로 즉각 트리거
 
@@ -48,7 +48,7 @@ last-updated: 2026-09-24
 ### 세부 사용자 흐름 (Interaction Details)
 * **암호화된 PDF 감지 흐름**:
   * 사용자가 암호화된 PDF를 올리면 사전 검사 응답(`isEncrypted: true`)에 따라 파일 프리뷰 카드에 자물쇠 아이콘과 함께 비밀번호 입력 필드가 노출됩니다.
-  * 비밀번호 입력 후 포커스를 벗어나거나 엔터를 누르면 `/inspect` API를 재호출하여 비밀번호 일치 여부(`isPasswordValid`)를 실시간 검증합니다.
+  * 입력된 비밀번호는 클라이언트 상태에 안전하게 보관되며, 불필요한 반복 네트워크 요청을 방지하기 위해 '작업 실행' 버튼을 누를 때 최종적으로 백엔드로 전송하여 일괄 검증합니다.
 
 ---
 
@@ -188,5 +188,5 @@ export function triggerFileDownload(blob: Blob, filename: string): void {
 
 ## 8. 오픈 질문 (Open Questions)
 
-* [x] **백엔드 통신 및 CORS 해결 방식**: Vite 개발 서버 프록시 규칙(`/api` -> `http://localhost:8080`)으로 해결 확정 ([ADR-0001](../adr/0001-api-client-and-proxy-strategy.md)).
+* [x] **백엔드 통신 및 CORS 해결 방식**: Vite 개발 서버 프록시 규칙(`/api` -> 환경 변수 및 인프라 구성 기반 로컬 백엔드 서버)으로 해결 확정 ([ADR-0001](../adr/0001-api-client-and-proxy-strategy.md)).
 * [ ] **다운로드 기본 파일명 규칙**: 병합 시 `merged.pdf` 외에 사용자가 파일명을 직접 지정할 수 있는 옵션 필드를 2차 개선 단계에 추가할지 여부 검토.

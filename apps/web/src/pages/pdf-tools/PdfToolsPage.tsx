@@ -46,6 +46,7 @@ function getDomainErrorMessage(err: unknown): string {
         return '유효하지 않은 페이지 범위입니다. 문서의 총 페이지 수 내에서 올바른 형식(예: 1-3, 5)으로 입력해 주세요.';
       case 'PDF_FILE_SIZE_EXCEEDED':
         return '파일 용량 한도(단일 파일 50MB, 총합 100MB)를 초과했습니다.';
+      case 'PDF_FILE_CORRUPTED':
       case 'PDF_CORRUPTED_FILE':
         return '손상되었거나 유효한 PDF 파일 형식(%PDF-)이 아닙니다.';
       default:
@@ -85,7 +86,10 @@ export const PdfToolsPage: React.FC = () => {
         ),
       );
     } catch (err) {
-      if (err instanceof ApiError && err.code === 'PDF_CORRUPTED_FILE') {
+      if (
+        err instanceof ApiError &&
+        (err.code === 'PDF_FILE_CORRUPTED' || err.code === 'PDF_CORRUPTED_FILE')
+      ) {
         // 손상된 파일인 경우 목록에서 제거하고 에러 알림
         setFiles((prev) => prev.filter((f) => f.id !== fileItem.id));
         setAlert({

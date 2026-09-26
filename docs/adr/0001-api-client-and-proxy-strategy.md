@@ -9,7 +9,7 @@ decision-makers: [Keunhyeok Lim]
 
 ## 맥락과 문제 정의 (Context and Problem Statement)
 
-`my-space-frontend`는 백엔드(`my-space-backend`)와 독립된 저장소로 분리되어 있으며, 로컬 개발 환경에서 각각 다른 포트(Vite Web App: `4200`, NestJS Backend: `8080`)로 실행됩니다. 첫 번째 기능인 PDF 유틸리티(`pdf-tools`)를 비롯하여 향후 백엔드 API(`/api/v1/*`)와 통신할 때, 브라우저의 교차 출처 리소스 공유(CORS) 문제를 해결하고 프로덕션 환경(Kubernetes Ingress / Authelia 인증 체계)과 일관된 통신 경로를 확보해야 합니다.
+`my-space-frontend`는 백엔드(`my-space-backend`)와 독립된 저장소로 분리되어 있으며, 로컬 개발 환경에서 각각 다른 포트(Vite Web App: `4200`, NestJS Backend: 환경 변수(`.env`) 및 인프라 설정에 따라 가변)로 실행됩니다. 첫 번째 기능인 PDF 유틸리티(`pdf-tools`)를 비롯하여 향후 백엔드 API(`/api/v1/*`)와 통신할 때, 브라우저의 교차 출처 리소스 공유(CORS) 문제를 해결하고 프로덕션 환경(Kubernetes Ingress / Authelia 인증 체계)과 일관된 통신 경로를 확보해야 합니다.
 
 프론트엔드에서 백엔드 API를 호출하고 자격 증명(인증 쿠키)을 관리하는 통신 아키텍처를 어떻게 구성할 것인가?
 
@@ -23,7 +23,7 @@ decision-makers: [Keunhyeok Lim]
 ## 검토한 대안들 (Considered Options)
 
 * **대안 1**: Vite 개발 서버 프록시(`server.proxy`) + 네이티브 `fetch` 기반 경량 API 클라이언트
-* **대안 2**: 환경 변수(`VITE_API_BASE_URL=http://localhost:8080`) 절대 경로 호출 + 백엔드 CORS 전면 허용
+* **대안 2**: 환경 변수(`VITE_API_BASE_URL=http://localhost:<PORT>`) 절대 경로 호출 + 백엔드 CORS 전면 허용
 * **대안 3**: 외부 서드파티 라이브러리(Axios + TanStack Query) 즉시 도입
 
 ## 결정 내용 및 결과 (Decision Outcome)
@@ -39,7 +39,7 @@ decision-makers: [Keunhyeok Lim]
 
 * **장점**:
   * 추가 라이브러리 설치(`pnpm add`) 없이 번들 사이즈를 최소화하고 React 19 / TypeScript 표준을 유지합니다.
-  * 개발 환경에서 백엔드 포트가 변경되더라도 `vite.config.mts`의 프록시 타깃 1곳만 수정하면 됩니다.
+  * 개발 환경에서 백엔드 포트가 변경되더라도 인프라 구성 또는 `vite.config.mts`의 프록시 타깃 1곳만 수정하면 됩니다.
   * 프로덕션 배포 시 Ingress가 `/api` 경로를 백엔드 서비스로 포워딩하므로 코드 수정이 전혀 필요 없습니다.
 * **단점**:
   * Vite 개발 서버가 중계자 역할을 하므로 개발 서버 구동 중에만 프록시가 작동합니다 (단, 프로덕션은 Nginx/Ingress가 처리하므로 실질적 한계 없음).
@@ -47,7 +47,7 @@ decision-makers: [Keunhyeok Lim]
 
 ### 구현 검증 계획 (Confirmation)
 
-* `apps/web/vite.config.mts`에 `/api` -> `http://localhost:8080` 프록시 규칙을 설정합니다.
+* `apps/web/vite.config.mts`에 `/api` -> 실행 중인 백엔드 서버(환경 변수 및 인프라 구성 기반 포트) 프록시 규칙을 설정합니다.
 * 경량 클라이언트 모듈(`src/shared/api/`)을 구성하고, 백엔드의 `POST /api/v1/pdf/inspect` 호출 시 상대 경로(`/api/v1/pdf/inspect`)를 통해 정상 응답이 수신되는지 단위/통합 테스트로 검증합니다.
 
 ## 대안별 장단점 세부 비교 (Pros and Cons of the Options)
