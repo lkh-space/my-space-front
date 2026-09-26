@@ -77,10 +77,8 @@ export const PdfToolsPage: React.FC = () => {
           f.id === fileItem.id
             ? {
                 ...f,
+                ...inspectRes,
                 isInspecting: false,
-                isEncrypted: inspectRes.isEncrypted,
-                isPasswordValid: inspectRes.isPasswordValid,
-                pageCount: inspectRes.pageCount,
               }
             : f,
         ),

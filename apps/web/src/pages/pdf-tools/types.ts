@@ -1,17 +1,20 @@
+import { InspectPdfResponse } from '../../shared/api';
+
 export type PdfOperationMode =
   | 'merge'
   | 'split-range'
   | 'split-all'
   | 'unlock';
 
-export interface SelectedPdfFile {
+/**
+ * 화면에서 관리되는 선택된 PDF 파일 모델
+ * 백엔드 사전 검사 응답 DTO(InspectPdfResponse)를 상속받아 필드 중복을 제거하고 단일 진실 공급원을 유지합니다.
+ */
+export interface SelectedPdfFile extends Partial<InspectPdfResponse> {
   id: string; // 클라이언트 고유 식별자 (crypto.randomUUID() 등)
   file: File;
   name: string;
   size: number;
-  isEncrypted?: boolean;
-  isPasswordValid?: boolean;
-  pageCount?: number;
   password?: string;
   isInspecting?: boolean;
   error?: string;
