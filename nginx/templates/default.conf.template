@@ -1,0 +1,64 @@
+server {
+    listen ${PORT};
+    server_name localhost;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # 파일 업로드 크기 제한 (대용량 PDF 처리 지원)
+    client_max_body_size ${CLIENT_MAX_BODY_SIZE};
+
+    # Gzip 압축 설정
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_proxied any;
+    gzip_types
+        text/plain
+        text/css
+        text/xml
+        text/javascript
+        application/json
+        application/javascript
+        application/xml
+        application/xml+rss
+        image/svg+xml;
+
+    # 보안 헤더
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    # 빌드된 정적 에셋 장기 캐싱 (파일명에 빌드 해시가 포함되어 불변)
+    location ~* \.(?:css|js|woff2?|svg|png|jpg|jpeg|gif|ico|webp)$ {
+        expires 1y;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+        access_log off;
+    }
+
+    # 런타임 환경변수 스크립트 및 index.html은 캐싱하지 않음 (새 배포/설정 즉시 반영)
+    location ~* (?:index\.html|env-config\.js)$ {
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+        add_header Pragma "no-cache";
+        expires 0;
+    }
+
+    # SPA 클라이언트 사이드 라우팅 (모든 미일치 요청을 index.html로 Fallback)
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # 헬스체크 엔드포인트 (쿠버네티스/로드밸런서 Liveness/Readiness Probe용)
+    location /healthz {
+        access_log off;
+        default_type text/plain;
+        return 200 "healthy\n";
+    }
+
+    # 에러 페이지
+    error_page 500 502 503 504 /50x.html;
+    location = /50x.html {
+        root /usr/share/nginx/html;
+    }
+}

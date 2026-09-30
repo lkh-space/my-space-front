@@ -1,0 +1,28 @@
+# Node 의존성 및 패키지 캐시
+node_modules
+.pnpm-store
+
+# 빌드 및 컴파일 산출물
+dist
+out-tsc
+.nx/cache
+test-output
+coverage
+
+# 환경 변수 파일 (인프라를 통해서만 주입되므로 이미지 내 유입 차단)
+.env
+.env.*
+!.env.example
+
+# Git 및 에디터/IDE 설정
+.git
+.gitignore
+.vscode
+.idea
+.agents
+*.log
+
+# 문서 및 디자인 참조 파일 (컨테이너 번들링 불필요)
+docs
+DESIGN.md
+README.md
