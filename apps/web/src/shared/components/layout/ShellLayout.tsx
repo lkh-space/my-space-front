@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Outlet } from 'react-router-dom';
 import { SideNavBar } from './SideNavBar';
-import { TopNavBar } from './TopNavBar';
+import { Header } from '../../../widgets/header';
 import { BottomNavBar } from './BottomNavBar';
 import { CommandPalette } from './CommandPalette';
 import { ErrorBoundary } from '../error/ErrorBoundary';
@@ -27,7 +27,7 @@ export const ShellLayout: React.FC = () => {
 
       {/* 2. Main Content Canvas */}
       <div className="main-canvas-area">
-        <TopNavBar onOpenCommandPalette={handleOpenCommandPalette} />
+        <Header onOpenCommandPalette={handleOpenCommandPalette} />
         <main className="workspace-content bg-grid-dots">
           <ErrorBoundary>
             <Outlet />

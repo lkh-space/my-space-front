@@ -33,6 +33,30 @@ async function handleResponseError(response: Response): Promise<never> {
 }
 
 /**
+ * 동일 Origin 세션 쿠키를 포함하여 GET 요청을 수행하고 JSON 응답을 반환합니다.
+ */
+export async function getJson<T>(
+  url: string,
+  init?: RequestInit,
+): Promise<T> {
+  const response = await fetch(url, {
+    method: 'GET',
+    credentials: 'same-origin',
+    ...init,
+    headers: {
+      Accept: 'application/json',
+      ...init?.headers,
+    },
+  });
+
+  if (!response.ok) {
+    await handleResponseError(response);
+  }
+
+  return (await response.json()) as T;
+}
+
+/**
  * FormData를 전송하고 JSON 응답을 받는 POST 요청
  */
 export async function postFormData<T>(

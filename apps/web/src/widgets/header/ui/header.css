@@ -1,0 +1,326 @@
+/* ==============================================================================
+ * Header & User Profile Badge Styling (DESIGN.md 준수)
+ * ============================================================================== */
+
+.user-profile-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* 1. 상단 인라인 프로필 칩 */
+.user-profile-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'JetBrains Mono', 'Pretendard', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  transition: all 0.15s ease;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.user-profile-chip:focus-visible {
+  outline: 2px solid var(--primary, #adc6ff);
+  outline-offset: 1px;
+}
+
+.user-badge-icon {
+  font-size: 15px !important;
+}
+
+.user-chevron-icon {
+  font-size: 14px !important;
+  opacity: 0.65;
+  transition: transform 0.15s ease;
+}
+
+/* 2. 사용자 등급별 배지 테마 */
+
+/* 체험 모드 (Guest Reviewer) - 앰버 / 골드 */
+.user-badge-guest {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #fbbf24;
+}
+
+.user-badge-guest:hover {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: rgba(245, 158, 11, 0.5);
+}
+
+/* 관리자 (Administrator) - 로열 퍼플 */
+.user-badge-admin {
+  background: rgba(168, 85, 247, 0.14);
+  border: 1px solid rgba(168, 85, 247, 0.38);
+  color: #c084fc;
+}
+
+.user-badge-admin:hover {
+  background: rgba(168, 85, 247, 0.22);
+  border-color: rgba(168, 85, 247, 0.55);
+}
+
+/* 로컬 개발자 (Local Developer) - 터미널 에메랄드 */
+.user-badge-local {
+  background: rgba(78, 222, 163, 0.12);
+  border: 1px solid rgba(78, 222, 163, 0.35);
+  color: #4edea3;
+}
+
+.user-badge-local:hover {
+  background: rgba(78, 222, 163, 0.2);
+  border-color: rgba(78, 222, 163, 0.5);
+}
+
+/* 기본 사용자 */
+.user-badge-default {
+  background: var(--surface-container-high, #292931);
+  border: 1px solid var(--outline-variant, #424754);
+  color: var(--on-surface, #e3e1ec);
+}
+
+.user-badge-default:hover {
+  background: var(--surface-bright, #383941);
+}
+
+/* 3. 빠른 인라인 로그아웃 버튼 */
+.user-quick-logout-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--on-surface-variant, #c2c6d6);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.user-quick-logout-btn .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.user-quick-logout-btn:hover {
+  background: var(--surface-container-high, #292931);
+  color: var(--error, #ffb4ab);
+  border-color: rgba(255, 85, 85, 0.25);
+}
+
+/* 4. 프로필 상세 & 로그아웃 드롭다운 팝오버 */
+.user-profile-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 230px;
+  padding: 10px;
+  background: var(--surface-container-low, #1a1b22);
+  border: 1px solid var(--outline-variant, #424754);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px -4px rgba(0, 0, 0, 0.65);
+  z-index: 100;
+  animation: fadeInDown 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.user-dropdown-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px;
+}
+
+.user-dropdown-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: var(--surface-container-high, #292931);
+  color: var(--primary, #adc6ff);
+}
+
+.user-dropdown-avatar .material-symbols-outlined {
+  font-size: 20px;
+}
+
+.user-dropdown-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-dropdown-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--on-surface, #e3e1ec);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-dropdown-sub {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--on-surface-variant, #c2c6d6);
+}
+
+.user-dropdown-email {
+  font-size: 11px;
+  color: var(--outline, #8c909f);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
+}
+
+.user-dropdown-groups {
+  margin-top: 8px;
+  padding: 6px;
+  background: var(--surface-container-lowest, #0d0e15);
+  border-radius: 6px;
+  border: 1px solid var(--outline-variant, #424754);
+}
+
+.groups-title {
+  display: block;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--outline, #8c909f);
+  margin-bottom: 4px;
+}
+
+.groups-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.group-chip {
+  display: inline-block;
+  padding: 1px 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  border-radius: 4px;
+  background: var(--surface-container-high, #292931);
+  color: var(--on-surface-variant, #c2c6d6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.user-dropdown-divider {
+  height: 1px;
+  background: var(--outline-variant, #424754);
+  margin: 8px 0;
+}
+
+.user-dropdown-logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--error, #ffb4ab);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.user-dropdown-logout-btn .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.user-dropdown-logout-btn:hover {
+  background: rgba(255, 85, 85, 0.12);
+  color: #ff7777;
+}
+
+/* 5. 스켈레톤 및 에러 상태 */
+.user-profile-skeleton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 6px;
+  background: var(--surface-container-high, #292931);
+  animation: pulse 1.5s infinite;
+}
+
+.user-skeleton-avatar {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--surface-container-highest, #33343c);
+}
+
+.user-skeleton-text {
+  width: 70px;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--surface-container-highest, #33343c);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.user-profile-error {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 6px;
+  background: rgba(255, 85, 85, 0.08);
+  border: 1px solid rgba(255, 85, 85, 0.2);
+  color: var(--outline, #8c909f);
+  font-size: 11px;
+}
+
+.user-profile-error .error-icon {
+  font-size: 14px;
+  color: var(--error, #ffb4ab);
+}
+
+.user-logout-btn.compact {
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--outline-variant, #424754);
+  background: var(--surface-container, #1e1f26);
+  color: var(--on-surface, #e3e1ec);
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.user-logout-btn.compact:hover {
+  background: var(--surface-bright, #383941);
+}

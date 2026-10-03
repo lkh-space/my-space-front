@@ -1,5 +1,6 @@
 import { render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import App from './app';
 
 const routerFutureConfig = {
@@ -7,15 +8,40 @@ const routerFutureConfig = {
   v7_relativeSplatPath: true,
 } as const;
 
+const mockLocalUser = {
+  username: 'local-admin',
+  displayName: 'Local Developer',
+  email: 'dev@homelab.local',
+  groups: ['admins', 'dev'],
+};
+
 function renderApp(initialEntries: string[] = ['/']) {
   return render(
     <MemoryRouter initialEntries={initialEntries} future={routerFutureConfig}>
-      <App />
+      <App initialUser={mockLocalUser} />
     </MemoryRouter>,
   );
 }
 
 describe('App', () => {
+  const originalFetch = global.fetch;
+
+  beforeEach(() => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        username: 'local-admin',
+        displayName: 'Local Developer',
+        email: 'dev@homelab.local',
+        groups: ['admins', 'dev'],
+      }),
+    } as unknown as Response);
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+    vi.restoreAllMocks();
+  });
   describe('대시보드 루트 (/) 라우팅', () => {
     it('성공적으로 셸 레이아웃 및 대시보드를 렌더링해야 한다', () => {
       const { baseElement } = renderApp(['/']);

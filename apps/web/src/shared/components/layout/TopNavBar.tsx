@@ -1,122 +1,13 @@
-import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import { getBreadcrumbByPath } from '../../constants/navigation';
+import React from 'react';
+import { Header, HeaderProps } from '../../../widgets/header';
 
-interface TopNavBarProps {
-  onOpenCommandPalette: () => void;
-}
+export type TopNavBarProps = HeaderProps;
 
-export const TopNavBar: React.FC<TopNavBarProps> = ({ onOpenCommandPalette }) => {
-  const location = useLocation();
-  const [lang, setLang] = useState<'KR' | 'EN'>('KR');
-
-  const { category, page } = getBreadcrumbByPath(location.pathname);
-
-  return (
-    <header className="top-navbar" aria-label="상단 네비게이션 헤더">
-      {/* 1-A. Desktop & Tablet Breadcrumbs */}
-      <div className="top-breadcrumbs">
-        <span className="breadcrumb-root">my-space</span>
-        <span className="breadcrumb-separator">/</span>
-        <span className="breadcrumb-category">{category}</span>
-        <span className="breadcrumb-separator">/</span>
-        <span className="breadcrumb-current">{page}</span>
-      </div>
-
-      {/* 1-B. Mobile Brand & Terminal Trigger Header (Shown on < 768px) */}
-      <div className="top-mobile-brand">
-        <button
-          type="button"
-          className="mobile-terminal-btn"
-          onClick={onOpenCommandPalette}
-          title="명령어 검색 및 실행 (⌘K)"
-          aria-label="명령어 검색 팔레트 열기"
-        >
-          <span className="material-symbols-outlined">
-            terminal
-          </span>
-        </button>
-        <span className="mobile-brand-title">my-space</span>
-        <span className="mobile-brand-version">v0.1</span>
-      </div>
-
-      {/* 2. Right Action Cluster */}
-      <div className="top-actions-cluster">
-        {/* Language Switcher (Desktop & Tablet) */}
-        <div className="lang-toggle-segment" role="group" aria-label="언어 선택">
-          <button
-            type="button"
-            className={`lang-btn ${lang === 'KR' ? 'active' : ''}`}
-            onClick={() => setLang('KR')}
-            aria-pressed={lang === 'KR'}
-          >
-            KR
-          </button>
-          <button
-            type="button"
-            className={`lang-btn ${lang === 'EN' ? 'active' : ''}`}
-            onClick={() => setLang('EN')}
-            aria-pressed={lang === 'EN'}
-          >
-            EN
-          </button>
-        </div>
-
-        {/* Desktop Terminal Command Button */}
-        <button
-          type="button"
-          className="header-icon-btn desktop-only-action"
-          onClick={onOpenCommandPalette}
-          title="터미널 / 명령어 실행 (⌘K)"
-          aria-label="명령어 실행창 열기"
-        >
-          <span className="material-symbols-outlined">
-            terminal
-          </span>
-        </button>
-
-        {/* Mobile Local Status Tag */}
-        <div className="mobile-local-tag" title="100% 로컬 격리 실행 중">
-          <span className="sidebar-status-dot" />
-          <span>LOCAL</span>
-        </div>
-
-        {/* Notifications Button */}
-        <button
-          type="button"
-          className="header-icon-btn"
-          title="시스템 알림"
-          aria-label="시스템 알림"
-        >
-          <span className="material-symbols-outlined">
-            notifications
-          </span>
-          <span className="header-notification-dot" />
-        </button>
-
-        {/* Dark Mode Icon */}
-        <button
-          type="button"
-          className="header-icon-btn desktop-only-action"
-          title="테마 (Deep Dark 모드 적용 중)"
-          aria-label="테마 설정"
-        >
-          <span className="material-symbols-outlined">
-            dark_mode
-          </span>
-        </button>
-
-        {/* Primary Action Button (Desktop Only) */}
-        <button
-          type="button"
-          className="header-cta-btn desktop-only-action"
-          onClick={onOpenCommandPalette}
-          aria-label="작업 실행"
-        >
-          <span className="material-symbols-outlined">play_arrow</span>
-          <span>작업 실행</span>
-        </button>
-      </div>
-    </header>
-  );
+/**
+ * @deprecated Header 위젯(`src/widgets/header`)을 직접 사용하세요.
+ */
+export const TopNavBar: React.FC<TopNavBarProps> = (props) => {
+  return <Header {...props} />;
 };
+
+export default TopNavBar;

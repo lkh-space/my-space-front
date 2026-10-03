@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { postFormData, downloadBlob } from './client';
+import { postFormData, downloadBlob, getJson } from './client';
 import { ApiError } from './types';
 
 describe('api client', () => {
@@ -127,4 +127,48 @@ describe('api client', () => {
       ).rejects.toThrow(ApiError);
     });
   });
+
+  describe('getJson', () => {
+    it('성공 시 파싱된 JSON 데이터를 반환하고 credentials: same-origin을 포함해야 한다', async () => {
+      const mockData = {
+        username: 'local-admin',
+        displayName: 'Local Developer',
+        email: 'dev@homelab.local',
+        groups: ['admins', 'dev'],
+      };
+
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => mockData,
+      } as unknown as Response);
+
+      const result = await getJson('/api/v1/auth/me');
+
+      expect(result).toEqual(mockData);
+      expect(global.fetch).toHaveBeenCalledWith(
+        '/api/v1/auth/me',
+        expect.objectContaining({
+          method: 'GET',
+          credentials: 'same-origin',
+        }),
+      );
+    });
+
+    it('서버 에러 시 ApiError 또는 일반 Error를 throw해야 한다', async () => {
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 401,
+        statusText: 'Unauthorized',
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({
+          statusCode: 401,
+          code: 'UNAUTHORIZED',
+          message: '인증 정보가 없습니다.',
+        }),
+      } as unknown as Response);
+
+      await expect(getJson('/api/v1/auth/me')).rejects.toThrow(ApiError);
+    });
+  });
 });
+

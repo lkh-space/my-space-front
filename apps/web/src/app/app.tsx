@@ -1,14 +1,20 @@
 import { Route, Routes } from 'react-router-dom';
+import { AuthProvider, CurrentUser } from '../entities/auth';
 import { ShellLayout } from '../shared/components/layout/ShellLayout';
 import { DashboardPage } from '../pages/dashboard/DashboardPage';
 import { PdfToolsPage } from '../pages/pdf-tools/PdfToolsPage';
 import { PlaceholderPage } from '../pages/placeholder/PlaceholderPage';
 import { NotFoundPage } from '../pages/not-found/NotFoundPage';
 
-export function App() {
+export interface AppProps {
+  initialUser?: CurrentUser | null;
+}
+
+export function App({ initialUser }: AppProps = {}) {
   return (
-    <Routes>
-      <Route path="/" element={<ShellLayout />}>
+    <AuthProvider initialUser={initialUser}>
+      <Routes>
+        <Route path="/" element={<ShellLayout />}>
         <Route index element={<DashboardPage />} />
         <Route path="pdf-tools" element={<PdfToolsPage />} />
         <Route
@@ -34,6 +40,7 @@ export function App() {
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
+    </AuthProvider>
   );
 }
 
