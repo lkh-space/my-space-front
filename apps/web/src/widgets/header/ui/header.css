@@ -324,3 +324,379 @@
 .user-logout-btn.compact:hover {
   background: var(--surface-bright, #383941);
 }
+
+/* ==============================================================================
+ * System Version Badge & Popover Styling (DESIGN.md 준수)
+ * ============================================================================== */
+
+.version-badge-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* 1. Header Inline Chip Button */
+.version-badge-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: var(--radius-md, 6px);
+  cursor: pointer;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  transition: all 0.15s ease;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.version-badge-chip:focus-visible {
+  outline: 2px solid var(--primary, #adc6ff);
+  outline-offset: 1px;
+}
+
+/* Chip Status Themes */
+.version-badge-chip.status-online {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.28);
+  color: #10b981;
+}
+
+.version-badge-chip.status-online:hover {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.45);
+}
+
+.version-badge-chip.status-error {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.38);
+  color: #f87171;
+}
+
+.version-badge-chip.status-error:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.55);
+}
+
+.version-badge-chip.status-loading {
+  background: var(--surface-container, #1e1f26);
+  border: 1px solid var(--outline-variant, #424754);
+  color: var(--on-surface-variant, #c2c6d6);
+}
+
+/* Status Indicator Dot */
+.version-chip-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full, 9999px);
+  flex-shrink: 0;
+}
+
+.version-chip-dot.online {
+  background-color: #10b981;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+}
+
+.version-chip-dot.error {
+  background-color: #ef4444;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.6);
+}
+
+.version-chip-dot.loading {
+  background-color: #f59e0b;
+  animation: pulseVersion 1.5s infinite;
+}
+
+@keyframes pulseVersion {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.version-chip-chevron {
+  font-size: 14px !important;
+  opacity: 0.65;
+  transition: transform 0.2s ease;
+}
+
+/* 2. Dropdown Popover */
+.version-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 330px;
+  background-color: var(--surface-container-low, #1a1b22);
+  border: 1px solid var(--outline-variant, #424754);
+  border-radius: var(--radius-lg, 8px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: popoverFadeIn 0.15s ease-out;
+}
+
+@keyframes popoverFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.version-popover-header {
+  padding: 10px 12px;
+  background-color: var(--surface-container, #1e1f26);
+  border-bottom: 1px solid var(--outline-variant, #424754);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.version-popover-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--on-surface, #e3e1ec);
+}
+
+.version-icon-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-sm, 2px);
+  color: var(--text-muted, #8c909f);
+  cursor: pointer;
+  transition: color 0.1s ease;
+}
+
+.version-icon-close:hover {
+  color: var(--on-surface, #e3e1ec);
+}
+
+.version-popover-body {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+/* Service Card inside Popover */
+.version-service-card {
+  padding: 10px;
+  border-radius: var(--radius-md, 6px);
+  background-color: var(--surface-container-lowest, #0d0e15);
+  border: 1px solid var(--outline-variant, #424754);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.version-service-card.has-error {
+  border-color: rgba(239, 68, 68, 0.35);
+  background-color: rgba(239, 68, 68, 0.04);
+}
+
+.version-service-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.version-service-name-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.version-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-full, 9999px);
+  flex-shrink: 0;
+}
+
+.version-status-dot.online {
+  background-color: #10b981;
+}
+
+.version-status-dot.error {
+  background-color: #ef4444;
+}
+
+.version-status-dot.loading {
+  background-color: #f59e0b;
+}
+
+.version-service-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--on-surface, #e3e1ec);
+}
+
+.version-badge-tag {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm, 2px);
+  font-weight: 500;
+}
+
+.version-badge-tag.online {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.version-badge-tag.error {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.version-badge-tag.loading {
+  background-color: var(--surface-container-high, #292931);
+  color: var(--on-surface-variant, #c2c6d6);
+  border: 1px solid var(--outline-variant, #424754);
+}
+
+/* Metadata Grid */
+.version-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 11px;
+}
+
+.version-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background-color: var(--surface-container, #1e1f26);
+  padding: 4px 6px;
+  border-radius: var(--radius-sm, 2px);
+  border: 1px solid rgba(66, 71, 84, 0.3);
+}
+
+.version-meta-label {
+  font-size: 9px;
+  color: var(--text-muted, #8c909f);
+  text-transform: uppercase;
+}
+
+.version-meta-value {
+  color: var(--on-surface, #e3e1ec);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.version-commit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  color: var(--primary, #adc6ff);
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.version-commit-btn:hover {
+  text-decoration: underline;
+}
+
+.version-error-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm, 2px);
+  background-color: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  font-size: 11px;
+  color: #f87171;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+}
+
+.version-loading-box {
+  padding: 6px 8px;
+  font-size: 11px;
+  color: var(--text-muted, #8c909f);
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+}
+
+.version-section-divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted, #8c909f);
+  margin-top: 4px;
+}
+
+/* Popover Footer */
+.version-popover-footer {
+  padding: 8px 12px;
+  background-color: var(--surface-container, #1e1f26);
+  border-top: 1px solid var(--outline-variant, #424754);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.version-footer-note {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 10px;
+  color: var(--text-muted, #8c909f);
+  max-width: 180px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.version-refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm, 2px);
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 11px;
+  color: var(--on-surface, #e3e1ec);
+  background-color: var(--surface-container-high, #292931);
+  border: 1px solid var(--outline-variant, #424754);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.version-refresh-btn:hover {
+  background-color: var(--surface-bright, #383941);
+}
+
+.version-refresh-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+

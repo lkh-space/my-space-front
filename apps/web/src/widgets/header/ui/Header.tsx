@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getBreadcrumbByPath } from '../../../shared/constants/navigation';
 import { UserProfileBadge } from './UserProfileBadge';
+import { VersionBadge } from './VersionBadge';
 import './header.css';
 
 export interface HeaderProps {
@@ -61,6 +62,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCommandPalette }) => {
             EN
           </button>
         </div>
+
+        {/* 시스템 버전 및 서버 연결 상태 칩 (다중 서버 헬스체크 지원) */}
+        <VersionBadge />
 
         {/* Desktop Terminal Command Button */}
         <button
