@@ -1,0 +1,836 @@
+/* ==========================================================================
+   DBML Utility Page Styles (Pure Vanilla CSS)
+   Single Source of Truth: DESIGN.md & Stitch Screen 0c2bf917aa
+   ========================================================================== */
+
+/* Page Root: Fill entire main canvas area without scroll */
+.dbml-tools-page {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - var(--header-height));
+  width: 100%;
+  overflow: hidden;
+  background-color: var(--background);
+  color: var(--on-surface);
+  font-family: var(--font-sans);
+}
+
+/* --------------------------------------------------------------------------
+   1. Sub-Toolbar (Actions & Dialect Selector)
+   -------------------------------------------------------------------------- */
+.dbml-toolbar {
+  height: 48px;
+  padding: 0 var(--space-lg);
+  border-bottom: 1px solid var(--outline-variant);
+  background-color: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  z-index: 20;
+}
+
+.dbml-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.dbml-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--on-surface-variant);
+}
+
+.dbml-breadcrumb-active {
+  color: var(--on-surface);
+  font-weight: 500;
+}
+
+.dbml-divider {
+  width: 1px;
+  height: 14px;
+  background-color: var(--outline-variant);
+}
+
+.dbml-dialect-select {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  background-color: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  color: var(--on-surface);
+  cursor: pointer;
+  outline: none;
+}
+
+.dbml-dialect-select:focus {
+  border-color: var(--primary);
+}
+
+.dbml-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.dbml-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--on-surface-variant);
+  background-color: transparent;
+  border: 1px solid var(--outline-variant);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.dbml-btn:hover {
+  color: var(--on-surface);
+  background-color: var(--surface-container);
+  border-color: var(--outline);
+}
+
+.dbml-btn-secondary {
+  background-color: var(--surface-container-high);
+  color: var(--on-surface);
+}
+
+.dbml-btn-secondary:hover {
+  background-color: var(--surface-container-highest);
+}
+
+.dbml-btn-primary {
+  background-color: #fafafa;
+  color: #09090b;
+  font-weight: 600;
+  border: none;
+}
+
+.dbml-btn-primary:hover {
+  background-color: #ffffff;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.2);
+}
+
+.dbml-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* --------------------------------------------------------------------------
+   2. Sub-Header (Live Synced status & Docs)
+   -------------------------------------------------------------------------- */
+.dbml-subheader {
+  height: 40px;
+  padding: 0 var(--space-lg);
+  border-bottom: 1px solid var(--outline-variant);
+  background-color: var(--surface-container-lowest);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.dbml-subheader-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.dbml-subheader-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--on-surface);
+  letter-spacing: -0.01em;
+}
+
+.dbml-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background-color: var(--surface-container-low);
+  color: var(--secondary);
+  border: 1px solid var(--outline-variant);
+}
+
+.dbml-pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background-color: var(--secondary);
+  box-shadow: 0 0 6px rgba(78, 222, 163, 0.6);
+  animation: dbmlPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes dbmlPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.85); }
+}
+
+.dbml-subheader-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--on-surface-variant);
+}
+
+.dbml-engine-name {
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.dbml-docs-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--on-surface-variant);
+  transition: color 0.15s ease;
+}
+
+.dbml-docs-link:hover {
+  color: var(--on-surface);
+}
+
+/* --------------------------------------------------------------------------
+   3. Main Split View Layout (Desktop 40% : 60%)
+   -------------------------------------------------------------------------- */
+.dbml-split-view {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+}
+
+/* --------------------------------------------------------------------------
+   4. Left Column: DBML Code Editor
+   -------------------------------------------------------------------------- */
+.dbml-editor-section {
+  width: 40%;
+  min-width: 320px;
+  border-right: 1px solid var(--outline-variant);
+  display: flex;
+  flex-direction: column;
+  background-color: var(--surface-container-lowest);
+  height: 100%;
+  flex-shrink: 0;
+}
+
+.dbml-pane-header {
+  height: 36px;
+  padding: 0 var(--space-md);
+  background-color: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.dbml-pane-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--on-surface);
+  font-weight: 500;
+}
+
+.dbml-pane-title .icon {
+  font-size: 16px;
+  color: var(--primary);
+}
+
+.dbml-pane-subtitle {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.dbml-pane-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dbml-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  color: var(--on-surface-variant);
+  transition: all 0.15s ease;
+}
+
+.dbml-icon-btn:hover {
+  color: var(--on-surface);
+  background-color: var(--surface-container);
+}
+
+.dbml-icon-btn.active {
+  color: var(--primary);
+  background-color: var(--surface-container-high);
+}
+
+/* CodeMirror Surface */
+.dbml-editor-body {
+  flex: 1;
+  overflow: auto;
+  background-color: var(--surface-container-lowest);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.dbml-editor-body .cm-editor {
+  height: 100%;
+}
+
+.dbml-editor-body .cm-scroller {
+  font-family: var(--font-mono) !important;
+}
+
+/* Editor Status Footer */
+.dbml-editor-footer {
+  height: 32px;
+  padding: 0 var(--space-md);
+  background-color: var(--surface-container-low);
+  border-top: 1px solid var(--outline-variant);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--on-surface-variant);
+  flex-shrink: 0;
+}
+
+.dbml-status-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.status-valid {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--secondary);
+  font-weight: 500;
+}
+
+.status-warning {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--tertiary);
+  font-weight: 500;
+}
+
+.dbml-perf-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--primary);
+}
+
+/* --------------------------------------------------------------------------
+   5. Right Column: ERD Diagram Canvas
+   -------------------------------------------------------------------------- */
+.dbml-canvas-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--surface);
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.dbml-canvas-toolbar {
+  height: 36px;
+  padding: 0 var(--space-md);
+  background-color: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+.dbml-search-input-wrapper {
+  position: relative;
+  width: 220px;
+}
+
+.dbml-search-icon {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.dbml-search-input {
+  width: 100%;
+  padding: 3px 8px 3px 26px;
+  border-radius: var(--radius-sm);
+  background-color: var(--surface-container-lowest);
+  border: 1px solid var(--outline-variant);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--on-surface);
+  outline: none;
+}
+
+.dbml-search-input:focus {
+  border-color: var(--primary);
+}
+
+.dbml-search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.dbml-layout-toggle {
+  display: flex;
+  align-items: center;
+  background-color: var(--surface-container-lowest);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+  gap: 2px;
+}
+
+.dbml-layout-btn {
+  padding: 2px 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--on-surface-variant);
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
+}
+
+.dbml-layout-btn.active {
+  background-color: var(--surface-container-high);
+  color: var(--on-surface);
+  font-weight: 500;
+}
+
+.dbml-zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dbml-zoom-group {
+  display: flex;
+  align-items: center;
+  background-color: var(--surface-container-lowest);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-sm);
+}
+
+.dbml-zoom-val {
+  padding: 0 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--on-surface-variant);
+  border-left: 1px solid var(--outline-variant);
+  border-right: 1px solid var(--outline-variant);
+  min-width: 44px;
+  text-align: center;
+}
+
+/* Dot Grid Canvas Surface */
+.dbml-canvas-viewport {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+  background-color: var(--surface);
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+  cursor: grab;
+  user-select: none;
+}
+
+.dbml-canvas-viewport.dragging {
+  cursor: grabbing;
+}
+
+/* --------------------------------------------------------------------------
+   6. ERD Table Entity Card
+   -------------------------------------------------------------------------- */
+.erd-card {
+  width: 256px;
+  border-radius: var(--radius-lg);
+  background-color: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: border-color 0.15s ease, opacity 0.15s ease;
+  overflow: hidden;
+}
+
+.erd-card:hover {
+  border-color: var(--primary);
+}
+
+.erd-card.highlighted {
+  border-color: var(--primary);
+  box-shadow: 0 0 16px rgba(173, 198, 255, 0.25);
+}
+
+.erd-card.dimmed {
+  opacity: 0.35;
+}
+
+.erd-card-header {
+  padding: 8px 12px;
+  background-color: var(--surface-container);
+  border-bottom: 1px solid var(--outline-variant);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.erd-card-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.erd-card-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+}
+
+.erd-card-dot.blue { background-color: var(--primary); }
+.erd-card-dot.green { background-color: var(--secondary); }
+.erd-card-dot.amber { background-color: var(--tertiary); }
+
+.erd-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--on-surface);
+}
+
+.erd-card-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  background-color: var(--surface-container-high);
+  border: 1px solid var(--outline-variant);
+}
+
+/* Card Column Rows */
+.erd-fields-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.erd-field-row {
+  height: 37px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(66, 71, 84, 0.3);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  transition: background-color 0.1s ease;
+}
+
+.erd-field-row:last-child {
+  border-bottom: none;
+}
+
+.erd-field-row:hover {
+  background-color: rgba(41, 41, 49, 0.6);
+}
+
+.erd-field-row.is-fk {
+  background-color: rgba(77, 142, 255, 0.06);
+}
+
+.erd-field-row.is-fk:hover {
+  background-color: rgba(77, 142, 255, 0.12);
+}
+
+.erd-field-name-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.erd-field-name-group .material-symbols-outlined {
+  font-size: 13px;
+}
+
+.erd-field-name {
+  color: var(--on-surface);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.erd-field-name.is-pk {
+  color: var(--on-surface);
+  font-weight: 600;
+}
+
+.erd-field-name.is-fk {
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.erd-field-type-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.erd-field-type {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* Badges for PK, FK, UNIQ */
+.badge-pk {
+  padding: 1px 4px;
+  border-radius: var(--radius-sm);
+  background-color: rgba(255, 185, 95, 0.15);
+  color: var(--tertiary);
+  font-size: 9px;
+  font-weight: 600;
+  border: 1px solid rgba(255, 185, 95, 0.3);
+}
+
+.badge-fk {
+  padding: 1px 4px;
+  border-radius: var(--radius-sm);
+  background-color: rgba(78, 222, 163, 0.15);
+  color: var(--secondary);
+  font-size: 9px;
+  font-weight: 500;
+  border: 1px solid rgba(78, 222, 163, 0.3);
+}
+
+.badge-uniq {
+  padding: 1px 4px;
+  border-radius: var(--radius-sm);
+  background-color: rgba(173, 198, 255, 0.15);
+  color: var(--primary);
+  font-size: 9px;
+  font-weight: 500;
+  border: 1px solid rgba(173, 198, 255, 0.3);
+}
+
+/* --------------------------------------------------------------------------
+   7. Canvas Overlays (Legend & Footer)
+   -------------------------------------------------------------------------- */
+.erd-legend-box {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background-color: rgba(26, 27, 34, 0.92);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-md);
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  z-index: 20;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.erd-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--on-surface-variant);
+}
+
+.erd-legend-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-sm);
+}
+
+.erd-legend-dot.amber { background-color: var(--tertiary); }
+.erd-legend-dot.green { background-color: var(--secondary); }
+.erd-legend-dot.blue { background-color: var(--primary); }
+
+.dbml-canvas-footer {
+  height: 32px;
+  padding: 0 var(--space-md);
+  background-color: var(--surface-container-low);
+  border-top: 1px solid var(--outline-variant);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--on-surface-variant);
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+/* --------------------------------------------------------------------------
+   8. Modal (SQL Preview)
+   -------------------------------------------------------------------------- */
+.dbml-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  padding: var(--space-md);
+}
+
+.dbml-modal-card {
+  width: 100%;
+  max-width: 720px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+}
+
+.dbml-modal-header {
+  padding: 12px 16px;
+  background-color: var(--surface-container);
+  border-bottom: 1px solid var(--outline-variant);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dbml-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--on-surface);
+}
+
+.dbml-modal-body {
+  flex: 1;
+  overflow: auto;
+  background-color: var(--surface-container-lowest);
+  padding: 8px;
+}
+
+.dbml-modal-footer {
+  padding: 12px 16px;
+  background-color: var(--surface-container);
+  border-top: 1px solid var(--outline-variant);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* --------------------------------------------------------------------------
+   9. Mobile Switcher & Responsive Breakpoints
+   -------------------------------------------------------------------------- */
+.mobile-tab-bar {
+  display: none;
+  height: 44px;
+  padding: 0 var(--space-md);
+  background-color: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.mobile-tab-group {
+  display: flex;
+  align-items: center;
+  background-color: var(--surface-container-lowest);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+}
+
+.mobile-tab-btn {
+  padding: 4px 12px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--on-surface-variant);
+  border-radius: var(--radius-sm);
+}
+
+.mobile-tab-btn.active {
+  background-color: var(--surface-container-high);
+  color: var(--on-surface);
+  font-weight: 500;
+}
+
+/* Tablet (<= 1024px): 1:1 Split */
+@media (max-width: 1024px) {
+  .dbml-editor-section {
+    width: 50%;
+  }
+}
+
+/* Mobile (< 768px): Single pane with Tab toggle */
+@media (max-width: 768px) {
+  .mobile-tab-bar {
+    display: flex;
+  }
+
+  .dbml-editor-section {
+    width: 100%;
+    border-right: none;
+  }
+
+  .dbml-canvas-section {
+    width: 100%;
+  }
+
+  .dbml-toolbar {
+    height: auto;
+    padding: var(--space-sm) var(--space-md);
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+
+  .dbml-toolbar-right {
+    width: 100%;
+    justify-content: flex-end;
+    overflow-x: auto;
+  }
+}

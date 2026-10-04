@@ -3,6 +3,7 @@ import { AuthProvider, CurrentUser } from '../entities/auth';
 import { ShellLayout } from '../shared/components/layout/ShellLayout';
 import { DashboardPage } from '../pages/dashboard/DashboardPage';
 import { PdfToolsPage } from '../pages/pdf-tools/PdfToolsPage';
+import { DbmlToolsPage } from '../pages/dbml-tools';
 import { PlaceholderPage } from '../pages/placeholder/PlaceholderPage';
 import { NotFoundPage } from '../pages/not-found/NotFoundPage';
 
@@ -17,16 +18,7 @@ export function App({ initialUser }: AppProps = {}) {
         <Route path="/" element={<ShellLayout />}>
         <Route index element={<DashboardPage />} />
         <Route path="pdf-tools" element={<PdfToolsPage />} />
-        <Route
-          path="dbml-tools"
-          element={
-            <PlaceholderPage
-              title="DBML 스키마 변환기"
-              description="DBML 기반 ERD 시각화 및 PostgreSQL/MySQL DDL 생성 도구가 곧 제공됩니다."
-              icon="schema"
-            />
-          }
-        />
+        <Route path="dbml-tools" element={<DbmlToolsPage />} />
         <Route
           path="docs"
           element={

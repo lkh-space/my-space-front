@@ -11,6 +11,8 @@
   },
   "private": true,
   "dependencies": {
+    "@codemirror/lang-sql": "^6.10.0",
+    "@uiw/react-codemirror": "^4.25.12",
     "cmdk": "^1.1.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

@@ -101,15 +101,13 @@ describe('App', () => {
       ).toBeTruthy();
     });
 
-    it('/dbml-tools 경로 접속 시 DBML 스키마 변환기 플레이스홀더를 렌더링해야 한다', () => {
+    it('/dbml-tools 경로 접속 시 DBML 스키마 변환기 페이지를 렌더링해야 한다', () => {
       renderApp(['/dbml-tools']);
 
       expect(
-        screen.getByRole('heading', { name: 'DBML 스키마 변환기' }),
+        screen.getByRole('heading', { name: 'DBML Editor & ERD Visualizer' }),
       ).toBeTruthy();
-      expect(
-        screen.getByText(/DBML 기반 ERD 시각화 및 PostgreSQL\/MySQL DDL 생성 도구/),
-      ).toBeTruthy();
+      expect(screen.getByText('Live Synced')).toBeTruthy();
     });
 
     it('/docs 경로 접속 시 마크다운 문서 뷰어 플레이스홀더를 렌더링해야 한다', () => {
