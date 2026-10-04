@@ -17,6 +17,7 @@
   "include": [
     "vite.config.ts",
     "vite.config.mts",
+    "vite-plugin-version.ts",
     "vitest.config.ts",
     "vitest.config.mts",
     "src/**/*.test.ts",

@@ -49,6 +49,15 @@ server {
         try_files $uri $uri/ /index.html;
     }
 
+    # 버전 정보 엔드포인트 (/version 및 /version.json)
+    location ~* ^/version(?:\.json)?$ {
+        default_type application/json;
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+        add_header Pragma "no-cache";
+        expires 0;
+        try_files /version.json =404;
+    }
+
     # 헬스체크 엔드포인트 (쿠버네티스/로드밸런서 Liveness/Readiness Probe용)
     location /healthz {
         access_log off;

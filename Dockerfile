@@ -23,6 +23,19 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
 COPY nx.json tsconfig.base.json tsconfig.json ./
 COPY apps/web ./apps/web
 
+# Git 메타데이터 및 빌드 시각 주입 (pnpm install 캐시를 해치지 않도록 소스 복사 직후 배치)
+ARG GIT_COMMIT=unknown
+ARG GIT_BRANCH=unknown
+ARG BUILD_TIME=""
+ARG APP_ENV=production
+ARG APP_NAME=my-space-frontend
+
+ENV GIT_COMMIT=$GIT_COMMIT
+ENV GIT_BRANCH=$GIT_BRANCH
+ENV BUILD_TIME=$BUILD_TIME
+ENV APP_ENV=$APP_ENV
+ENV APP_NAME=$APP_NAME
+
 # BuildKit 캐시 마운트로 Nx 연산 캐시를 유지하며 프로덕션 번들 빌드
 RUN --mount=type=cache,id=nx,target=/app/.nx/cache \
     pnpm build

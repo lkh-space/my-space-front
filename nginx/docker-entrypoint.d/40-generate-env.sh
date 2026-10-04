@@ -17,3 +17,12 @@ done
 echo "};" >> "$OUTPUT_FILE"
 
 echo "[env-config] Generated runtime configuration at $OUTPUT_FILE"
+
+# 인프라에서 주입된 APP_ENV/NODE_ENV/VITE_APP_ENV가 있는 경우 version.json의 env 필드 동기화
+VERSION_FILE="/usr/share/nginx/html/version.json"
+TARGET_ENV="${APP_ENV:-${NODE_ENV:-${VITE_APP_ENV:-}}}"
+if [ -f "$VERSION_FILE" ] && [ -n "$TARGET_ENV" ]; then
+  sed -i "s/\"env\": \"[^\"]*\"/\"env\": \"$TARGET_ENV\"/" "$VERSION_FILE" || true
+  echo "[version] Synced runtime env to $TARGET_ENV in $VERSION_FILE"
+fi
+
