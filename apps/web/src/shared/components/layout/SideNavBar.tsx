@@ -61,7 +61,6 @@ export const SideNavBar: React.FC<SideNavBarProps> = ({ onOpenCommandPalette }) 
               {item.icon}
             </span>
             <span className="nav-tab-label">{item.title}</span>
-            {item.badge && <span className="nav-tab-badge">{item.badge}</span>}
           </NavLink>
         ))}
       </nav>
