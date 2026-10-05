@@ -1,19 +1,24 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { getEnv } from './env';
 
+interface CustomWindow extends Window {
+  __ENV__?: Record<string, string | undefined>;
+}
+
 describe('getEnv', () => {
-  const originalEnv = window.__ENV__;
+  const customWindow = window as unknown as CustomWindow;
+  const originalEnv = customWindow.__ENV__;
 
   beforeEach(() => {
-    window.__ENV__ = {};
+    customWindow.__ENV__ = {};
   });
 
   afterEach(() => {
-    window.__ENV__ = originalEnv;
+    customWindow.__ENV__ = originalEnv;
   });
 
   it('window.__ENV__에 값이 있으면 해당 값을 우선 반환해야 한다', () => {
-    window.__ENV__ = {
+    customWindow.__ENV__ = {
       VITE_API_BASE_URL: '/custom-api',
     };
 
@@ -21,7 +26,7 @@ describe('getEnv', () => {
   });
 
   it('window.__ENV__에 값이 없으면 fallback 값을 반환해야 한다', () => {
-    window.__ENV__ = {};
+    customWindow.__ENV__ = {};
 
     expect(getEnv('NON_EXISTENT_KEY', 'default-value')).toBe('default-value');
   });

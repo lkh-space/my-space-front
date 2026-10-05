@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, within, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import App from './app';
@@ -110,15 +110,13 @@ describe('App', () => {
       expect(screen.getByText('Live Synced')).toBeTruthy();
     });
 
-    it('/docs 경로 접속 시 마크다운 문서 뷰어 플레이스홀더를 렌더링해야 한다', () => {
+    it('/docs 경로 접속 시 마크다운 문서 스튜디오 페이지를 렌더링해야 한다', async () => {
       renderApp(['/docs']);
 
-      expect(
-        screen.getByRole('heading', { name: '마크다운 문서 뷰어' }),
-      ).toBeTruthy();
-      expect(
-        screen.getByText(/로컬 프로젝트 사양\(Spec\) 및 아키텍처 결정\(ADR\) 뷰어/),
-      ).toBeTruthy();
+      await waitFor(() => {
+        expect(screen.getByText('새 문서 작성')).toBeTruthy();
+        expect(screen.getByText('Import .md')).toBeTruthy();
+      });
     });
 
     it('존재하지 않는 잘못된 경로(/unknown-page) 접속 시 404 NotFoundPage를 렌더링해야 한다', () => {

@@ -50,3 +50,6 @@
 | [dashboard](./dashboard.md) | 대시보드 및 공통 워크스페이스 셸 사양서 (네비게이션 셸, 벤토 그리드, 분할 모니터링) | implemented |
 | [responsive-layout](./responsive-layout.md) | 반응형 워크스페이스 셸 및 대시보드 사양서 (Desktop/Tablet/Mobile 셸 전환, 바텀바, 그리드 리플로우) | implemented |
 | [pdf-tools](./pdf-tools.md) | PDF 조작 유틸리티 화면 및 인터랙션 사양서 (병합, 범위/전체 분할, 암호 해제) | review |
+| [dbml-tools](./dbml-tools.md) | DBML 스키마 변환기 및 인터랙티브 ERD 시각화 사양서 | implemented |
+| [system-version-check](./system-version-check.md) | 시스템 버전 확인 및 다중 서버 헬스체크 사양서 | implemented |
+| [markdown-docs](./markdown-docs.md) | 마크다운 문서 스튜디오 및 지식 저장소 사양서 (3대 화면, 리비전 이력, 전문 검색) | review |

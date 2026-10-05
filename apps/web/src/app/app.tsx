@@ -4,7 +4,7 @@ import { ShellLayout } from '../shared/components/layout/ShellLayout';
 import { DashboardPage } from '../pages/dashboard/DashboardPage';
 import { PdfToolsPage } from '../pages/pdf-tools/PdfToolsPage';
 import { DbmlToolsPage } from '../pages/dbml-tools';
-import { PlaceholderPage } from '../pages/placeholder/PlaceholderPage';
+import { MarkdownDocsPage } from '../pages/markdown-docs';
 import { NotFoundPage } from '../pages/not-found/NotFoundPage';
 
 export interface AppProps {
@@ -19,16 +19,7 @@ export function App({ initialUser }: AppProps = {}) {
         <Route index element={<DashboardPage />} />
         <Route path="pdf-tools" element={<PdfToolsPage />} />
         <Route path="dbml-tools" element={<DbmlToolsPage />} />
-        <Route
-          path="docs"
-          element={
-            <PlaceholderPage
-              title="마크다운 문서 뷰어"
-              description="로컬 프로젝트 사양(Spec) 및 아키텍처 결정(ADR) 뷰어가 곧 제공됩니다."
-              icon="description"
-            />
-          }
-        />
+        <Route path="docs/*" element={<MarkdownDocsPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
