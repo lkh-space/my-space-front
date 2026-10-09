@@ -218,38 +218,168 @@
   color: var(--text-muted);
 }
 
-/* Sidebar Footer */
+.sidebar-version-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  background-color: var(--surface-container-highest);
+  border: 1px solid var(--outline-variant);
+  color: var(--secondary);
+}
+
+.version-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background-color: var(--secondary);
+  animation: pulseDot 2s infinite ease-in-out;
+}
+
+.version-text {
+  font-weight: 500;
+}
+
+/* AI STUDIO Section */
+.sidebar-ai-section {
+  margin-top: var(--space-md);
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--outline-variant);
+}
+
+.ai-section-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  padding: var(--space-xs) var(--space-sm);
+  margin-bottom: var(--space-xs);
+}
+
+.ai-tab-item {
+  border: 1px solid transparent;
+}
+
+.ai-tab-item.active {
+  border-color: var(--primary) !important;
+  background-color: var(--surface-container) !important;
+}
+
+.ai-active-indicator-dot {
+  margin-left: auto;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background-color: var(--primary);
+  box-shadow: 0 0 6px var(--primary);
+}
+
+/* Sidebar Footer & Engine Instance Card */
 .sidebar-footer {
   padding: var(--space-md);
   border-top: 1px solid var(--outline-variant);
   background-color: var(--surface-container-low);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-sm);
 }
 
-.telemetry-badge {
+.engine-instance-card {
+  background-color: var(--surface-container-lowest);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-md);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.engine-instance-header {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  color: var(--secondary);
-  font-family: var(--font-mono);
+  justify-content: space-between;
 }
 
-.telemetry-badge-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: var(--radius-full);
-  background-color: var(--secondary);
-  flex-shrink: 0;
-}
-
-.engine-runtime-meta {
+.engine-instance-label {
   font-family: var(--font-mono);
   font-size: 10px;
   color: var(--text-muted);
-  line-height: 1.4;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.engine-status-tag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--secondary);
+}
+
+.engine-status-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: var(--radius-full);
+  background-color: var(--secondary);
+  animation: pulseDot 2s infinite ease-in-out;
+}
+
+.engine-instance-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.engine-host {
+  color: var(--on-surface);
+  font-weight: 500;
+}
+
+.engine-type {
+  color: var(--text-muted);
+  font-size: 10px;
+}
+
+.sidebar-bottom-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sidebar-action-btn {
+  flex: 1;
+  height: 28px;
+  background: transparent;
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-sm);
+  color: var(--on-surface-variant);
+  font-size: 11px;
+  font-weight: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.sidebar-action-btn:hover {
+  background-color: var(--surface-container);
+  color: var(--on-surface);
+  border-color: var(--outline);
+}
+
+.sidebar-action-btn .material-symbols-outlined {
+  font-size: 14px;
 }
 
 /* --------------------------------------------------------------------------

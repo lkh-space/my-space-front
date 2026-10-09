@@ -75,6 +75,21 @@ export const WORKSPACE_NAV_ENTRIES: WorkspaceNavEntry[] = [
     statusTag: 'READY',
     lastUsed: '3시간 전 사용',
   },
+  {
+    id: 'ai-workspace',
+    path: '/ai',
+    title: 'AI Workspace',
+    shortLabel: 'AI',
+    icon: 'smart_toy',
+    category: '워크스페이스',
+    breadcrumbPage: 'AI Workspace',
+    commandDescription: 'AI 워크스페이스 (로컬 지식 기반 AI 어시스턴트)',
+    isInstalledUtility: true,
+    utilityTitle: 'AI Workspace',
+    description: '로컬 마크다운 문서 및 웹 리서치를 결합한 온디바이스 AI 에이전트',
+    statusTag: 'ACTIVE',
+    lastUsed: '방금 전 사용',
+  },
 ];
 
 /**

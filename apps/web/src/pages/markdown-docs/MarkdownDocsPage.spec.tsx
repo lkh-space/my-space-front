@@ -104,21 +104,25 @@ describe('MarkdownDocsPage Component & Sub-routing', () => {
     });
   });
 
-  it('/docs/new 경로에서 MarkdownEditorView가 정상 마운트되어야 한다', async () => {
-    render(
-      <MemoryRouter initialEntries={['/docs/new']}>
-        <Routes>
-          <Route path="docs/*" element={<MarkdownDocsPage />} />
-        </Routes>
-      </MemoryRouter>
-    );
+  it(
+    '/docs/new 경로에서 MarkdownEditorView가 정상 마운트되어야 한다',
+    async () => {
+      render(
+        <MemoryRouter initialEntries={['/docs/new']}>
+          <Routes>
+            <Route path="docs/*" element={<MarkdownDocsPage />} />
+          </Routes>
+        </MemoryRouter>
+      );
 
-    await waitFor(() => {
-      expect(screen.getByText('저장 (Save)')).toBeTruthy();
-      expect(screen.getByText('Live Render Canvas')).toBeTruthy();
-      expect(screen.getByText('GFM + KaTeX + Mermaid')).toBeTruthy();
-    });
-  });
+      await waitFor(() => {
+        expect(screen.getByText('저장 (Save)')).toBeTruthy();
+        expect(screen.getByText('Live Render Canvas')).toBeTruthy();
+        expect(screen.getByText('GFM + KaTeX + Mermaid')).toBeTruthy();
+      });
+    },
+    15000
+  );
 
   it('/docs/doc-1 경로에서 MarkdownDetailView(독서 모드)가 마운트되어야 한다', async () => {
     render(

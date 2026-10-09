@@ -19,6 +19,14 @@ export default defineConfig(({ mode }) => {
       port: 4200,
       host: '0.0.0.0',
       proxy: {
+        '/api/v1/ai': {
+          target:
+            env.VITE_AI_BACKEND_URL ||
+            process.env.VITE_AI_BACKEND_URL ||
+            'http://localhost:3001',
+          changeOrigin: true,
+          secure: false,
+        },
         '/api': {
           target: backendUrl,
           changeOrigin: true,

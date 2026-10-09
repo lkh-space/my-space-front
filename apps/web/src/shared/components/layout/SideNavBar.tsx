@@ -7,26 +7,32 @@ interface SideNavBarProps {
 }
 
 export const SideNavBar: React.FC<SideNavBarProps> = ({ onOpenCommandPalette }) => {
+  const standardNavItems = WORKSPACE_NAV_ENTRIES.filter(
+    (item) => item.id !== 'ai-workspace'
+  );
+  const aiNavItem = WORKSPACE_NAV_ENTRIES.find(
+    (item) => item.id === 'ai-workspace'
+  );
+
   return (
     <aside className="side-navbar" aria-label="메인 사이드바 네비게이션">
-      {/* 1. Header with Brand & Engine State */}
+      {/* 1. Header with Brand & Version */}
       <div className="sidebar-header">
         <div className="brand-wrapper">
           <div className="brand-avatar" title="my-space developer workspace">
-            MS
+            μ
           </div>
           <div className="brand-title-group">
             <span className="brand-title">my-space</span>
-            <span className="brand-version">v0.1.0-local</span>
           </div>
         </div>
-        <div className="sidebar-status-tag" title="엔진 대기 상태">
-          <span className="sidebar-status-dot" />
-          <span>IDLE</span>
+        <div className="sidebar-version-badge" title="시스템 활성 버전">
+          <span className="version-status-dot" />
+          <span className="version-text">v0.1.0</span>
         </div>
       </div>
 
-      {/* 2. Quick Command Palette Trigger Button (Desktop Only) */}
+      {/* 2. Quick Command Palette Trigger Button (Jump to... ⌘K) */}
       <div className="sidebar-command-trigger-wrap">
         <button
           type="button"
@@ -35,19 +41,16 @@ export const SideNavBar: React.FC<SideNavBarProps> = ({ onOpenCommandPalette }) 
           aria-label="명령어 검색 팔레트 열기 (단축키 ⌘K)"
         >
           <div className="command-trigger-left">
-            <span className="material-symbols-outlined">
-              search
-            </span>
-            <span>도구 및 명령어 검색...</span>
+            <span className="material-symbols-outlined">search</span>
+            <span>Jump to...</span>
           </div>
           <kbd className="command-kbd">⌘K</kbd>
         </button>
       </div>
 
-      {/* 3. Navigation Links */}
+      {/* 3. Standard Navigation Links */}
       <nav className="sidebar-nav-section">
-        <span className="nav-section-title">Utilities & Navigation</span>
-        {WORKSPACE_NAV_ENTRIES.map((item) => (
+        {standardNavItems.map((item) => (
           <NavLink
             key={item.id}
             to={item.path}
@@ -63,17 +66,63 @@ export const SideNavBar: React.FC<SideNavBarProps> = ({ onOpenCommandPalette }) 
             <span className="nav-tab-label">{item.title}</span>
           </NavLink>
         ))}
+
+        {/* AI STUDIO Section */}
+        {aiNavItem && (
+          <div className="sidebar-ai-section">
+            <div className="ai-section-title">AI STUDIO</div>
+            <NavLink
+              to={aiNavItem.path}
+              title={aiNavItem.title}
+              className={({ isActive }) =>
+                `nav-tab-item ai-tab-item ${isActive ? 'active' : ''}`
+              }
+            >
+              <span className="material-symbols-outlined nav-tab-icon">
+                {aiNavItem.icon}
+              </span>
+              <span className="nav-tab-label">{aiNavItem.title}</span>
+              <span className="ai-active-indicator-dot" />
+            </NavLink>
+          </div>
+        )}
       </nav>
 
-      {/* 4. Engine & Local Telemetry Footer */}
+      {/* 4. Engine Instance & Bottom Utilities Footer */}
       <div className="sidebar-footer">
-        <div className="telemetry-badge" title="Zero Telemetry Local Process">
-          <span className="telemetry-badge-dot" />
-          <span className="telemetry-badge-text">Zero Telemetry</span>
+        <div className="engine-instance-card">
+          <div className="engine-instance-header">
+            <span className="engine-instance-label">Engine Instance</span>
+            <span className="engine-status-tag">
+              <span className="engine-status-dot" />
+              <span>ACTIVE</span>
+            </span>
+          </div>
+          <div className="engine-instance-body">
+            <span className="engine-host">localhost:8080</span>
+            <span className="engine-type">WASM</span>
+          </div>
         </div>
-        <div className="engine-runtime-meta">
-          Local Process Engine<br />
-          127.0.0.1:4200 (Strictly Local)
+
+        <div className="sidebar-bottom-actions">
+          <button
+            type="button"
+            className="sidebar-action-btn"
+            title="Terminal"
+            onClick={onOpenCommandPalette}
+          >
+            <span className="material-symbols-outlined">terminal</span>
+            <span>Terminal</span>
+          </button>
+          <button
+            type="button"
+            className="sidebar-action-btn"
+            title="Settings"
+            onClick={onOpenCommandPalette}
+          >
+            <span className="material-symbols-outlined">settings</span>
+            <span>Settings</span>
+          </button>
         </div>
       </div>
     </aside>

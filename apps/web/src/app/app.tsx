@@ -5,6 +5,7 @@ import { DashboardPage } from '../pages/dashboard/DashboardPage';
 import { PdfToolsPage } from '../pages/pdf-tools/PdfToolsPage';
 import { DbmlToolsPage } from '../pages/dbml-tools';
 import { MarkdownDocsPage } from '../pages/markdown-docs';
+import { AiWorkspacePage } from '../pages/ai';
 import { NotFoundPage } from '../pages/not-found/NotFoundPage';
 
 export interface AppProps {
@@ -16,13 +17,15 @@ export function App({ initialUser }: AppProps = {}) {
     <AuthProvider initialUser={initialUser}>
       <Routes>
         <Route path="/" element={<ShellLayout />}>
-        <Route index element={<DashboardPage />} />
-        <Route path="pdf-tools" element={<PdfToolsPage />} />
-        <Route path="dbml-tools" element={<DbmlToolsPage />} />
-        <Route path="docs/*" element={<MarkdownDocsPage />} />
-        <Route path="*" element={<NotFoundPage />} />
-      </Route>
-    </Routes>
+          <Route index element={<DashboardPage />} />
+          <Route path="pdf-tools" element={<PdfToolsPage />} />
+          <Route path="dbml-tools" element={<DbmlToolsPage />} />
+          <Route path="docs/*" element={<MarkdownDocsPage />} />
+          <Route path="ai" element={<AiWorkspacePage />} />
+          <Route path="ai/*" element={<AiWorkspacePage />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Route>
+      </Routes>
     </AuthProvider>
   );
 }

@@ -119,6 +119,16 @@ describe('App', () => {
       });
     });
 
+    it('/ai 경로 접속 시 J.A.R.V.I.S. AI 워크스페이스 페이지를 렌더링해야 한다', async () => {
+      renderApp(['/ai']);
+
+      await waitFor(() => {
+        expect(screen.getByText('J.A.R.V.I.S. Core (Active)')).toBeTruthy();
+        expect(screen.getByText('Neural Stream: Online')).toBeTruthy();
+        expect(screen.getByText('PTT: Hold Space')).toBeTruthy();
+      });
+    });
+
     it('존재하지 않는 잘못된 경로(/unknown-page) 접속 시 404 NotFoundPage를 렌더링해야 한다', () => {
       renderApp(['/unknown-page']);
 
