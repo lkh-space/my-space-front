@@ -1,78 +1,205 @@
-import { NeuralStreamSession, SpokenTranscriptMessage } from '../model/types';
+import {
+  AiSearchQueryDto,
+  AiSearchResponseDto,
+  InterruptResponseDto,
+  NeuralStreamSession,
+  SendVoiceStreamParams,
+  SpokenTranscriptMessage,
+} from '../model/types';
 
-export const INITIAL_NEURAL_SESSIONS: NeuralStreamSession[] = [
-  {
-    id: 'session-jarvis-diag',
-    title: 'JARVIS System Diagnostics',
-    status: 'LIVE',
-    createdAt: '2026-10-09T10:00:00Z',
-    updatedAt: '2026-10-09T10:42:00Z',
-  },
-  {
-    id: 'session-ultron-sync',
-    title: 'Ultron Neural Sync',
-    status: 'idle',
-    createdAt: '2026-10-08T18:30:00Z',
-    updatedAt: '2026-10-08T19:10:00Z',
-  },
-  {
-    id: 'session-mongo-opfs',
-    title: 'MongoDB Streams vs OPFS',
-    status: 'saved',
-    createdAt: '2026-10-07T14:15:00Z',
-    updatedAt: '2026-10-07T15:00:00Z',
-  },
-  {
-    id: 'session-arch-analysis',
-    title: 'Architecture Analysis',
-    status: 'saved',
-    createdAt: '2026-10-06T09:00:00Z',
-    updatedAt: '2026-10-06T09:45:00Z',
-  },
-];
+export const INITIAL_NEURAL_SESSIONS: NeuralStreamSession[] = [];
 
-export const INITIAL_TRANSCRIPT_MESSAGES: SpokenTranscriptMessage[] = [
-  {
-    id: 'msg-jarvis-1',
-    role: 'assistant',
-    content:
-      'Welcome back, sir. I have cross-referenced your local specification against the Origin Private File System (OPFS) edge streaming architecture.\n\nOur synthetic benchmarks indicate that local OPFS write locks yield a 4.2x reduction in thread stalls compared to polling remote change streams across high-latency webhooks. I have prepared the schema migration diagram in your DBML workspace.',
-    audioDuration: '0:38',
-    currentTime: '0:14',
-    timestamp: '10:42 AM',
-    isTtsVerified: true,
-    benchmarkDelta: {
-      workerName: 'local-storage-worker',
-      opfsStream: '~1.8ms lat / 0 locks',
-      remoteSse: '~8.4ms lat / 3 retries',
-    },
-    contexts: [
-      {
-        id: 'ctx-1',
-        title: 'mongodb-streaming.md',
-        filename: 'mongodb-streaming.md',
-        type: 'doc',
-      },
-      {
-        id: 'ctx-2',
-        title: 'architecture-notes.md',
-        filename: 'architecture-notes.md',
-        type: 'architecture',
-      },
-    ],
-  },
-];
+export const INITIAL_TRANSCRIPT_MESSAGES: SpokenTranscriptMessage[] = [];
 
+/**
+ * 신경망 스트림 세션 목록 조회 (GET /api/v1/ai/sessions)
+ */
 export async function fetchNeuralSessions(): Promise<NeuralStreamSession[]> {
   try {
     const res = await fetch('/api/v1/ai/sessions');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    return Array.isArray(data) && data.length > 0 ? data : INITIAL_NEURAL_SESSIONS;
+    return Array.isArray(data) ? data : [];
   } catch {
     // 오프라인 / 개발 환경 안전 폴백
-    return INITIAL_NEURAL_SESSIONS;
+    return [];
   }
+}
+
+/**
+ * 신규 신경망 세션 생성 (POST /api/v1/ai/sessions)
+ */
+export async function createNeuralSession(title?: string): Promise<NeuralStreamSession> {
+  try {
+    const res = await fetch('/api/v1/ai/sessions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ title }),
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } catch {
+    // 오프라인 / 실패 시 로컬 임시 세션 폴백
+    const fallbackId = `session-jarvis-${Date.now()}`;
+    return {
+      id: fallbackId,
+      title: title || 'Neural Stream Diagnostic Session',
+      status: 'LIVE',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+  }
+}
+
+/**
+ * PTT 음성/텍스트 멀티모달 실시간 SSE 스트리밍 (POST /api/v1/ai/voice/stream)
+ */
+export async function streamJarvisVoice(params: SendVoiceStreamParams): Promise<void> {
+  const { sessionId, textQuery, audioBlob, voiceSettings, enableTools, handlers, signal } = params;
+
+  let body: BodyInit;
+  const headers: HeadersInit = {};
+
+  if (audioBlob) {
+    // 1. 오디오 녹음 파일 전달 시: multipart/form-data 전송
+    const formData = new FormData();
+    formData.append('sessionId', sessionId);
+    formData.append('audio', audioBlob, 'ptt-recording.webm');
+    if (textQuery) formData.append('textQuery', textQuery);
+    if (enableTools !== undefined) formData.append('enableTools', String(enableTools));
+    if (voiceSettings) formData.append('voiceSettings', JSON.stringify(voiceSettings));
+    body = formData;
+  } else {
+    // 2. 순수 텍스트 질의 전달 시: application/json 전송
+    headers['Content-Type'] = 'application/json';
+    body = JSON.stringify({
+      sessionId,
+      textQuery: textQuery || '',
+      enableTools: enableTools ?? true,
+      voiceSettings,
+    });
+  }
+
+  const response = await fetch('/api/v1/ai/voice/stream', {
+    method: 'POST',
+    headers,
+    body,
+    signal,
+  });
+
+  if (!response.ok || !response.body) {
+    const errorText = await response.text().catch(() => '');
+    const errMsg = `[J.A.R.V.I.S. 스트림 실패] HTTP ${response.status}: ${errorText || response.statusText}`;
+    handlers.onError?.(errMsg);
+    throw new Error(errMsg);
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder('utf-8');
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const blocks = buffer.split('\n\n');
+    buffer = blocks.pop() || '';
+
+    for (const block of blocks) {
+      if (!block.trim()) continue;
+
+      const lines = block.split('\n');
+      let eventType = '';
+      let dataStr = '';
+
+      for (const line of lines) {
+        if (line.startsWith('event: ')) {
+          eventType = line.replace('event: ', '').trim();
+        } else if (line.startsWith('data: ')) {
+          dataStr = line.replace('data: ', '').trim();
+        }
+      }
+
+      if (!dataStr) continue;
+
+      try {
+        const payload = JSON.parse(dataStr);
+
+        switch (eventType) {
+          case 'transcription':
+            handlers.onTranscription?.(payload.text);
+            break;
+          case 'benchmark':
+            handlers.onBenchmark?.(payload);
+            break;
+          case 'context_ref':
+            handlers.onContextRef?.(payload.contexts || []);
+            break;
+          case 'token':
+            handlers.onToken?.(payload.delta);
+            break;
+          case 'audio_complete':
+            handlers.onAudioComplete?.(payload);
+            break;
+          case 'done':
+            handlers.onDone?.(payload);
+            return;
+          case 'error':
+            handlers.onError?.(payload.error || '알 수 없는 스트리밍 에러가 발생했습니다.');
+            break;
+        }
+      } catch (err) {
+        console.warn('[SSE 파싱 경고]', err, dataStr);
+      }
+    }
+  }
+}
+
+/**
+ * AI 발화 및 LLM/TTS 추론 즉시 중단 (POST /api/v1/ai/chat/interrupt)
+ */
+export async function interruptSpeech(sessionId: string): Promise<boolean> {
+  try {
+    const response = await fetch('/api/v1/ai/chat/interrupt', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ sessionId }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`중단 요청 실패: ${response.statusText}`);
+    }
+
+    const result: InterruptResponseDto = await response.json();
+    return result.interrupted;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Qdrant 기반 마크다운 문서 시맨틱 검색 (POST /api/v1/ai/search)
+ */
+export async function searchAiDocuments(dto: AiSearchQueryDto): Promise<AiSearchResponseDto> {
+  const response = await fetch('/api/v1/ai/search', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(dto),
+  });
+
+  if (!response.ok) {
+    throw new Error(`시맨틱 검색 실패 HTTP ${response.status}`);
+  }
+
+  return await response.json();
 }
 
 export interface StreamResponseCallbacks {
@@ -81,6 +208,9 @@ export interface StreamResponseCallbacks {
   onError?: (err: Error) => void;
 }
 
+/**
+ * 단위 테스트 및 개발 환경용 모의 스트리밍 시뮬레이터 (Fallback)
+ */
 export function simulateVoiceResponseStream(
   query: string,
   callbacks: StreamResponseCallbacks

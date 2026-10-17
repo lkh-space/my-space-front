@@ -15,6 +15,8 @@ export interface BenchmarkMetrics {
   remoteSse: string; // e.g. '~8.4ms lat / 3 retries'
 }
 
+export type BenchmarkDelta = BenchmarkMetrics;
+
 export interface ReferencedContext {
   id: string;
   title: string;
@@ -32,6 +34,7 @@ export interface SpokenTranscriptMessage {
   isTtsVerified?: boolean;
   benchmarkDelta?: BenchmarkMetrics;
   contexts?: ReferencedContext[];
+  audioUrl?: string;
 }
 
 export interface NeuralStreamSession {
@@ -42,8 +45,68 @@ export interface NeuralStreamSession {
   updatedAt: string;
 }
 
+export interface CreateNeuralSessionDto {
+  title?: string;
+}
+
+export interface VoiceSettings {
+  selectedVoice?: 'JARVIS British AI' | 'JARVIS Fast Neural' | 'JARVIS Deep Resonant' | string;
+  speechSpeed?: number;
+  enableTelemetry?: boolean;
+}
+
+export interface StreamEventHandlers {
+  onTranscription?: (text: string) => void;
+  onBenchmark?: (benchmark: BenchmarkMetrics) => void;
+  onContextRef?: (contexts: ReferencedContext[]) => void;
+  onToken?: (delta: string) => void;
+  onAudioComplete?: (audio: { audioUrl: string; duration: string }) => void;
+  onDone?: (info: { finished: boolean; tokensUsed: number; contextLimit?: number; interrupted?: boolean }) => void;
+  onError?: (errorMsg: string) => void;
+}
+
+export interface SendVoiceStreamParams {
+  sessionId: string;
+  textQuery?: string;
+  audioBlob?: Blob;
+  enableTools?: boolean;
+  voiceSettings?: VoiceSettings;
+  handlers: StreamEventHandlers;
+  signal?: AbortSignal;
+}
+
 export interface SendVoiceQueryOptions {
   sessionId?: string;
   text?: string;
   audioBlob?: Blob;
+}
+
+export interface InterruptQueryDto {
+  sessionId: string;
+}
+
+export interface InterruptResponseDto {
+  status: string;
+  interrupted: boolean;
+}
+
+export interface AiSearchQueryDto {
+  query: string;
+  limit?: number;
+  folderId?: string;
+  tags?: string[];
+}
+
+export interface AiSearchResultItem {
+  documentId: string;
+  title: string;
+  heading?: string;
+  content: string;
+  score: number;
+  tags?: string[];
+}
+
+export interface AiSearchResponseDto {
+  results: AiSearchResultItem[];
+  total: number;
 }

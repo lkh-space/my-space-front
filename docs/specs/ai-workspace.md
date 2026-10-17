@@ -1,7 +1,7 @@
 ---
-status: implemented
+status: review
 owner: AI Assistant & Keunhyeok Lim
-last-updated: 2026-10-09
+last-updated: 2026-10-11
 ---
 
 # 기능 명세서: AI 워크스페이스 (JARVIS Neural Core 음성 비서)
@@ -161,21 +161,45 @@ stateDiagram-v2
 
 ## 6. API 연동 규격 (API Integration)
 
-* **백엔드 통신 기본 정책**:
-  * 백엔드 API 계약(`/api/v1/ai/...`)에 맞추어 클라이언트 연동 계층 구성.
-  * SSE 엔드포인트: `/api/v1/ai/chat/stream`
-  * 세션 관리 엔드포인트: `/api/v1/ai/sessions`
-* **모의(Mock) 및 오프라인 안전 모드**:
-  * 백엔드 음성 처리 및 서버가 아직 준비되지 않은 개발 환경에서도 UI 인터랙션, PTT 및 JARVIS 시각 효과가 매끄럽게 동작하도록 안전한 모의(Mock) 시뮬레이션 데이터 제공.
+* **백엔드 통신 아키텍처**:
+  * AI 백엔드(`apps/ai`, 기본 포트 `3001`)는 Vite 개발 프록시(`/api/v1/ai` -> `http://localhost:3001`)를 통해 동일 출처(Same-Origin)로 연동됩니다.
+  * 개발 환경에서는 `dev-admin`으로 인증이 자동 바이패스되며, 프로덕션 환경에서는 Traefik/Authelia Forward Auth 헤더(`Remote-User` 등)를 지원합니다.
+
+### 6.1. 세션 라이프사이클 API
+* **세션 목록 조회**: `GET /api/v1/ai/sessions` (`NeuralStreamSession[]`)
+* **신규 세션 생성**: `POST /api/v1/ai/sessions` (`{ title?: string }` → `NeuralStreamSession`)
+
+### 6.2. J.A.R.V.I.S. 실시간 음성/텍스트 멀티모달 스트리밍
+* **엔드포인트**: `POST /api/v1/ai/voice/stream`
+* **요청 형태**:
+  * 음성 녹음 전달 시: `multipart/form-data` (`sessionId`, `audio` File/Blob, `enableTools`, `voiceSettings`)
+  * 텍스트 쿼리 전달 시: `application/json` (`sessionId`, `textQuery`, `enableTools`, `voiceSettings`)
+* **SSE 이벤트 수신 규격 (`text/event-stream`)**:
+  1. `transcription`: 사용자 음성의 STT 전사 텍스트 (`{"text": "..."}`)
+  2. `benchmark`: 텔레메트리 지표 (`{"workerName": "...", "opfsStream": "...", "remoteSse": "..."}`)
+  3. `context_ref`: RAG 인용 문서 목록 (`{"contexts": [{ "id": "...", "title": "...", "filename": "...", "type": "doc" }]}`)
+  4. `token`: 실시간 어시스턴트 답변 토큰 (`{"delta": "..."}`)
+  5. `audio_complete`: TTS 음성 파일 URL (`{"audioUrl": "/api/v1/ai/audio/...", "duration": "0:38"}`)
+  6. `done`: 스트림 정상 종료 (`{"finished": true, "tokensUsed": 120, "contextLimit": 8192}`)
+  7. `error`: 처리 오류 (`{"error": "..."}`)
+
+### 6.3. 발화 즉시 중단 (Speech Interrupt)
+* **엔드포인트**: `POST /api/v1/ai/chat/interrupt`
+* **요청 Body**: `{"sessionId": string}`
+* **동작**: 클라이언트의 `AbortController` 취소와 동시에 백엔드의 LLM 추론 및 TTS 합성을 서버 레벨에서 즉시 중단합니다.
+
+### 6.4. 합성 오디오 서빙 및 마크다운 시맨틱 검색
+* **오디오 파일 서빙**: `GET /api/v1/ai/audio/:id` (`audio/wav`)
+* **Qdrant 문서 시맨틱 검색**: `POST /api/v1/ai/search` (`{ query, limit, folderId?, tags? }`)
 
 ---
 
 ## 7. 에러 핸들링 및 접근성 (Error Handling & a11y)
 
-1. **마이크 권한 거부**:
-   * 브라우저 마이크 권한이 차단된 경우, PTT 버튼에 경고 아이콘 표시 및 텍스트 입력창으로 포커스 안내.
+1. **마이크 권한 거부 및 폴백**:
+   * 브라우저 마이크 권한이 차단되었거나 지원되지 않는 환경인 경우, PTT 버튼에 안내 상태를 표시하고 텍스트 입력 모드로 안전하게 자동 전환합니다.
 2. **스트리밍 단절 복구**:
-   * 네트워크 유실 시 `Retry` 버튼을 통한 마지막 발화 재전송 지원.
+   * 네트워크 유실 시 `Retry` 버튼을 통한 마지막 발화 재전송을 지원하며, 오프라인 환경에서도 UI 렌더링이 깨지지 않도록 방어 로직을 유지합니다.
 3. **접근성(a11y)**:
    * 모든 인터랙티브 컨트롤에 명확한 `aria-label` 및 키보드 포커스 ring 부여.
    * `prefers-reduced-motion` 미디어 쿼리를 지원하여 필요시 궤도 회전 애니메이션 감속 처리.
@@ -183,7 +207,11 @@ stateDiagram-v2
 ---
 
 ## 8. 의사결정 사항 (Decisions on Open Questions)
-1. **Web Audio 실제 음성 녹음 API 연동**:
-   * 현재 프론트엔드 단계에서는 UI/UX 및 가상 오디오 텔레메트리 시뮬레이션을 구현하며, 백엔드 음성 처리 개발 완료 후 전달받아 정식 결합합니다.
-2. **단일 JARVIS 페르소나 채택**:
-   * 별도의 Ultron 모드는 제외하고, 오직 완성도 높은 J.A.R.V.I.S. Core 단일 인터페이스로 집중 구현합니다.
+1. **브라우저 음성 녹음 (MediaRecorder) 정식 결합**:
+   * 백엔드 `POST /api/v1/ai/voice/stream`의 `audio` 파라미터 규격에 맞춰 브라우저 `MediaRecorder` API로 사용자 음성을 WebM Blob 형태로 캡처하여 전달합니다.
+2. **오디오 자동 재생 및 정지 라이프사이클**:
+   * 백엔드 TTS 오디오 파일 연동과 함께, 브라우저 표준 Web Speech API(`speechSynthesis`)를 프론트엔드 네이티브 음성 합성 엔진으로 결합합니다.
+   * 백엔드의 더미 오디오 응답 또는 오디오 미지원 환경에서도 100% 무료로 자연스러운 한국어/영어 네이티브 음성 답변을 스트리밍 직후 즉시 발화하며, 사용자 배속(`speechSpeed`), 음성 선택(`selectedVoice`) 및 발화 경과 시간(`currentTime`)을 실시간 추적합니다.
+   * 사용자의 `Interrupt Speech` 트리거 시 오디오 인스턴스, Web Speech 합성 및 SSE 연결을 즉시 안전하게 정리합니다.
+3. **단일 JARVIS 페르소나 채택**:
+   * 복잡도를 최소화하기 위해 오직 완성도 높은 J.A.R.V.I.S. Core 단일 인터페이스로 집중 구현합니다.

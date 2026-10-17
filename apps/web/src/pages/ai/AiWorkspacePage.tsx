@@ -240,7 +240,7 @@ export const AiWorkspacePage: React.FC = () => {
                 key={message.id}
                 message={message}
                 isPlayingAudio={isPlayingAudio}
-                onTogglePlayAudio={toggleAudioPlayback}
+                onTogglePlayAudio={() => toggleAudioPlayback(message.id)}
                 onSaveToMarkdown={handleSaveToMarkdown}
                 onRetry={() => sendFollowUpText(message.content)}
               />

@@ -9,8 +9,8 @@ interface AudioPlayerPillProps {
 
 export const AudioPlayerPill: React.FC<AudioPlayerPillProps> = ({
   isPlaying,
-  currentTime = '0:14',
-  duration = '0:38',
+  currentTime = '0:00',
+  duration = '0:00',
   onTogglePlay,
 }) => {
   return (
