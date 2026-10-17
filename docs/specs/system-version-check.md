@@ -1,7 +1,7 @@
 ---
-status: review
+status: implemented
 owner: Keunhyeok Lim
-last-updated: 2026-10-04
+last-updated: 2026-10-17
 ---
 
 # 시스템 버전 확인 및 서버 헬스체크 사양서 (System Version Check Specification)

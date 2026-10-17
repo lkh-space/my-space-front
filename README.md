@@ -23,9 +23,12 @@ my-space-front/
 ├── apps/
 │   └── web/                   # 단일 웹 애플리케이션
 │       ├── src/
-│       │   ├── app/           # 루트 라우터 및 엔트리
-│       │   ├── pages/         # 화면 컴포넌트 (대시보드, 유틸리티 등)
-│       │   ├── shared/        # 공통 레이아웃 셸(SideNav, TopNav, ⌘K), 타입, 유틸
+│       │   ├── app/           # 루트 라우터, 엔트리 및 프로바이더
+│       │   ├── pages/         # 라우트 단위 페이지 컴포넌트 (대시보드, PDF, DBML, Docs, AI)
+│       │   ├── widgets/       # 합성 위젯 (Header, ShellLayout, SideNav, BottomNav, ⌘K)
+│       │   ├── features/      # 사용자 인터랙션 기능 단위 (Markdown 에디터/렌더러 등)
+│       │   ├── entities/      # 비즈니스 도메인 모델 및 API 연동 (Auth, AI, Markdown, Version)
+│       │   ├── shared/        # 공통 API 클라이언트, 환경설정, 유틸리티, 디자인 토큰
 │       │   └── styles.css     # 시맨틱 디자인 토큰 및 글로벌 스타일
 │       └── vite.config.mts
 ├── docs/                      # SDD(Spec-Driven Development) 문서 체계

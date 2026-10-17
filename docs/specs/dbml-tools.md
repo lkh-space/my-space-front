@@ -1,7 +1,7 @@
 ---
-status: review
+status: implemented
 owner: Keunhyeok Lim
-last-updated: 2026-10-04
+last-updated: 2026-10-17
 ---
 
 # DBML 스키마 변환기 및 ERD 시각화 도구 사양서 (DBML Utility Specification)

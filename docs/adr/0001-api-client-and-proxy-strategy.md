@@ -1,6 +1,6 @@
 ---
 # MADR 4.0.0 양식 — https://adr.github.io/madr/
-status: proposed
+status: accepted
 date: 2026-09-24
 decision-makers: [Keunhyeok Lim]
 ---

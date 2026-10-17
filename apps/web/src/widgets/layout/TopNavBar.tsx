@@ -1,5 +1,5 @@
 import React from 'react';
-import { Header, HeaderProps } from '../../../widgets/header';
+import { Header, HeaderProps } from '../header';
 
 export type TopNavBarProps = HeaderProps;
 

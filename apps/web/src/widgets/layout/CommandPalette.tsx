@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import { Command } from 'cmdk';
 import { useNavigate } from 'react-router-dom';
-import { clearRecentTasks } from '../../utils/storage';
-import { WORKSPACE_NAV_ENTRIES } from '../../constants/navigation';
+import { clearRecentTasks } from '../../shared/utils/storage';
+import { WORKSPACE_NAV_ENTRIES } from '../../shared/constants/navigation';
 
 interface CommandPaletteProps {
   open: boolean;

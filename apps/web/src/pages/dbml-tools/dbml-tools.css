@@ -834,3 +834,42 @@
     overflow-x: auto;
   }
 }
+
+/* Toast Banner for User Feedback */
+.dbml-toast-banner {
+  position: absolute;
+  top: 56px;
+  right: var(--space-lg);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  animation: fadeInDown 0.2s ease-out;
+}
+
+.dbml-toast-banner.success {
+  background-color: var(--surface-container-high);
+  border: 1px solid var(--secondary);
+  color: var(--secondary);
+}
+
+.dbml-toast-banner.error {
+  background-color: var(--surface-container-high);
+  border: 1px solid var(--error);
+  color: var(--error);
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

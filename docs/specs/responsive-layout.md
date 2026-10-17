@@ -59,7 +59,7 @@ last-updated: 2026-09-25
 - **시나리오**: 스마트폰 브라우저에서 `my-space`에 접속함.
 - **동작**:
   1. 상단에는 48px 반투명 헤더(터미널 아이콘 + 브랜드 로고 + `LOCAL` 점)가 고정 표시됨.
-  2. 하단에는 화면 전체 너비의 고정 바텀바가 노출되며, 4개 도구(대시보드, PDF, DBML, Docs) 탭이 수평 배치됨.
+  2. 하단에는 화면 전체 너비의 고정 바텀바가 노출되며, 5개 도구(대시보드, PDF, DBML, 문서, AI) 탭이 수평 배치됨.
   3. 현재 활성 탭은 에메랄드/블루 액센트(`text-primary`)와 채워진 아이콘(`FILL: 1`)으로 즉시 식별됨.
   4. 탭 클릭 시 페이지가 즉시 전환되며, 터치 시 미세한 축소 피드백(`scale(0.96)`)이 제공됨.
 
@@ -74,17 +74,18 @@ last-updated: 2026-09-25
 
 ## 5. 화면 및 컴포넌트 요구사항 (UI / Component Specs)
 
-### 5.1. 신규 컴포넌트: `BottomNavBar.tsx`
-* **위치**: `apps/web/src/shared/components/layout/BottomNavBar.tsx`
+### 5.1. 컴포넌트: `BottomNavBar.tsx`
+* **위치**: `apps/web/src/widgets/layout/BottomNavBar.tsx`
 * **규격**:
   * 높이 `56px` (`h-14`), 화면 최하단 고정 (`fixed bottom-0 left-0 w-full z-50`).
   * 배경: `var(--surface-container-lowest)` (`#0d0e15`), 상단 1px 경계선 `border-t border-outline-variant`.
   * 노출 조건: 뷰포트 너비 `< 768px`에서만 노출, 그 외 해상도에서는 `display: none`.
-* **탭 항목 (4개 균등 분할)**:
+* **탭 항목 (5개 균등 분할 — `WORKSPACE_NAV_ENTRIES` 연동)**:
   1. **대시보드**: 아이콘 `dashboard`, 라벨 `대시보드`, 링크 `/`
   2. **PDF 도구**: 아이콘 `picture_as_pdf`, 라벨 `PDF 도구`, 링크 `/pdf-tools`
   3. **DBML**: 아이콘 `schema`, 라벨 `DBML`, 링크 `/dbml-tools`
   4. **문서**: 아이콘 `description`, 라벨 `문서`, 링크 `/docs`
+  5. **AI 비서**: 아이콘 `neurology`, 라벨 `AI`, 링크 `/ai`
 * **탭 UI 구조**:
   ```tsx
   <NavLink to={tab.path} className={({ isActive }) => `bottom-tab-item ${isActive ? 'active' : ''}`}>

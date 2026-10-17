@@ -1,10 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import { Outlet } from 'react-router-dom';
 import { SideNavBar } from './SideNavBar';
-import { Header } from '../../../widgets/header';
+import { Header } from '../header';
 import { BottomNavBar } from './BottomNavBar';
 import { CommandPalette } from './CommandPalette';
-import { ErrorBoundary } from '../error/ErrorBoundary';
+import { ErrorBoundary } from '../../shared/components/error/ErrorBoundary';
 import './layout.css';
 
 export const ShellLayout: React.FC = () => {

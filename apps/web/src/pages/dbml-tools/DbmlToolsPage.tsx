@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import { DEFAULT_DBML_SCHEMA } from './model/defaultSchema';
 import { parseDbml } from './model/dbmlParser';
 import { calculateErdLayout } from './model/erdLayout';
@@ -25,6 +25,16 @@ export const DbmlToolsPage: React.FC = () => {
   const [isFromFallback, setIsFromFallback] = useState(false);
   const [isConverting, setIsConverting] = useState(false);
 
+  // Toast 알림 상태 (브라우저 블로킹 alert 대체)
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  const showToast = useCallback((type: 'success' | 'error', message: string) => {
+    setToast({ type, message });
+    setTimeout(() => {
+      setToast(null);
+    }, 3000);
+  }, []);
+
   // 실시간 클라이언트 파싱 (성능 지연 없이 0~10ms 처리)
   const parsedSchema = useMemo(() => {
     return parseDbml(dbmlCode);
@@ -43,9 +53,9 @@ export const DbmlToolsPage: React.FC = () => {
   const handleCopySchema = async () => {
     try {
       await navigator.clipboard.writeText(dbmlCode);
-      alert('DBML 스키마가 클립보드에 복사되었습니다.');
+      showToast('success', 'DBML 스키마가 클립보드에 복사되었습니다.');
     } catch {
-      // ignore
+      showToast('error', '클립보드 복사에 실패했습니다.');
     }
   };
 
@@ -62,7 +72,7 @@ export const DbmlToolsPage: React.FC = () => {
       setIsFromFallback(Boolean(res.fromFallback));
       setIsModalOpen(true);
     } catch {
-      alert('SQL 변환 중 오류가 발생했습니다.');
+      showToast('error', 'SQL 변환 중 오류가 발생했습니다.');
     } finally {
       setIsConverting(false);
     }
@@ -71,7 +81,7 @@ export const DbmlToolsPage: React.FC = () => {
   const handleExportSvg = () => {
     const svgEl = document.querySelector('.dbml-canvas-viewport svg');
     if (!svgEl) {
-      alert('내보낼 SVG 요소를 찾을 수 없습니다.');
+      showToast('error', '내보낼 SVG 요소를 찾을 수 없습니다.');
       return;
     }
     const svgData = new XMLSerializer().serializeToString(svgEl);
@@ -86,6 +96,19 @@ export const DbmlToolsPage: React.FC = () => {
 
   return (
     <div className="dbml-tools-page">
+      {/* Toast Notification */}
+      {toast && (
+        <div
+          role="status"
+          className={`dbml-toast-banner ${toast.type}`}
+          aria-live="polite"
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+            {toast.type === 'success' ? 'check_circle' : 'error'}
+          </span>
+          <span>{toast.message}</span>
+        </div>
+      )}
       {/* 1. Sub-Toolbar with Breadcrumbs & Actions */}
       <DbmlHeader
         dialect={dialect}

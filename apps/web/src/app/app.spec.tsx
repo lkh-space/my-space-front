@@ -48,7 +48,7 @@ describe('App', () => {
       expect(baseElement).toBeTruthy();
     });
 
-    it('사이드바 브랜드명과 워크스페이스 개요 헤딩이 표시되어야 한다', () => {
+    it('사이드바 브랜드명과 워크스페이스 개요 헤딩이 표시되어야 한다', async () => {
       renderApp(['/']);
 
       // 브랜드 로고명 (사이드바, 상단 브레드크럼, 모바일 헤더)
@@ -56,9 +56,11 @@ describe('App', () => {
       expect(brandElements.length).toBeGreaterThanOrEqual(1);
 
       // 메인 대시보드 H1 헤딩
-      expect(
-        screen.getByRole('heading', { name: '워크스페이스 개요' }),
-      ).toBeTruthy();
+      await waitFor(() => {
+        expect(
+          screen.getByRole('heading', { name: '워크스페이스 개요' }),
+        ).toBeTruthy();
+      });
 
       // 설치된 유틸리티 카드 확인
       expect(screen.getByText('PDF 처리 엔진')).toBeTruthy();
@@ -90,23 +92,27 @@ describe('App', () => {
   });
 
   describe('플레이스홀더 및 404 라우팅', () => {
-    it('/pdf-tools 경로 접속 시 PDF 처리 엔진 페이지를 렌더링해야 한다', () => {
+    it('/pdf-tools 경로 접속 시 PDF 처리 엔진 페이지를 렌더링해야 한다', async () => {
       renderApp(['/pdf-tools']);
 
-      expect(
-        screen.getByRole('heading', { name: 'PDF 처리 엔진' }),
-      ).toBeTruthy();
+      await waitFor(() => {
+        expect(
+          screen.getByRole('heading', { name: 'PDF 처리 엔진' }),
+        ).toBeTruthy();
+      });
       expect(
         screen.getByText(/외부 클라우드 전송 없이 안전하게 PDF를 병합, 분할, 암호 해제합니다/),
       ).toBeTruthy();
     });
 
-    it('/dbml-tools 경로 접속 시 DBML 스키마 변환기 페이지를 렌더링해야 한다', () => {
+    it('/dbml-tools 경로 접속 시 DBML 스키마 변환기 페이지를 렌더링해야 한다', async () => {
       renderApp(['/dbml-tools']);
 
-      expect(
-        screen.getByRole('heading', { name: 'DBML Editor & ERD Visualizer' }),
-      ).toBeTruthy();
+      await waitFor(() => {
+        expect(
+          screen.getByRole('heading', { name: 'DBML Editor & ERD Visualizer' }),
+        ).toBeTruthy();
+      });
       expect(screen.getByText('Live Synced')).toBeTruthy();
     });
 
@@ -129,10 +135,12 @@ describe('App', () => {
       });
     });
 
-    it('존재하지 않는 잘못된 경로(/unknown-page) 접속 시 404 NotFoundPage를 렌더링해야 한다', () => {
+    it('존재하지 않는 잘못된 경로(/unknown-page) 접속 시 404 NotFoundPage를 렌더링해야 한다', async () => {
       renderApp(['/unknown-page']);
 
-      expect(screen.getByText('404')).toBeTruthy();
+      await waitFor(() => {
+        expect(screen.getByText('404')).toBeTruthy();
+      });
       expect(
         screen.getByRole('heading', {
           name: '요청하신 페이지를 찾을 수 없습니다',

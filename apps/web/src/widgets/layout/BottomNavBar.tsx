@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { WORKSPACE_NAV_ENTRIES } from '../../constants/navigation';
+import { WORKSPACE_NAV_ENTRIES } from '../../shared/constants/navigation';
 
 export const BottomNavBar: React.FC = () => {
   return (

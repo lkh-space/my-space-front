@@ -49,11 +49,20 @@ export const MarkdownEditorView: React.FC = () => {
   // Document Fields
   const [title, setTitle] = useState('새 문서');
   const [content, setContent] = useState(DEFAULT_SAMPLE_MD);
+  const [debouncedPreviewContent, setDebouncedPreviewContent] = useState(DEFAULT_SAMPLE_MD);
   const [folderId, setFolderId] = useState<string | null>(null);
   const [tags, setTags] = useState<string[]>([]);
   const [newTagInput, setNewTagInput] = useState('');
   const [isAddingTag, setIsAddingTag] = useState(false);
   const [currentVersion, setCurrentVersion] = useState(1);
+
+  // 실시간 에디터 입력 시 무거운 KaTeX/Mermaid 렌더링 부하를 줄이기 위한 250ms 디바운스
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedPreviewContent(content);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [content]);
 
   // Auxiliary States
   const [folders, setFolders] = useState<FolderTreeNode[]>([]);
@@ -73,6 +82,7 @@ export const MarkdownEditorView: React.FC = () => {
       .then((doc) => {
         setTitle(doc.title || 'Untitled');
         setContent(doc.content);
+        setDebouncedPreviewContent(doc.content);
         setFolderId(doc.folderId);
         setTags(doc.tags || []);
         setCurrentVersion(doc.currentVersion);
@@ -435,7 +445,7 @@ export const MarkdownEditorView: React.FC = () => {
             </div>
 
             {/* Rendered Markdown Output */}
-            <MarkdownPreview content={content} />
+            <MarkdownPreview content={debouncedPreviewContent} />
           </div>
         </section>
       </div>
@@ -450,6 +460,7 @@ export const MarkdownEditorView: React.FC = () => {
             fetchDocument(id).then((doc) => {
               setTitle(doc.title || 'Untitled');
               setContent(doc.content);
+              setDebouncedPreviewContent(doc.content);
               setCurrentVersion(doc.currentVersion);
             });
           }}

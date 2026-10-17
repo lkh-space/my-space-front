@@ -257,3 +257,5 @@ export const AiWorkspacePage: React.FC = () => {
     </div>
   );
 };
+
+export default AiWorkspacePage;

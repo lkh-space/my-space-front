@@ -1,7 +1,7 @@
 ---
-status: review
+status: implemented
 owner: Keunhyeok Lim
-last-updated: 2026-10-05
+last-updated: 2026-10-17
 ---
 
 # 마크다운 문서 스튜디오 및 지식 저장소 사양서 (Markdown Docs Specification)

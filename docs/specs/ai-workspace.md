@@ -1,7 +1,7 @@
 ---
-status: review
+status: implemented
 owner: AI Assistant & Keunhyeok Lim
-last-updated: 2026-10-11
+last-updated: 2026-10-17
 ---
 
 # 기능 명세서: AI 워크스페이스 (JARVIS Neural Core 음성 비서)

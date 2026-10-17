@@ -1,7 +1,7 @@
 ---
-status: review
+status: implemented
 owner: Keunhyeok Lim
-last-updated: 2026-10-04
+last-updated: 2026-10-17
 ---
 
 # 프론트엔드 버전 메타데이터 엔드포인트 명세서 (Specification)
