@@ -48,6 +48,7 @@ export function useAiStream() {
   const currentSessionIdRef = useRef<string>('');
   const speechCancelRef = useRef<(() => void) | null>(null);
   const assistantTextAccumulatorRef = useRef<string>('');
+  const isListeningActiveRef = useRef<boolean>(false);
 
   // 세션 목록 초기 로드 (세션이 비어있는 경우 백엔드에 초기 세션 자동 생성)
   useEffect(() => {
@@ -80,6 +81,7 @@ export function useAiStream() {
   // 언마운트 시 리소스 정리
   useEffect(() => {
     return () => {
+      isListeningActiveRef.current = false;
       abortControllerRef.current?.abort();
       stopSpeaking();
       speechCancelRef.current?.();
@@ -227,6 +229,7 @@ export function useAiStream() {
 
   // 1. 발화 즉시 중단 (Interrupt Speech)
   const interruptSpeech = useCallback(() => {
+    isListeningActiveRef.current = false;
     // Web Speech API 정지
     stopSpeaking();
     speechCancelRef.current?.();
@@ -419,6 +422,7 @@ export function useAiStream() {
       interruptSpeech();
     }
 
+    isListeningActiveRef.current = true;
     setEngineState('LISTENING');
     audioChunksRef.current = [];
 
@@ -431,6 +435,11 @@ export function useAiStream() {
       navigator.mediaDevices
         .getUserMedia({ audio: true })
         .then((stream) => {
+          // 비동기 권한 승인 / 스트림 확보 전 사용자가 이미 스페이스바를 뗐다면 즉시 트랙 종료
+          if (!isListeningActiveRef.current) {
+            stream.getTracks().forEach((track) => track.stop());
+            return;
+          }
           mediaStreamRef.current = stream;
           try {
             const mimeType =
@@ -462,6 +471,7 @@ export function useAiStream() {
   // 4. PTT 음성 녹음 종료 및 백엔드 전송 (Spacebar 뗌)
   const stopListeningAndSend = useCallback(
     (customText?: string) => {
+      isListeningActiveRef.current = false;
       if (engineState !== 'LISTENING') return;
       setEngineState('THINKING');
 

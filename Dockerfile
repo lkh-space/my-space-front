@@ -47,7 +47,7 @@ FROM nginx:alpine AS runner
 
 # 인프라 기본 환경변수 및 Nginx 템플릿 치환 대상 필터 지정 ($uri 등 Nginx 내장 변수 보호)
 ENV PORT=80
-ENV CLIENT_MAX_BODY_SIZE=50M
+ENV CLIENT_MAX_BODY_SIZE=100M
 ENV NGINX_ENVSUBST_FILTER="PORT|CLIENT_MAX_BODY_SIZE"
 
 # Nginx 환경변수 치환 템플릿 복사

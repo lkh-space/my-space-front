@@ -70,8 +70,16 @@ describe('useAiStream Hook', () => {
     vi.restoreAllMocks();
   });
 
-  it('초기 상태가 정상적으로 설정되어야 한다', () => {
-    const { result } = renderHook(() => useAiStream());
+  async function renderAiStreamHook() {
+    let hookResult!: ReturnType<typeof renderHook<ReturnType<typeof useAiStream>, unknown>>;
+    await act(async () => {
+      hookResult = renderHook(() => useAiStream());
+    });
+    return hookResult;
+  }
+
+  it('초기 상태가 정상적으로 설정되어야 한다', async () => {
+    const { result } = await renderAiStreamHook();
 
     expect(result.current.engineState).toBe('IDLE');
     expect(result.current.messages).toEqual([]);
@@ -79,8 +87,8 @@ describe('useAiStream Hook', () => {
     expect(result.current.audioSettings.speechSpeed).toBe(1.0);
   });
 
-  it('toggleMicMute 호출 시 마이크 음소거 상태가 토글되어야 한다', () => {
-    const { result } = renderHook(() => useAiStream());
+  it('toggleMicMute 호출 시 마이크 음소거 상태가 토글되어야 한다', async () => {
+    const { result } = await renderAiStreamHook();
 
     act(() => {
       result.current.toggleMicMute();
@@ -93,8 +101,8 @@ describe('useAiStream Hook', () => {
     expect(result.current.audioSettings.isMicMuted).toBe(false);
   });
 
-  it('setSpeechSpeed 및 setSelectedVoice 호출 시 설정이 반영되어야 한다', () => {
-    const { result } = renderHook(() => useAiStream());
+  it('setSpeechSpeed 및 setSelectedVoice 호출 시 설정이 반영되어야 한다', async () => {
+    const { result } = await renderAiStreamHook();
 
     act(() => {
       result.current.setSpeechSpeed(1.25);
@@ -105,8 +113,8 @@ describe('useAiStream Hook', () => {
     expect(result.current.audioSettings.selectedVoice).toBe('JARVIS Deep Resonant');
   });
 
-  it('startListening 호출 시 engineState가 LISTENING으로 전환되어야 한다', () => {
-    const { result } = renderHook(() => useAiStream());
+  it('startListening 호출 시 engineState가 LISTENING으로 전환되어야 한다', async () => {
+    const { result } = await renderAiStreamHook();
 
     act(() => {
       result.current.startListening();
@@ -115,8 +123,8 @@ describe('useAiStream Hook', () => {
     expect(result.current.engineState).toBe('LISTENING');
   });
 
-  it('마이크가 음소거 상태이면 startListening을 호출해도 IDLE을 유지해야 한다', () => {
-    const { result } = renderHook(() => useAiStream());
+  it('마이크가 음소거 상태이면 startListening을 호출해도 IDLE을 유지해야 한다', async () => {
+    const { result } = await renderAiStreamHook();
 
     act(() => {
       result.current.toggleMicMute();
@@ -146,7 +154,7 @@ describe('useAiStream Hook', () => {
       return new Response(JSON.stringify([]), { status: 200 });
     });
 
-    const { result } = renderHook(() => useAiStream());
+    const { result } = await renderAiStreamHook();
 
     act(() => {
       result.current.startListening();
@@ -198,17 +206,17 @@ describe('useAiStream Hook', () => {
       return new Response(JSON.stringify([]), { status: 200 });
     });
 
-    const { result } = renderHook(() => useAiStream());
+    const { result } = await renderAiStreamHook();
 
     act(() => {
       result.current.startListening();
     });
-    act(() => {
+    await act(async () => {
       result.current.stopListeningAndSend('Interrupt test');
     });
     expect(result.current.engineState).toBe('THINKING');
 
-    act(() => {
+    await act(async () => {
       result.current.interruptSpeech();
     });
 
@@ -235,7 +243,7 @@ describe('useAiStream Hook', () => {
       return new Response(JSON.stringify([]), { status: 200 });
     });
 
-    const { result } = renderHook(() => useAiStream());
+    const { result } = await renderAiStreamHook();
 
     act(() => {
       result.current.clearMessages();
@@ -264,7 +272,7 @@ describe('useAiStream Hook', () => {
       return new Response(JSON.stringify([]), { status: 200 });
     });
 
-    const { result } = renderHook(() => useAiStream());
+    const { result } = await renderAiStreamHook();
 
     await act(async () => {
       result.current.sendFollowUpText('시스템 진단해줘');

@@ -115,6 +115,17 @@ export const PdfToolsPage: React.FC = () => {
       let currentTotalSize = files.reduce((acc, f) => acc + f.size, 0);
 
       for (const file of newFiles) {
+        const isPdf =
+          file.type === 'application/pdf' ||
+          file.name.toLowerCase().endsWith('.pdf');
+        if (!isPdf) {
+          setAlert({
+            type: 'error',
+            message: `'${file.name}' 파일은 지원되지 않는 형식입니다. PDF 파일만 업로드할 수 있습니다.`,
+          });
+          continue;
+        }
+
         if (file.size > MAX_SINGLE_FILE_SIZE) {
           setAlert({
             type: 'error',

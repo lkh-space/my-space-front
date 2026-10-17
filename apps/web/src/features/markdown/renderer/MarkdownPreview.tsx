@@ -33,7 +33,7 @@ mermaid.initialize({
     secondaryColor: '#1a1b22',
     tertiaryColor: '#12131a',
   },
-  securityLevel: 'loose',
+  securityLevel: 'strict',
 });
 
 /**
@@ -187,7 +187,10 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
 
           const wrapper = document.createElement('div');
           wrapper.className = 'mermaid-container my-4 p-4 rounded-xl border border-zinc-800 bg-zinc-950 flex justify-center';
-          wrapper.innerHTML = svg;
+          const sanitizedSvg = DOMPurify.sanitize(svg, {
+            USE_PROFILES: { svg: true, svgFilters: true },
+          });
+          wrapper.innerHTML = sanitizedSvg;
           preElem.replaceWith(wrapper);
         } catch {
           // 렌더링 실패 시 일반 코드 블록 유지

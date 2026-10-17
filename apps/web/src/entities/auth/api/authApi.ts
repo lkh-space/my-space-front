@@ -1,8 +1,12 @@
 import { getJson } from '../../../shared/api';
+import { getEnv } from '../../../shared/config';
 import { CurrentUser } from '../model/types';
 
 export const AUTH_ME_ENDPOINT = '/api/v1/auth/me';
-export const DEFAULT_LOGOUT_URL = 'https://auth.homelab.local/logout';
+export const DEFAULT_LOGOUT_URL = getEnv(
+  'VITE_AUTH_LOGOUT_URL',
+  'https://auth.homelab.local/logout',
+);
 
 /**
  * 백엔드 GET /api/v1/auth/me를 호출하여 현재 세션의 인증 유저 정보를 가져옵니다.
