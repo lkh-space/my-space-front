@@ -58,12 +58,30 @@ export function parseDbml(content: string): ParsedSchema {
       }
     }
 
+    // 4. 구문 유효성 검증 (괄호 매칭 및 선언 키워드 정합성)
+    const openBraces = (cleaned.match(/\{/g) || []).length;
+    const closeBraces = (cleaned.match(/\}/g) || []).length;
+    let isValid = true;
+    let errorMessage: string | undefined;
+
+    if (openBraces !== closeBraces) {
+      isValid = false;
+      errorMessage = '중괄호({ }) 쌍이 일치하지 않습니다.';
+    } else if (/\bTable\b/i.test(cleaned) && tables.length === 0) {
+      isValid = false;
+      errorMessage = '올바른 형식의 Table 정의를 찾을 수 없습니다.';
+    } else if (/\bRef\s*:/i.test(cleaned) && relationships.length === 0) {
+      isValid = false;
+      errorMessage = '올바른 형식의 Ref 관계 정의를 찾을 수 없습니다.';
+    }
+
     const duration = Math.max(1, Math.round(performance.now() - startTime));
 
     return {
       tables,
       relationships,
-      isValid: true,
+      isValid,
+      errorMessage,
       parseTimeMs: duration,
     };
   } catch (err: unknown) {

@@ -32,24 +32,14 @@ export const PdfDropzone: React.FC<PdfDropzoneProps> = ({
 
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const droppedFiles = Array.from(e.dataTransfer.files);
-      const pdfFiles = droppedFiles.filter(
-        (f) => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'),
-      );
-      if (pdfFiles.length > 0) {
-        onFilesSelected(pdfFiles);
-      }
+      onFilesSelected(droppedFiles);
     }
   };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const selectedFiles = Array.from(e.target.files);
-      const pdfFiles = selectedFiles.filter(
-        (f) => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'),
-      );
-      if (pdfFiles.length > 0) {
-        onFilesSelected(pdfFiles);
-      }
+      onFilesSelected(selectedFiles);
       // 같은 파일 재선택을 위해 value 리셋
       e.target.value = '';
     }

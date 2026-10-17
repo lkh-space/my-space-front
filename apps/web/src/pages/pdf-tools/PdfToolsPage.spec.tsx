@@ -249,4 +249,96 @@ describe('PdfToolsPage', () => {
       ).toBeTruthy();
     });
   });
+
+  describe('클라이언트 파일 검증 및 예외 처리 (P0)', () => {
+    it('확장자나 MIME 타입이 PDF가 아닌 파일을 선택하면 에러 알림을 띄우고 목록에 추가하지 않아야 한다', () => {
+      const { container } = render(<PdfToolsPage />);
+      const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+
+      const nonPdfFile = new File(['fake content'], 'test.png', { type: 'image/png' });
+      fireEvent.change(fileInput, { target: { files: [nonPdfFile] } });
+
+      expect(
+        screen.getByText("'test.png' 파일은 지원되지 않는 형식입니다. PDF 파일만 업로드할 수 있습니다."),
+      ).toBeTruthy();
+      expect(screen.queryByText('test.png')).toBeNull();
+    });
+
+    it('단일 파일 크기가 50MB를 초과하면 거부하고 에러 알림을 띄워야 한다', () => {
+      const { container } = render(<PdfToolsPage />);
+      const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+
+      const oversizedFile = new File([''], 'oversized.pdf', { type: 'application/pdf' });
+      Object.defineProperty(oversizedFile, 'size', {
+        value: 51 * 1024 * 1024,
+        configurable: true,
+      });
+
+      fireEvent.change(fileInput, { target: { files: [oversizedFile] } });
+
+      expect(
+        screen.getByText("'oversized.pdf' 파일이 단일 파일 최대 용량(50MB)을 초과했습니다."),
+      ).toBeTruthy();
+      expect(screen.queryByText('oversized.pdf')).toBeNull();
+    });
+
+    it('전체 파일 크기가 100MB를 초과하면 추가 파일을 거부하고 안내 메시지를 표시해야 한다', async () => {
+      const { container } = render(<PdfToolsPage />);
+      const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+
+      // 60MB 파일 1개
+      const file1 = new File([''], 'doc1.pdf', { type: 'application/pdf' });
+      Object.defineProperty(file1, 'size', {
+        value: 45 * 1024 * 1024,
+        configurable: true,
+      });
+
+      // 60MB 파일 2개째 (합계 105MB)
+      const file2 = new File([''], 'doc2.pdf', { type: 'application/pdf' });
+      Object.defineProperty(file2, 'size', {
+        value: 45 * 1024 * 1024,
+        configurable: true,
+      });
+
+      const file3 = new File([''], 'doc3.pdf', { type: 'application/pdf' });
+      Object.defineProperty(file3, 'size', {
+        value: 20 * 1024 * 1024,
+        configurable: true,
+      });
+
+      fireEvent.change(fileInput, { target: { files: [file1, file2, file3] } });
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('전체 업로드 용량(100MB)을 초과할 수 없습니다.'),
+        ).toBeTruthy();
+      });
+    });
+
+    it('파일 사전검사(inspect) 중 PDF_FILE_CORRUPTED 에러 반환 시 목록에서 자동 제거하고 에러를 표시해야 한다', async () => {
+      vi.spyOn(api, 'inspectPdf').mockRejectedValueOnce(
+        new api.ApiError({
+          statusCode: 400,
+          code: 'PDF_FILE_CORRUPTED',
+          message: 'Corrupted stream',
+          timestamp: '2026-09-26T00:00:00.000Z',
+          path: '/api/v1/pdf/inspect',
+        }),
+      );
+
+      const { container } = render(<PdfToolsPage />);
+      const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+
+      const corruptFile = new File(['corrupt data'], 'corrupt.pdf', { type: 'application/pdf' });
+      fireEvent.change(fileInput, { target: { files: [corruptFile] } });
+
+      await waitFor(() => {
+        expect(
+          screen.getByText("'corrupt.pdf' 파일이 손상되었거나 유효한 PDF 형식이 아닙니다."),
+        ).toBeTruthy();
+        expect(screen.queryByText('corrupt.pdf')).toBeNull();
+      });
+    });
+  });
 });
+
