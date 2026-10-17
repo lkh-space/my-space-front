@@ -340,5 +340,155 @@ describe('PdfToolsPage', () => {
       });
     });
   });
+
+  describe('모드별 작업 실행 및 폼 유효성 검사 (P2)', () => {
+    it('split-range 모드에서 페이지 범위를 입력하지 않으면 실행 버튼이 비활성화되고 안내 문구를 표시해야 한다', async () => {
+      const { container } = render(<PdfToolsPage />);
+
+      // 범위 분할 탭으로 전환
+      const splitRangeTab = screen.getByRole('tab', { name: /범위 분할/ });
+      fireEvent.click(splitRangeTab);
+
+      // 파일 1개 등록
+      const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+      const file = new File(['%PDF-1.4 test'], 'test.pdf', { type: 'application/pdf' });
+      fireEvent.change(fileInput, { target: { files: [file] } });
+
+      await waitFor(() => {
+        expect(screen.getByText('test.pdf')).toBeTruthy();
+      });
+
+      // 범위 미입력 시 안내 문구 및 버튼 비활성화 확인
+      expect(
+        screen.getByText(/페이지 범위를 입력해주세요/i),
+      ).toBeTruthy();
+
+      const executeBtn = screen.getByRole('button', { name: /작업 실행/i });
+      expect(executeBtn.hasAttribute('disabled')).toBe(true);
+    });
+
+    it('split-range 모드에서 유효한 페이지 범위 입력 후 실행 시 splitPdfRange를 호출해야 한다', async () => {
+      const splitRangeSpy = vi.spyOn(api, 'splitPdfRange').mockResolvedValueOnce({
+        blob: new Blob(['dummy split']),
+        filename: 'extracted.pdf',
+      });
+      vi.spyOn(api, 'triggerBlobDownload').mockImplementation(() => undefined);
+
+      const { container } = render(<PdfToolsPage />);
+
+      const splitRangeTab = screen.getByRole('tab', { name: /범위 분할/ });
+      fireEvent.click(splitRangeTab);
+
+      const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+      const file = new File(['%PDF-1.4 test'], 'test.pdf', { type: 'application/pdf' });
+      fireEvent.change(fileInput, { target: { files: [file] } });
+
+      await waitFor(() => {
+        expect(screen.getByText('test.pdf')).toBeTruthy();
+      });
+
+      // 페이지 범위 입력
+      const rangeInput = screen.getByLabelText(/추출할 페이지 범위/i);
+      fireEvent.change(rangeInput, { target: { value: '1-3, 5' } });
+
+      const executeBtn = screen.getByRole('button', { name: /작업 실행/i });
+      fireEvent.click(executeBtn);
+
+      await waitFor(() => {
+        expect(splitRangeSpy).toHaveBeenCalledWith(file, '1-3, 5', undefined);
+        expect(api.triggerBlobDownload).toHaveBeenCalledWith(expect.any(Blob), 'extracted.pdf');
+      });
+    });
+
+    it('split-all 모드에서 실행 시 splitPdfAll을 호출하고 ZIP 파일을 다운로드해야 한다', async () => {
+      const splitAllSpy = vi.spyOn(api, 'splitPdfAll').mockResolvedValueOnce({
+        blob: new Blob(['dummy zip']),
+        filename: 'split_pages.zip',
+      });
+      vi.spyOn(api, 'triggerBlobDownload').mockImplementation(() => undefined);
+
+      const { container } = render(<PdfToolsPage />);
+
+      const splitAllTab = screen.getByRole('tab', { name: /낱장 분할/ });
+      fireEvent.click(splitAllTab);
+
+      const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+      const file = new File(['%PDF-1.4 test'], 'test.pdf', { type: 'application/pdf' });
+      fireEvent.change(fileInput, { target: { files: [file] } });
+
+      await waitFor(() => {
+        expect(screen.getByText('test.pdf')).toBeTruthy();
+      });
+
+      const executeBtn = screen.getByRole('button', { name: /작업 실행/i });
+      fireEvent.click(executeBtn);
+
+      await waitFor(() => {
+        expect(splitAllSpy).toHaveBeenCalledWith(file, undefined);
+        expect(api.triggerBlobDownload).toHaveBeenCalledWith(expect.any(Blob), 'split_pages.zip');
+      });
+    });
+
+    it('unlock 모드에서 비밀번호 없이 실행하면 경고 배너를 띄워야 한다', async () => {
+      const { container } = render(<PdfToolsPage />);
+
+      const unlockTab = screen.getByRole('tab', { name: /암호 해제/ });
+      fireEvent.click(unlockTab);
+
+      const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+      const file = new File(['%PDF-1.4 test'], 'locked.pdf', { type: 'application/pdf' });
+      fireEvent.change(fileInput, { target: { files: [file] } });
+
+      await waitFor(() => {
+        expect(screen.getByText('locked.pdf')).toBeTruthy();
+      });
+
+      const executeBtn = screen.getByRole('button', { name: /작업 실행/i });
+      fireEvent.click(executeBtn);
+
+      expect(
+        screen.getByText('PDF 잠금을 해제하기 위한 비밀번호를 입력해 주세요.'),
+      ).toBeTruthy();
+    });
+
+    it('unlock 모드에서 비밀번호 입력 후 실행 시 unlockPdf를 호출해야 한다', async () => {
+      vi.spyOn(api, 'inspectPdf').mockResolvedValue({
+        isEncrypted: true,
+        pageCount: 5,
+      });
+
+      const unlockSpy = vi.spyOn(api, 'unlockPdf').mockResolvedValueOnce({
+        blob: new Blob(['dummy unlocked']),
+        filename: 'unlocked.pdf',
+      });
+      vi.spyOn(api, 'triggerBlobDownload').mockImplementation(() => undefined);
+
+      const { container } = render(<PdfToolsPage />);
+
+      const unlockTab = screen.getByRole('tab', { name: /암호 해제/ });
+      fireEvent.click(unlockTab);
+
+      const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+      const file = new File(['%PDF-1.4 test'], 'locked.pdf', { type: 'application/pdf' });
+      fireEvent.change(fileInput, { target: { files: [file] } });
+
+      await waitFor(() => {
+        expect(screen.getByText('locked.pdf')).toBeTruthy();
+      });
+
+      // 암호 입력
+      const passwordInput = screen.getByPlaceholderText(/암호화된 PDF 비밀번호 입력/i);
+      fireEvent.change(passwordInput, { target: { value: 'secret123' } });
+
+      const executeBtn = screen.getByRole('button', { name: /작업 실행/i });
+      fireEvent.click(executeBtn);
+
+      await waitFor(() => {
+        expect(unlockSpy).toHaveBeenCalledWith(file, 'secret123');
+        expect(api.triggerBlobDownload).toHaveBeenCalledWith(expect.any(Blob), 'unlocked.pdf');
+      });
+    });
+  });
 });
+
 
