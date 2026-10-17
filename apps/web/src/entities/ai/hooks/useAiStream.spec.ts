@@ -283,4 +283,56 @@ describe('useAiStream Hook', () => {
     const spokenUtterance = mockSpeak.mock.calls[0][0];
     expect(spokenUtterance.text).toBe('네, 진단을 완료했습니다.');
   });
+
+  describe('에러 복구 및 예외 처리 (P1)', () => {
+    it('백엔드 통신 실패 시 오류 안내 메시지를 생성하고 IDLE 상태로 안전하게 복구되어야 한다', async () => {
+      vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+        const url = String(input);
+        if (url.includes('/api/v1/ai/voice/stream')) {
+          return new Response(JSON.stringify({ error: 'Gateway Timeout' }), { status: 504 });
+        }
+        return new Response(JSON.stringify([]), { status: 200 });
+      });
+
+      const { result } = await renderAiStreamHook();
+
+      await act(async () => {
+        result.current.sendFollowUpText('장애 발생 테스트');
+      });
+
+      // 에러 발생 후 IDLE 상태 복구 확인
+      expect(result.current.engineState).toBe('IDLE');
+      expect(result.current.isPlayingAudio).toBe(false);
+
+      // 시스템 알림 메시지 확인
+      const errorMsg = result.current.messages.find(
+        (m) => m.role === 'assistant' && m.content.includes('[J.A.R.V.I.S. 시스템 알림] 백엔드 응답에 실패했습니다')
+      );
+      expect(errorMsg).toBeDefined();
+    });
+
+    it('SSE 스트림 도중 onError 이벤트 수신 시 음성 발화를 멈추고 IDLE 상태로 복구되어야 한다', async () => {
+      const mockErrorSseChunks = [
+        'event: token\ndata: {"delta":"처리 중..."}\n\n',
+        'event: error\ndata: {"message":"Rate limit exceeded"}\n\n',
+      ];
+
+      vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+        const url = String(input);
+        if (url.includes('/api/v1/ai/voice/stream')) {
+          return createMockSseResponse(mockErrorSseChunks);
+        }
+        return new Response(JSON.stringify([]), { status: 200 });
+      });
+
+      const { result } = await renderAiStreamHook();
+
+      await act(async () => {
+        result.current.sendFollowUpText('Rate limit test');
+      });
+
+      expect(result.current.engineState).toBe('IDLE');
+      expect(result.current.isPlayingAudio).toBe(false);
+    });
+  });
 });

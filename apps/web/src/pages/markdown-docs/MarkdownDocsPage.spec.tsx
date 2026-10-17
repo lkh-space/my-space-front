@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { MarkdownDocsPage } from './MarkdownDocsPage';
 
@@ -85,6 +85,27 @@ vi.mock('../../entities/markdown', async (importOriginal) => {
 describe('MarkdownDocsPage Component & Sub-routing', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+
+    if (typeof Range !== 'undefined') {
+      Range.prototype.getClientRects = () =>
+        ({
+          item: () => null,
+          length: 0,
+          [Symbol.iterator]: () => [][Symbol.iterator](),
+        } as unknown as DOMRectList);
+      Range.prototype.getBoundingClientRect = () =>
+        ({
+          x: 0,
+          y: 0,
+          bottom: 0,
+          height: 0,
+          left: 0,
+          right: 0,
+          top: 0,
+          width: 0,
+          toJSON: () => ({ x: 0, y: 0 }),
+        } as DOMRect);
+    }
   });
 
   it('/docs 경로에서 DocumentLibraryView가 정상 마운트되어 문서 목록을 표출해야 한다', async () => {
@@ -140,4 +161,91 @@ describe('MarkdownDocsPage Component & Sub-routing', () => {
       expect(screen.getByText('On This Page')).toBeTruthy();
     });
   });
+
+  describe('에디터 비즈니스 인터랙션 및 저장 흐름 (P1)', () => {
+    it('/docs/new 에서 저장 버튼 클릭 시 createDocument가 호출되어야 한다', async () => {
+      const markdown = await import('../../entities/markdown');
+      const createSpy = vi.spyOn(markdown, 'createDocument').mockResolvedValueOnce({
+        id: 'new-doc-123',
+        title: '새 문서',
+        folderId: null,
+        tags: [],
+        content: '',
+        currentVersion: 1,
+        frontmatter: {},
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+
+      render(
+        <MemoryRouter initialEntries={['/docs/new']}>
+          <Routes>
+            <Route path="docs/*" element={<MarkdownDocsPage />} />
+          </Routes>
+        </MemoryRouter>
+      );
+
+      const saveBtn = await screen.findByRole('button', { name: /저장 \(Save\)/i });
+      fireEvent.click(saveBtn);
+
+      await waitFor(() => {
+        expect(createSpy).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('/docs/doc-1/edit 에서 수정 후 저장 클릭 시 updateDocument가 호출되어야 한다', async () => {
+      const markdown = await import('../../entities/markdown');
+      const updateSpy = vi.spyOn(markdown, 'updateDocument').mockResolvedValueOnce({
+        id: 'doc-1',
+        title: '수정된 아키텍처 명세서',
+        folderId: 'f-1',
+        tags: ['architecture'],
+        content: '수정된 내용',
+        currentVersion: 3,
+        frontmatter: {},
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+
+      render(
+        <MemoryRouter initialEntries={['/docs/doc-1/edit']}>
+          <Routes>
+            <Route path="docs/*" element={<MarkdownDocsPage />} />
+          </Routes>
+        </MemoryRouter>
+      );
+
+      const saveBtn = await screen.findByRole('button', { name: /저장 \(Save\)/i });
+      fireEvent.click(saveBtn);
+
+      await waitFor(() => {
+        expect(updateSpy).toHaveBeenCalledWith('doc-1', expect.objectContaining({
+          folderId: 'f-1',
+        }));
+      });
+    });
+
+    it('저장 실패 시 alert를 호출하고 버튼이 다시 활성화되어야 한다', async () => {
+      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => undefined);
+      const markdown = await import('../../entities/markdown');
+      vi.spyOn(markdown, 'createDocument').mockRejectedValueOnce(new Error('서버 저장 실패'));
+
+      render(
+        <MemoryRouter initialEntries={['/docs/new']}>
+          <Routes>
+            <Route path="docs/*" element={<MarkdownDocsPage />} />
+          </Routes>
+        </MemoryRouter>
+      );
+
+      const saveBtn = await screen.findByRole('button', { name: /저장 \(Save\)/i });
+      fireEvent.click(saveBtn);
+
+      await waitFor(() => {
+        expect(alertSpy).toHaveBeenCalledWith('서버 저장 실패');
+      });
+      expect(saveBtn.hasAttribute('disabled')).toBe(false);
+    });
+  });
 });
+
