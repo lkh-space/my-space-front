@@ -7,7 +7,7 @@ interface SvgRelationsProps {
   height: number;
 }
 
-export const SvgRelations: React.FC<SvgRelationsProps> = ({ connectors, width, height }) => {
+export const SvgRelations: React.FC<SvgRelationsProps> = React.memo(({ connectors, width, height }) => {
   return (
     <svg
       style={{
@@ -52,4 +52,4 @@ export const SvgRelations: React.FC<SvgRelationsProps> = ({ connectors, width, h
       ))}
     </svg>
   );
-};
+});

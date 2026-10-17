@@ -7,7 +7,7 @@ interface TableCardProps {
   isDimmed?: boolean;
 }
 
-export const TableCard: React.FC<TableCardProps> = ({
+export const TableCard: React.FC<TableCardProps> = React.memo(({
   table,
   isHighlighted,
   isDimmed,
@@ -93,4 +93,4 @@ export const TableCard: React.FC<TableCardProps> = ({
       </div>
     </div>
   );
-};
+});

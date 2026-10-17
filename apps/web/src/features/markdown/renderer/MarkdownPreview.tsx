@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import katex from 'katex';
-import mermaid from 'mermaid';
 import yaml from 'yaml';
 import 'katex/dist/katex.min.css';
 
@@ -19,22 +18,34 @@ interface MarkdownPreviewProps {
   onHeadingsExtracted?: (headings: TocItem[]) => void;
 }
 
-// Mermaid 초기화 (다크 모드 징크 테마에 맞춘 설정)
-mermaid.initialize({
-  startOnLoad: false,
-  theme: 'dark',
-  themeVariables: {
-    darkMode: true,
-    background: '#18181b',
-    primaryColor: '#27272a',
-    primaryTextColor: '#adc6ff',
-    primaryBorderColor: '#3f3f46',
-    lineColor: '#8c909f',
-    secondaryColor: '#1a1b22',
-    tertiaryColor: '#12131a',
-  },
-  securityLevel: 'strict',
-});
+let mermaidInitialized = false;
+
+/**
+ * 다이어그램 블록이 존재할 때만 Mermaid 엔진을 온디맨드로 지연 로드합니다.
+ */
+async function getMermaid() {
+  const mermaidModule = await import('mermaid');
+  const mermaid = mermaidModule.default;
+  if (!mermaidInitialized) {
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'dark',
+      themeVariables: {
+        darkMode: true,
+        background: '#18181b',
+        primaryColor: '#27272a',
+        primaryTextColor: '#adc6ff',
+        primaryBorderColor: '#3f3f46',
+        lineColor: '#8c909f',
+        secondaryColor: '#1a1b22',
+        tertiaryColor: '#12131a',
+      },
+      securityLevel: 'strict',
+    });
+    mermaidInitialized = true;
+  }
+  return mermaid;
+}
 
 /**
  * YAML Frontmatter 분리 및 파싱 유틸리티
@@ -172,6 +183,14 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
     let isCancelled = false;
 
     const renderMermaid = async () => {
+      let mermaidInstance;
+      try {
+        mermaidInstance = await getMermaid();
+      } catch {
+        return;
+      }
+      if (isCancelled) return;
+
       for (let i = 0; i < mermaidBlocks.length; i++) {
         if (isCancelled) break;
         const codeElem = mermaidBlocks[i];
@@ -182,7 +201,7 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
         const id = `mermaid-svg-${Date.now()}-${i}`;
 
         try {
-          const { svg } = await mermaid.render(id, code);
+          const { svg } = await mermaidInstance.render(id, code);
           if (isCancelled) break;
 
           const wrapper = document.createElement('div');
