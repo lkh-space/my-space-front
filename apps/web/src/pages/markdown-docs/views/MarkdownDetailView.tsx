@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   DocumentDetail,
@@ -53,11 +53,23 @@ export const MarkdownDetailView: React.FC<MarkdownDetailViewProps> = ({
   const [headings, setHeadings] = useState<TocItem[]>([]);
   const [activeHeadingId, setActiveHeadingId] = useState<string>('');
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) {
+        clearTimeout(toastTimerRef.current);
+      }
+    };
+  }, []);
 
   // 토스트 메시지 헬퍼
   const showToast = useCallback((msg: string) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 2500);
+    if (toastTimerRef.current) {
+      clearTimeout(toastTimerRef.current);
+    }
+    toastTimerRef.current = setTimeout(() => setToastMessage(null), 2500);
   }, []);
 
   // 문서 및 폴더 데이터 로드
@@ -377,7 +389,7 @@ export const MarkdownDetailView: React.FC<MarkdownDetailViewProps> = ({
             <div className="markdown-body-wrapper pb-16">
               <MarkdownPreview
                 content={doc.content}
-                onHeadingsExtracted={(items: TocItem[]) => setHeadings(items)}
+                onHeadingsExtracted={setHeadings}
               />
             </div>
           </article>
@@ -408,3 +420,5 @@ export const MarkdownDetailView: React.FC<MarkdownDetailViewProps> = ({
     </div>
   );
 };
+
+export default MarkdownDetailView;

@@ -4,9 +4,8 @@
     "outDir": "./out-tsc/app",
     "tsBuildInfoFile": "./out-tsc/app/tsconfig.app.tsbuildinfo",
     "jsx": "react-jsx",
-    "lib": ["dom"],
+    "lib": ["es2022", "dom", "dom.iterable"],
     "types": [
-      "node",
       "@nx/react/typings/cssmodule.d.ts",
       "@nx/react/typings/image.d.ts",
       "vite/client"
@@ -16,6 +15,7 @@
   "exclude": [
     "out-tsc",
     "dist",
+    "src/shared/utils/version.ts",
     "src/**/*.spec.ts",
     "src/**/*.test.ts",
     "src/**/*.spec.tsx",

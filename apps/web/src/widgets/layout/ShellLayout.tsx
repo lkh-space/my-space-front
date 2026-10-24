@@ -5,6 +5,7 @@ import { Header } from '../header';
 import { BottomNavBar } from './BottomNavBar';
 import { CommandPalette } from './CommandPalette';
 import { ErrorBoundary } from '../../shared/components/error/ErrorBoundary';
+import { notifyRecentTasksUpdated } from '../../shared/utils/storage';
 import './layout.css';
 
 export const ShellLayout: React.FC = () => {
@@ -15,9 +16,7 @@ export const ShellLayout: React.FC = () => {
   }, []);
 
   const handleTasksCleared = useCallback(() => {
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('recent-tasks-updated'));
-    }
+    notifyRecentTasksUpdated();
   }, []);
 
   return (

@@ -5,16 +5,25 @@ import { extractFilenameFromContentDisposition } from './download';
  * 응답 객체로부터 에러 본문을 파싱하여 ApiError 또는 Error를 생성합니다.
  */
 async function handleResponseError(response: Response): Promise<never> {
-  const contentType = response.headers.get('content-type') || '';
+  const contentType = response.headers?.get?.('content-type') || '';
 
-  if (contentType.includes('application/json')) {
+  if (contentType.includes('application/json') || !response.headers) {
     try {
-      const errorJson = (await response.json()) as ApiErrorResponse;
+      const errorJson = (await response.json()) as Partial<ApiErrorResponse>;
       if (errorJson && typeof errorJson.code === 'string') {
-        throw new ApiError(errorJson);
+        throw new ApiError(errorJson as ApiErrorResponse);
+      }
+      if (errorJson && typeof errorJson.message === 'string' && errorJson.message) {
+        throw new Error(errorJson.message);
       }
     } catch (e) {
       if (e instanceof ApiError) throw e;
+      if (e instanceof Error && !contentType.includes('text/')) {
+        // response.json()에서 명시적으로 생성된 Error인 경우 그대로 전달
+        if (e.message && !(e instanceof SyntaxError)) {
+          throw e;
+        }
+      }
       // JSON 파싱 실패 시 아래 기본 에러로 진행
     }
   }
@@ -22,13 +31,15 @@ async function handleResponseError(response: Response): Promise<never> {
   // 텍스트 기반 에러 메시지 추출 시도
   let errorText = '';
   try {
-    errorText = await response.text();
+    if (typeof response.text === 'function') {
+      errorText = await response.text();
+    }
   } catch {
     // 무시
   }
 
   throw new Error(
-    errorText || `HTTP 요청 실패: ${response.status} ${response.statusText}`,
+    errorText || `HTTP 요청 실패: ${response.status ?? ''} ${response.statusText ?? ''}`.trim(),
   );
 }
 
@@ -54,6 +65,89 @@ export async function getJson<T>(
   }
 
   return (await response.json()) as T;
+}
+
+/**
+ * JSON 본문을 전송하고 JSON 응답을 반환하는 공통 요청 헬퍼
+ */
+async function requestJson<T>(
+  method: 'POST' | 'PUT' | 'PATCH',
+  url: string,
+  body?: unknown,
+  init?: RequestInit,
+): Promise<T> {
+  const response = await fetch(url, {
+    method,
+    credentials: 'same-origin',
+    ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      ...init?.headers,
+    },
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+
+  if (!response.ok) {
+    await handleResponseError(response);
+  }
+
+  return (await response.json()) as T;
+}
+
+/**
+ * JSON 본문을 전송하고 JSON 응답을 받는 POST 요청
+ */
+export async function postJson<T>(
+  url: string,
+  body?: unknown,
+  init?: RequestInit,
+): Promise<T> {
+  return requestJson<T>('POST', url, body, init);
+}
+
+/**
+ * JSON 본문을 전송하고 JSON 응답을 받는 PUT 요청
+ */
+export async function putJson<T>(
+  url: string,
+  body?: unknown,
+  init?: RequestInit,
+): Promise<T> {
+  return requestJson<T>('PUT', url, body, init);
+}
+
+/**
+ * JSON 본문을 전송하고 JSON 응답을 받는 PATCH 요청
+ */
+export async function patchJson<T>(
+  url: string,
+  body?: unknown,
+  init?: RequestInit,
+): Promise<T> {
+  return requestJson<T>('PATCH', url, body, init);
+}
+
+/**
+ * 리소스를 삭제하는 DELETE 요청
+ */
+export async function deleteRequest(
+  url: string,
+  init?: RequestInit,
+): Promise<void> {
+  const response = await fetch(url, {
+    method: 'DELETE',
+    credentials: 'same-origin',
+    ...init,
+    headers: {
+      Accept: 'application/json',
+      ...init?.headers,
+    },
+  });
+
+  if (!response.ok) {
+    await handleResponseError(response);
+  }
 }
 
 /**

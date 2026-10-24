@@ -17,6 +17,14 @@ export interface SpeechPlayOptions {
 }
 
 let activeIntervalId: ReturnType<typeof setInterval> | null = null;
+let activeSpeechId = 0;
+
+function clearActiveTimer(): void {
+  if (activeIntervalId) {
+    clearInterval(activeIntervalId);
+    activeIntervalId = null;
+  }
+}
 
 export function isSpeechSynthesisSupported(): boolean {
   return (
@@ -78,7 +86,10 @@ export function selectBestVoice(
     const premiumKo = voices.find(
       (v) =>
         v.lang.startsWith('ko') &&
-        (v.name.includes('Yuna') || v.name.includes('Siri') || v.name.includes('Google') || v.name.includes('Natural'))
+        (v.name.includes('Yuna') ||
+          v.name.includes('Siri') ||
+          v.name.includes('Google') ||
+          v.name.includes('Natural'))
     );
     if (premiumKo) return premiumKo;
 
@@ -107,10 +118,8 @@ export function selectBestVoice(
  * 현재 진행 중인 브라우저 음성 발화를 즉시 정지하고 타이머를 해제합니다.
  */
 export function stopSpeaking(): void {
-  if (activeIntervalId) {
-    clearInterval(activeIntervalId);
-    activeIntervalId = null;
-  }
+  activeSpeechId += 1;
+  clearActiveTimer();
   if (isSpeechSynthesisSupported()) {
     try {
       window.speechSynthesis.cancel();
@@ -156,6 +165,7 @@ const noop = () => {
 export function speakBrowserSpeech(options: SpeechPlayOptions): { cancel: () => void } {
   stopSpeaking();
 
+  const speechId = ++activeSpeechId;
   const trimmedText = options.text.trim();
   if (!isSpeechSynthesisSupported() || options.isMuted || !trimmedText) {
     options.onEnd?.();
@@ -179,33 +189,46 @@ export function speakBrowserSpeech(options: SpeechPlayOptions): { cancel: () => 
     }
 
     let currentSec = 0;
+    let localIntervalId: ReturnType<typeof setInterval> | null = null;
 
-    const cleanupTimer = () => {
-      if (activeIntervalId) {
-        clearInterval(activeIntervalId);
-        activeIntervalId = null;
+    const cleanupLocalTimer = () => {
+      if (localIntervalId) {
+        clearInterval(localIntervalId);
+        if (activeIntervalId === localIntervalId) {
+          activeIntervalId = null;
+        }
+        localIntervalId = null;
       }
     };
 
     utterance.onstart = () => {
+      if (speechId !== activeSpeechId) return;
       options.onStart?.();
       currentSec = 0;
       options.onTimeUpdate?.(0);
 
-      cleanupTimer();
-      activeIntervalId = setInterval(() => {
+      cleanupLocalTimer();
+      clearActiveTimer();
+      localIntervalId = setInterval(() => {
+        if (speechId !== activeSpeechId) {
+          cleanupLocalTimer();
+          return;
+        }
         currentSec += 1;
         options.onTimeUpdate?.(currentSec);
       }, 1000);
+      activeIntervalId = localIntervalId;
     };
 
     utterance.onend = () => {
-      cleanupTimer();
+      cleanupLocalTimer();
+      if (speechId !== activeSpeechId) return;
       options.onEnd?.();
     };
 
     utterance.onerror = (event) => {
-      cleanupTimer();
+      cleanupLocalTimer();
+      if (speechId !== activeSpeechId) return;
       // cancel() 호출로 인한 취소는 정상 흐름으로 간주
       if (event.error !== 'canceled' && event.error !== 'interrupted') {
         options.onError?.(event);
@@ -217,8 +240,10 @@ export function speakBrowserSpeech(options: SpeechPlayOptions): { cancel: () => 
 
     return {
       cancel: () => {
-        cleanupTimer();
-        stopSpeaking();
+        cleanupLocalTimer();
+        if (speechId === activeSpeechId) {
+          stopSpeaking();
+        }
       },
     };
   } catch (err) {

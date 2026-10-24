@@ -14,7 +14,14 @@ import {
   UpdateDocumentRequest,
   UpdateFolderRequest,
 } from '../model/types';
-import { getJson, postFormData } from '../../../shared/api/client';
+import {
+  deleteRequest,
+  getJson,
+  patchJson,
+  postFormData,
+  postJson,
+  putJson,
+} from '../../../shared/api/client';
 
 const BASE_URL = '/api/v1/markdown';
 
@@ -22,57 +29,36 @@ const BASE_URL = '/api/v1/markdown';
 // 1. Folders
 // ==========================================
 
-export async function fetchFolders(): Promise<FolderTreeNode[]> {
-  return getJson<FolderTreeNode[]>(`${BASE_URL}/folders`);
+export async function fetchFolders(init?: RequestInit): Promise<FolderTreeNode[]> {
+  return getJson<FolderTreeNode[]>(`${BASE_URL}/folders`, init);
 }
 
 export async function createFolder(
   req: CreateFolderRequest,
 ): Promise<FolderTreeNode> {
-  const res = await fetch(`${BASE_URL}/folders`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify(req),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || '폴더 생성 실패');
-  }
-  return res.json();
+  return postJson<FolderTreeNode>(`${BASE_URL}/folders`, req);
 }
 
 export async function updateFolder(
   id: string,
   req: UpdateFolderRequest,
 ): Promise<FolderTreeNode> {
-  const res = await fetch(`${BASE_URL}/folders/${encodeURIComponent(id)}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify(req),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || '폴더 수정 실패');
-  }
-  return res.json();
+  return patchJson<FolderTreeNode>(
+    `${BASE_URL}/folders/${encodeURIComponent(id)}`,
+    req,
+  );
 }
 
 export async function deleteFolder(id: string): Promise<void> {
-  const res = await fetch(`${BASE_URL}/folders/${encodeURIComponent(id)}`, {
-    method: 'DELETE',
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || '폴더 삭제 실패');
-  }
+  return deleteRequest(`${BASE_URL}/folders/${encodeURIComponent(id)}`);
 }
 
 // ==========================================
 // 2. Tags
 // ==========================================
 
-export async function fetchTags(): Promise<TagItem[]> {
-  return getJson<TagItem[]>(`${BASE_URL}/tags`);
+export async function fetchTags(init?: RequestInit): Promise<TagItem[]> {
+  return getJson<TagItem[]>(`${BASE_URL}/tags`, init);
 }
 
 // ==========================================
@@ -81,6 +67,7 @@ export async function fetchTags(): Promise<TagItem[]> {
 
 export async function fetchDocuments(
   query: DocumentQuery = {},
+  init?: RequestInit,
 ): Promise<DocumentListResponse> {
   const params = new URLSearchParams();
   if (query.folderId !== undefined && query.folderId !== null) {
@@ -104,54 +91,37 @@ export async function fetchDocuments(
 
   const queryStr = params.toString();
   const url = `${BASE_URL}/documents${queryStr ? `?${queryStr}` : ''}`;
-  return getJson<DocumentListResponse>(url);
+  return getJson<DocumentListResponse>(url, init);
 }
 
-export async function fetchDocument(id: string): Promise<DocumentDetail> {
+export async function fetchDocument(
+  id: string,
+  init?: RequestInit,
+): Promise<DocumentDetail> {
   return getJson<DocumentDetail>(
     `${BASE_URL}/documents/${encodeURIComponent(id)}`,
+    init,
   );
 }
 
 export async function createDocument(
   req: CreateDocumentRequest,
 ): Promise<DocumentDetail> {
-  const res = await fetch(`${BASE_URL}/documents`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify(req),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || '문서 생성 실패');
-  }
-  return res.json();
+  return postJson<DocumentDetail>(`${BASE_URL}/documents`, req);
 }
 
 export async function updateDocument(
   id: string,
   req: UpdateDocumentRequest,
 ): Promise<DocumentDetail> {
-  const res = await fetch(`${BASE_URL}/documents/${encodeURIComponent(id)}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify(req),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || '문서 저장 실패');
-  }
-  return res.json();
+  return putJson<DocumentDetail>(
+    `${BASE_URL}/documents/${encodeURIComponent(id)}`,
+    req,
+  );
 }
 
 export async function deleteDocument(id: string): Promise<void> {
-  const res = await fetch(`${BASE_URL}/documents/${encodeURIComponent(id)}`, {
-    method: 'DELETE',
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || '문서 삭제 실패');
-  }
+  return deleteRequest(`${BASE_URL}/documents/${encodeURIComponent(id)}`);
 }
 
 export async function importDocument(
@@ -227,18 +197,9 @@ export async function restoreRevision(
   documentId: string,
   version: number,
 ): Promise<DocumentDetail> {
-  const res = await fetch(
+  return postJson<DocumentDetail>(
     `${BASE_URL}/documents/${encodeURIComponent(documentId)}/revisions/${version}/restore`,
-    {
-      method: 'POST',
-      headers: { Accept: 'application/json' },
-    },
   );
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || '버전 복원 실패');
-  }
-  return res.json();
 }
 
 // ==========================================
@@ -249,13 +210,14 @@ export async function searchDocuments(
   q: string,
   page = 1,
   limit = 20,
+  init?: RequestInit,
 ): Promise<SearchResponse> {
   const params = new URLSearchParams({
     q,
     page: String(page),
     limit: String(limit),
   });
-  return getJson<SearchResponse>(`${BASE_URL}/search?${params.toString()}`);
+  return getJson<SearchResponse>(`${BASE_URL}/search?${params.toString()}`, init);
 }
 
 // ==========================================
@@ -296,4 +258,3 @@ export const markdownApi = {
   searchDocuments,
   uploadAsset,
 };
-

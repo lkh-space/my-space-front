@@ -157,10 +157,13 @@ export const PdfToolsPage: React.FC = () => {
       if (validFiles.length === 0) return;
 
       if (mode === 'merge') {
-        const updated = [...files, ...validFiles].slice(0, 20);
-        setFiles(updated);
-        // 각 신규 파일 백엔드 검사 실행
-        validFiles.forEach((f) => {
+        const remainingSlots = Math.max(0, 20 - files.length);
+        const acceptedNewFiles = validFiles.slice(0, remainingSlots);
+        if (acceptedNewFiles.length === 0) return;
+
+        setFiles([...files, ...acceptedNewFiles]);
+        // 실제 목록에 추가된 신규 파일에 대해서만 백엔드 검사 실행
+        acceptedNewFiles.forEach((f) => {
           inspectSelectedFile(f);
         });
       } else {

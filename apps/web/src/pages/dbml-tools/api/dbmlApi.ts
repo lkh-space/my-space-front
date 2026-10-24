@@ -1,3 +1,4 @@
+import { postJson } from '../../../shared/api/client';
 import { parseDbml } from '../model/dbmlParser';
 import { SqlDialect } from '../model/types';
 
@@ -20,16 +21,11 @@ export async function exportDbmlToSql(
   dialect: SqlDialect = 'postgres',
 ): Promise<ExportSqlResponse> {
   try {
-    const res = await fetch('/api/v1/dbml/export-sql', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ dbml, dialect }),
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      return { sql: data.sql, dialect: data.dialect || dialect };
-    }
+    const data = await postJson<{ sql: string; dialect?: SqlDialect }>(
+      '/api/v1/dbml/export-sql',
+      { dbml, dialect },
+    );
+    return { sql: data.sql, dialect: data.dialect || dialect };
   } catch {
     // 백엔드 미구현 또는 네트워크 오류 시 클라이언트 폴백으로 진행
   }
@@ -50,16 +46,11 @@ export async function importSqlToDbml(
   dialect: SqlDialect = 'postgres',
 ): Promise<ImportSqlResponse> {
   try {
-    const res = await fetch('/api/v1/dbml/import-sql', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sql, dialect }),
+    const data = await postJson<{ dbml: string }>('/api/v1/dbml/import-sql', {
+      sql,
+      dialect,
     });
-
-    if (res.ok) {
-      const data = await res.json();
-      return { dbml: data.dbml };
-    }
+    return { dbml: data.dbml };
   } catch {
     // 백엔드 미구현 시 클라이언트 폴백
   }
@@ -75,16 +66,11 @@ export async function importSqlToDbml(
  */
 export async function formatDbmlCode(dbml: string): Promise<string> {
   try {
-    const res = await fetch('/api/v1/dbml/format', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ dbml }),
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      return data.formattedDbml;
-    }
+    const data = await postJson<{ formattedDbml: string }>(
+      '/api/v1/dbml/format',
+      { dbml },
+    );
+    return data.formattedDbml;
   } catch {
     // 폴백
   }

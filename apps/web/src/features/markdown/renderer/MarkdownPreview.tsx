@@ -61,8 +61,8 @@ export function extractFrontmatter(rawContent: string): {
       const yamlStr = trimmed.slice(3, endMatch).trim();
       const body = trimmed.slice(endMatch + 4).trimStart();
       try {
-        const parsed = yaml.parse(yamlStr);
-        if (parsed && typeof parsed === 'object') {
+        const parsed: unknown = yaml.parse(yamlStr);
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
           return { data: parsed as Record<string, unknown>, body };
         }
       } catch {
@@ -74,11 +74,17 @@ export function extractFrontmatter(rawContent: string): {
 }
 
 /**
- * KaTeX 수식 사전 변환: $$...$$ (블록) 및 $...$ (인라인)
+ * KaTeX 수식 사전 변환: 코드 블록을 보호한 뒤 $$...$$ (블록) 및 $...$ (인라인) 변환
  */
 function renderMath(text: string): string {
+  const codePlaceholders: string[] = [];
+  const masked = text.replace(/(```[\s\S]*?```|`[^`\n]+`)/g, (match) => {
+    const idx = codePlaceholders.push(match) - 1;
+    return `@@CODE_BLOCK_${idx}@@`;
+  });
+
   // 1. Block math: $$ ... $$
-  let replaced = text.replace(/\$\$([\s\S]+?)\$\$/g, (_, math) => {
+  let replaced = masked.replace(/\$\$([\s\S]+?)\$\$/g, (_, math: string) => {
     try {
       return `<div class="math-block">${katex.renderToString(math.trim(), { displayMode: true, throwOnError: false })}</div>`;
     } catch {
@@ -87,7 +93,7 @@ function renderMath(text: string): string {
   });
 
   // 2. Inline math: $ ... $ (단, 줄바꿈 없거나 $ 앞뒤 공백 검사)
-  replaced = replaced.replace(/\$([^$\n]+?)\$/g, (_, math) => {
+  replaced = replaced.replace(/\$([^$\n]+?)\$/g, (_, math: string) => {
     try {
       return `<span class="math-inline">${katex.renderToString(math.trim(), { displayMode: false, throwOnError: false })}</span>`;
     } catch {
@@ -95,206 +101,224 @@ function renderMath(text: string): string {
     }
   });
 
-  return replaced;
+  return replaced.replace(/@@CODE_BLOCK_(\d+)@@/g, (_, idxStr: string) => {
+    return codePlaceholders[Number(idxStr)] ?? '';
+  });
 }
 
-export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
-  content,
-  frontmatterOverride,
-  className = '',
-  onHeadingsExtracted,
-}) => {
-  const containerRef = useRef<HTMLDivElement>(null);
+function normalizeAuthor(manifest: Record<string, unknown>): string | null {
+  const raw = manifest['author'] ?? manifest['user'];
+  if (typeof raw === 'string' && raw.trim()) return raw.trim();
+  if (typeof raw === 'number' || typeof raw === 'boolean') return String(raw);
+  return null;
+}
 
-  // 1. Frontmatter와 Body 분리
-  const { data: parsedFrontmatter, body } = useMemo(
-    () => extractFrontmatter(content),
-    [content],
-  );
+function normalizeTags(manifest: Record<string, unknown>): string[] {
+  const rawTags = manifest['tags'];
+  if (!Array.isArray(rawTags)) return [];
+  return rawTags
+    .filter((t): t is string | number => typeof t === 'string' || typeof t === 'number')
+    .map((t) => String(t).trim())
+    .filter(Boolean);
+}
 
-  const manifest = frontmatterOverride ?? parsedFrontmatter;
+export const MarkdownPreview: React.FC<MarkdownPreviewProps> = React.memo(
+  ({ content, frontmatterOverride, className = '', onHeadingsExtracted }) => {
+    const containerRef = useRef<HTMLDivElement>(null);
 
-  // 2. 마크다운 + 수식 파싱
-  const sanitizedHtml = useMemo(() => {
-    // 수식 변환 먼저 수행
-    const withMath = renderMath(body);
-
-    // marked 설정 (GFM 활성화)
-    marked.setOptions({
-      gfm: true,
-      breaks: true,
-    });
-
-    const rawHtml = marked.parse(withMath) as string;
-
-    // DOMPurify XSS 필터링 (Math, SVG 태그/속성 허용)
-    return DOMPurify.sanitize(rawHtml, {
-      ADD_TAGS: [
-        'annotation',
-        'math',
-        'mtext',
-        'mrow',
-        'semantics',
-        'svg',
-        'path',
-        'rect',
-        'text',
-        'g',
-        'marker',
-        'defs',
-        'line',
-        'polygon',
-        'mark',
-      ],
-      ADD_ATTR: [
-        'display',
-        'xmlns',
-        'viewbox',
-        'width',
-        'height',
-        'fill',
-        'stroke',
-        'stroke-width',
-        'd',
-        'rx',
-        'x',
-        'y',
-        'marker-end',
-        'text-anchor',
-        'font-family',
-        'font-size',
-        'font-weight',
-        'class',
-        'style',
-      ],
-    });
-  }, [body]);
-
-  // 3. Mermaid 다이어그램 동적 렌더링
-  useEffect(() => {
-    if (!containerRef.current) return;
-
-    const mermaidBlocks = containerRef.current.querySelectorAll(
-      'pre code.language-mermaid',
+    // 1. Frontmatter와 Body 분리
+    const { data: parsedFrontmatter, body } = useMemo(
+      () => extractFrontmatter(content),
+      [content],
     );
 
-    if (mermaidBlocks.length === 0) return;
+    const manifest = frontmatterOverride ?? parsedFrontmatter;
 
-    let isCancelled = false;
+    // 2. 마크다운 + 수식 파싱
+    const sanitizedHtml = useMemo(() => {
+      // 수식 변환 먼저 수행
+      const withMath = renderMath(body);
 
-    const renderMermaid = async () => {
-      let mermaidInstance;
-      try {
-        mermaidInstance = await getMermaid();
-      } catch {
-        return;
-      }
-      if (isCancelled) return;
+      // marked 설정 (GFM 활성화)
+      marked.setOptions({
+        gfm: true,
+        breaks: true,
+      });
 
-      for (let i = 0; i < mermaidBlocks.length; i++) {
-        if (isCancelled) break;
-        const codeElem = mermaidBlocks[i];
-        const preElem = codeElem.parentElement;
-        if (!preElem) continue;
+      const rawHtml = marked.parse(withMath) as string;
 
-        const code = codeElem.textContent || '';
-        const id = `mermaid-svg-${Date.now()}-${i}`;
+      // DOMPurify XSS 필터링 (Math, SVG 태그/속성 허용)
+      return DOMPurify.sanitize(rawHtml, {
+        ADD_TAGS: [
+          'annotation',
+          'math',
+          'mtext',
+          'mrow',
+          'semantics',
+          'svg',
+          'path',
+          'rect',
+          'text',
+          'g',
+          'marker',
+          'defs',
+          'line',
+          'polygon',
+          'mark',
+        ],
+        ADD_ATTR: [
+          'display',
+          'xmlns',
+          'viewbox',
+          'width',
+          'height',
+          'fill',
+          'stroke',
+          'stroke-width',
+          'd',
+          'rx',
+          'x',
+          'y',
+          'marker-end',
+          'text-anchor',
+          'font-family',
+          'font-size',
+          'font-weight',
+          'class',
+          'style',
+        ],
+      });
+    }, [body]);
 
+    // 3. Mermaid 다이어그램 동적 렌더링
+    useEffect(() => {
+      if (!containerRef.current) return;
+
+      const mermaidBlocks = containerRef.current.querySelectorAll(
+        'pre code.language-mermaid',
+      );
+
+      if (mermaidBlocks.length === 0) return;
+
+      let isCancelled = false;
+
+      const renderMermaid = async () => {
+        let mermaidInstance;
         try {
-          const { svg } = await mermaidInstance.render(id, code);
-          if (isCancelled) break;
-
-          const wrapper = document.createElement('div');
-          wrapper.className = 'mermaid-container my-4 p-4 rounded-xl border border-zinc-800 bg-zinc-950 flex justify-center';
-          const sanitizedSvg = DOMPurify.sanitize(svg, {
-            USE_PROFILES: { svg: true, svgFilters: true },
-          });
-          wrapper.innerHTML = sanitizedSvg;
-          preElem.replaceWith(wrapper);
+          mermaidInstance = await getMermaid();
         } catch {
-          // 렌더링 실패 시 일반 코드 블록 유지
+          return;
         }
+        if (isCancelled) return;
+
+        for (let i = 0; i < mermaidBlocks.length; i++) {
+          if (isCancelled) break;
+          const codeElem = mermaidBlocks[i];
+          const preElem = codeElem.parentElement;
+          if (!preElem) continue;
+
+          const code = codeElem.textContent || '';
+          const id = `mermaid-svg-${Date.now()}-${i}`;
+
+          try {
+            const { svg } = await mermaidInstance.render(id, code);
+            if (isCancelled) break;
+
+            const wrapper = document.createElement('div');
+            wrapper.className =
+              'mermaid-container my-4 p-4 rounded-xl border border-zinc-800 bg-zinc-950 flex justify-center';
+            const sanitizedSvg = DOMPurify.sanitize(svg, {
+              USE_PROFILES: { svg: true, svgFilters: true },
+            });
+            wrapper.innerHTML = sanitizedSvg;
+            preElem.replaceWith(wrapper);
+          } catch {
+            // 렌더링 실패 시 일반 코드 블록 유지
+          }
+        }
+      };
+
+      renderMermaid();
+
+      return () => {
+        isCancelled = true;
+      };
+    }, [sanitizedHtml]);
+
+    // 4. 헤딩 요소 id 자동 부여 및 목차(TOC) 아이템 추출
+    useEffect(() => {
+      if (!containerRef.current) return;
+
+      const headingNodes =
+        containerRef.current.querySelectorAll<HTMLHeadingElement>(
+          'h1, h2, h3, h4',
+        );
+
+      const items: TocItem[] = [];
+      headingNodes.forEach((node, index) => {
+        const text = node.textContent?.trim() || '';
+        if (!text) return;
+
+        let id = node.id;
+        if (!id) {
+          id = `heading-${index}-${text
+            .toLowerCase()
+            .replace(/[^a-z0-9가-힣]+/g, '-')
+            .replace(/^-|-$/g, '')}`;
+          node.id = id;
+        }
+
+        const level = parseInt(node.tagName.substring(1), 10);
+        items.push({ id, text, level });
+      });
+
+      if (onHeadingsExtracted) {
+        onHeadingsExtracted(items);
       }
-    };
+    }, [sanitizedHtml, onHeadingsExtracted]);
 
-    renderMermaid();
+    const hasFrontmatter = Object.keys(manifest).length > 0;
+    const author = normalizeAuthor(manifest);
+    const tags = normalizeTags(manifest);
 
-    return () => {
-      isCancelled = true;
-    };
-  }, [sanitizedHtml]);
-
-  // 4. 헤딩 요소 id 자동 부여 및 목차(TOC) 아이템 추출
-  useEffect(() => {
-    if (!containerRef.current) return;
-
-    const headingNodes = containerRef.current.querySelectorAll<HTMLHeadingElement>(
-      'h1, h2, h3, h4',
-    );
-
-    const items: TocItem[] = [];
-    headingNodes.forEach((node, index) => {
-      const text = node.textContent?.trim() || '';
-      if (!text) return;
-
-      let id = node.id;
-      if (!id) {
-        id = `heading-${index}-${text.toLowerCase().replace(/[^a-z0-9가-힣]+/g, '-').replace(/^-|-$/g, '')}`;
-        node.id = id;
-      }
-
-      const level = parseInt(node.tagName.substring(1), 10);
-      items.push({ id, text, level });
-    });
-
-    if (onHeadingsExtracted) {
-      onHeadingsExtracted(items);
-    }
-  }, [sanitizedHtml, onHeadingsExtracted]);
-
-  const hasFrontmatter = Object.keys(manifest).length > 0;
-  const author = (manifest['author'] as string) || (manifest['user'] as string);
-  const tags = Array.isArray(manifest['tags'])
-    ? (manifest['tags'] as string[])
-    : [];
-
-  return (
-    <div
-      ref={containerRef}
-      className={`markdown-preview-root select-text ${className}`}
-    >
-      {/* Frontmatter Manifest Card */}
-      {hasFrontmatter && (
-        <div className="preview-manifest-card mb-6 p-3 rounded-lg bg-zinc-900/60 border border-zinc-800 flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            <span className="text-zinc-500 uppercase tracking-wider font-semibold">
-              Document Manifest
-            </span>
-            {author && (
-              <span className="text-zinc-300 font-medium font-mono">{author}</span>
+    return (
+      <div
+        ref={containerRef}
+        className={`markdown-preview-root select-text ${className}`}
+      >
+        {/* Frontmatter Manifest Card */}
+        {hasFrontmatter && (
+          <div className="preview-manifest-card mb-6 p-3 rounded-lg bg-zinc-900/60 border border-zinc-800 flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              <span className="text-zinc-500 uppercase tracking-wider font-semibold">
+                Document Manifest
+              </span>
+              {author && (
+                <span className="text-zinc-300 font-medium font-mono">{author}</span>
+              )}
+            </div>
+            {tags.length > 0 && (
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="px-2 py-0.5 rounded text-[11px] bg-zinc-800 text-sky-300 border border-zinc-700"
+                  >
+                    #{tag.replace(/^#/, '')}
+                  </span>
+                ))}
+              </div>
             )}
           </div>
-          {tags.length > 0 && (
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="px-2 py-0.5 rounded text-[11px] bg-zinc-800 text-sky-300 border border-zinc-700"
-                >
-                  #{tag.replace(/^#/, '')}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+        )}
 
-      {/* Rendered Markdown Body */}
-      <div
-        className="markdown-rendered-content"
-        dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
-      />
-    </div>
-  );
-};
+        {/* Rendered Markdown Body */}
+        <div
+          className="markdown-rendered-content"
+          dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
+        />
+      </div>
+    );
+  },
+);

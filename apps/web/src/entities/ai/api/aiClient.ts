@@ -5,7 +5,9 @@ import {
   NeuralStreamSession,
   SendVoiceStreamParams,
   SpokenTranscriptMessage,
+  StreamEventHandlers,
 } from '../model/types';
+import { getJson, postJson } from '../../../shared/api/client';
 
 export const INITIAL_NEURAL_SESSIONS: NeuralStreamSession[] = [];
 
@@ -16,9 +18,7 @@ export const INITIAL_TRANSCRIPT_MESSAGES: SpokenTranscriptMessage[] = [];
  */
 export async function fetchNeuralSessions(): Promise<NeuralStreamSession[]> {
   try {
-    const res = await fetch('/api/v1/ai/sessions');
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
+    const data = await getJson<NeuralStreamSession[]>('/api/v1/ai/sessions');
     return Array.isArray(data) ? data : [];
   } catch {
     // 오프라인 / 개발 환경 안전 폴백
@@ -31,16 +31,7 @@ export async function fetchNeuralSessions(): Promise<NeuralStreamSession[]> {
  */
 export async function createNeuralSession(title?: string): Promise<NeuralStreamSession> {
   try {
-    const res = await fetch('/api/v1/ai/sessions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ title }),
-    });
-
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return await res.json();
+    return await postJson<NeuralStreamSession>('/api/v1/ai/sessions', { title });
   } catch {
     // 오프라인 / 실패 시 로컬 임시 세션 폴백
     const fallbackId = `session-jarvis-${Date.now()}`;
@@ -51,6 +42,57 @@ export async function createNeuralSession(title?: string): Promise<NeuralStreamS
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
+  }
+}
+
+function processSseBlock(block: string, handlers: StreamEventHandlers): 'done' | 'error' | 'continue' {
+  if (!block.trim()) return 'continue';
+
+  const lines = block.split('\n');
+  let eventType = '';
+  let dataStr = '';
+
+  for (const line of lines) {
+    if (line.startsWith('event: ')) {
+      eventType = line.replace('event: ', '').trim();
+    } else if (line.startsWith('data: ')) {
+      dataStr = line.replace('data: ', '').trim();
+    }
+  }
+
+  if (!dataStr) return 'continue';
+
+  try {
+    const payload = JSON.parse(dataStr);
+
+    switch (eventType) {
+      case 'transcription':
+        handlers.onTranscription?.(payload.text);
+        return 'continue';
+      case 'benchmark':
+        handlers.onBenchmark?.(payload);
+        return 'continue';
+      case 'context_ref':
+        handlers.onContextRef?.(payload.contexts || []);
+        return 'continue';
+      case 'token':
+        handlers.onToken?.(payload.delta);
+        return 'continue';
+      case 'audio_complete':
+        handlers.onAudioComplete?.(payload);
+        return 'continue';
+      case 'done':
+        handlers.onDone?.(payload);
+        return 'done';
+      case 'error':
+        handlers.onError?.(payload.error || payload.message || '알 수 없는 스트리밍 에러가 발생했습니다.');
+        return 'error';
+      default:
+        return 'continue';
+    }
+  } catch (err) {
+    console.warn('[SSE 파싱 경고]', err, dataStr);
+    return 'continue';
   }
 }
 
@@ -85,6 +127,7 @@ export async function streamJarvisVoice(params: SendVoiceStreamParams): Promise<
 
   const response = await fetch('/api/v1/ai/voice/stream', {
     method: 'POST',
+    credentials: 'same-origin',
     headers,
     body,
     signal,
@@ -100,62 +143,42 @@ export async function streamJarvisVoice(params: SendVoiceStreamParams): Promise<
   const reader = response.body.getReader();
   const decoder = new TextDecoder('utf-8');
   let buffer = '';
+  let hasTerminated = false;
 
   while (true) {
     const { done, value } = await reader.read();
-    if (done) break;
+    if (done) {
+      buffer += decoder.decode();
+      break;
+    }
 
     buffer += decoder.decode(value, { stream: true });
     const blocks = buffer.split('\n\n');
     buffer = blocks.pop() || '';
 
     for (const block of blocks) {
-      if (!block.trim()) continue;
-
-      const lines = block.split('\n');
-      let eventType = '';
-      let dataStr = '';
-
-      for (const line of lines) {
-        if (line.startsWith('event: ')) {
-          eventType = line.replace('event: ', '').trim();
-        } else if (line.startsWith('data: ')) {
-          dataStr = line.replace('data: ', '').trim();
-        }
+      const status = processSseBlock(block, handlers);
+      if (status === 'done') {
+        hasTerminated = true;
+        return;
       }
-
-      if (!dataStr) continue;
-
-      try {
-        const payload = JSON.parse(dataStr);
-
-        switch (eventType) {
-          case 'transcription':
-            handlers.onTranscription?.(payload.text);
-            break;
-          case 'benchmark':
-            handlers.onBenchmark?.(payload);
-            break;
-          case 'context_ref':
-            handlers.onContextRef?.(payload.contexts || []);
-            break;
-          case 'token':
-            handlers.onToken?.(payload.delta);
-            break;
-          case 'audio_complete':
-            handlers.onAudioComplete?.(payload);
-            break;
-          case 'done':
-            handlers.onDone?.(payload);
-            return;
-          case 'error':
-            handlers.onError?.(payload.error || '알 수 없는 스트리밍 에러가 발생했습니다.');
-            break;
-        }
-      } catch (err) {
-        console.warn('[SSE 파싱 경고]', err, dataStr);
+      if (status === 'error') {
+        hasTerminated = true;
       }
     }
+  }
+
+  // 잔여 버퍼가 남아 있는 경우 마지막 프레임 처리
+  if (buffer.trim()) {
+    const status = processSseBlock(buffer, handlers);
+    if (status === 'done' || status === 'error') {
+      hasTerminated = true;
+    }
+  }
+
+  // 스트림이 명시적 done/error 이벤트 없이 닫힌 경우 안전하게 완료 콜백 호출 (상태 고착 방지)
+  if (!hasTerminated && !signal?.aborted) {
+    handlers.onDone?.({ finished: true, tokensUsed: 0 });
   }
 }
 
@@ -164,20 +187,10 @@ export async function streamJarvisVoice(params: SendVoiceStreamParams): Promise<
  */
 export async function interruptSpeech(sessionId: string): Promise<boolean> {
   try {
-    const response = await fetch('/api/v1/ai/chat/interrupt', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ sessionId }),
+    const result = await postJson<InterruptResponseDto>('/api/v1/ai/chat/interrupt', {
+      sessionId,
     });
-
-    if (!response.ok) {
-      throw new Error(`중단 요청 실패: ${response.statusText}`);
-    }
-
-    const result: InterruptResponseDto = await response.json();
-    return result.interrupted;
+    return Boolean(result?.interrupted);
   } catch {
     return false;
   }
@@ -187,19 +200,7 @@ export async function interruptSpeech(sessionId: string): Promise<boolean> {
  * Qdrant 기반 마크다운 문서 시맨틱 검색 (POST /api/v1/ai/search)
  */
 export async function searchAiDocuments(dto: AiSearchQueryDto): Promise<AiSearchResponseDto> {
-  const response = await fetch('/api/v1/ai/search', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(dto),
-  });
-
-  if (!response.ok) {
-    throw new Error(`시맨틱 검색 실패 HTTP ${response.status}`);
-  }
-
-  return await response.json();
+  return postJson<AiSearchResponseDto>('/api/v1/ai/search', dto);
 }
 
 export interface StreamResponseCallbacks {

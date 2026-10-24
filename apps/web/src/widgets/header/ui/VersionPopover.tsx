@@ -20,6 +20,15 @@ export const VersionPopover: React.FC<VersionPopoverProps> = ({
 }) => {
   const popoverRef = useRef<HTMLDivElement>(null);
   const [copiedCommit, setCopiedCommit] = useState<string | null>(null);
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current) {
+        clearTimeout(copyTimerRef.current);
+      }
+    };
+  }, []);
 
   // 외부 클릭 및 ESC 키 감지 시 닫기
   useEffect(() => {
@@ -51,7 +60,10 @@ export const VersionPopover: React.FC<VersionPopoverProps> = ({
     try {
       await navigator.clipboard.writeText(commit);
       setCopiedCommit(commit);
-      setTimeout(() => setCopiedCommit(null), 1500);
+      if (copyTimerRef.current) {
+        clearTimeout(copyTimerRef.current);
+      }
+      copyTimerRef.current = setTimeout(() => setCopiedCommit(null), 1500);
     } catch {
       // ignore
     }

@@ -1,6 +1,8 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import './ai-workspace-page.css';
 import { useAiStream } from '../../entities/ai';
+import { createDocument } from '../../entities/markdown';
+import { addRecentTask } from '../../shared/utils/storage';
 import {
   JarvisHoloCore,
   VoiceVisualizer,
@@ -104,23 +106,41 @@ export const AiWorkspacePage: React.FC = () => {
     toggleMicMute,
   ]);
 
-  const handleSaveToMarkdown = (content: string) => {
+  const handleSaveToMarkdown = useCallback(async (content: string) => {
+    const title = `JARVIS Spoken Note - ${new Date().toLocaleDateString()}`;
     try {
-      const stored = localStorage.getItem('my-space-docs');
-      const docs = stored ? JSON.parse(stored) : [];
-      const newDoc = {
-        id: `doc-${Date.now()}`,
-        title: `JARVIS Spoken Note - ${new Date().toLocaleDateString()}`,
+      await createDocument({
+        title,
         content,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      localStorage.setItem('my-space-docs', JSON.stringify([newDoc, ...docs]));
-      alert('마크다운 문서 스튜디오에 성공적으로 저장되었습니다.');
+        tags: ['jarvis', 'ai-note'],
+      });
     } catch {
-      // storage error fallback
+      // 오프라인 또는 백엔드 미연결 시 로컬 스토리지 안전 폴백
+      try {
+        const stored = localStorage.getItem('my-space-docs');
+        const parsed: unknown = stored ? JSON.parse(stored) : [];
+        const docs = Array.isArray(parsed) ? parsed : [];
+        const newDoc = {
+          id: `doc-${Date.now()}`,
+          title,
+          content,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        localStorage.setItem('my-space-docs', JSON.stringify([newDoc, ...docs]));
+      } catch {
+        // storage error fallback
+      }
     }
-  };
+
+    addRecentTask({
+      title: `${title}.md`,
+      type: 'markdown',
+      status: 'COMPLETED',
+      detail: 'J.A.R.V.I.S. 음성 노트 마크다운 저장 완료',
+    });
+    alert('마크다운 문서 스튜디오에 성공적으로 저장되었습니다.');
+  }, []);
 
   return (
     <div
@@ -179,7 +199,7 @@ export const AiWorkspacePage: React.FC = () => {
               engineState={engineState}
               onStartListening={startListening}
               onStopListeningAndSend={stopListeningAndSend}
-              onSendQuery={(query) => sendFollowUpText(query)}
+              onSendQuery={sendFollowUpText}
             />
           </div>
         </section>
@@ -240,9 +260,9 @@ export const AiWorkspacePage: React.FC = () => {
                 key={message.id}
                 message={message}
                 isPlayingAudio={isPlayingAudio}
-                onTogglePlayAudio={() => toggleAudioPlayback(message.id)}
+                onTogglePlayAudio={toggleAudioPlayback}
                 onSaveToMarkdown={handleSaveToMarkdown}
-                onRetry={() => sendFollowUpText(message.content)}
+                onRetry={sendFollowUpText}
               />
             ))}
           </div>

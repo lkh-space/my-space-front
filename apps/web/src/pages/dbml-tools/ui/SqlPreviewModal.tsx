@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import CodeMirror from '@uiw/react-codemirror';
 import { sql } from '@codemirror/lang-sql';
 import { SqlDialect } from '../model/types';
@@ -19,6 +19,15 @@ export const SqlPreviewModal: React.FC<SqlPreviewModalProps> = ({
   fromFallback,
 }) => {
   const [copied, setCopied] = useState(false);
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current) {
+        clearTimeout(copyTimerRef.current);
+      }
+    };
+  }, []);
 
   if (!isOpen) return null;
 
@@ -26,7 +35,10 @@ export const SqlPreviewModal: React.FC<SqlPreviewModalProps> = ({
     try {
       await navigator.clipboard.writeText(sqlContent);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      if (copyTimerRef.current) {
+        clearTimeout(copyTimerRef.current);
+      }
+      copyTimerRef.current = setTimeout(() => setCopied(false), 2000);
     } catch {
       // fallback
     }

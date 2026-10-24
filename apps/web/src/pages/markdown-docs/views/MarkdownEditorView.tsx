@@ -73,6 +73,15 @@ export const MarkdownEditorView: React.FC = () => {
   // Split Pane Width (Percentage for Left Pane)
   const [leftWidthPercent, setLeftWidthPercent] = useState(50);
   const isDraggingRef = useRef(false);
+  const saveStatusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (saveStatusTimerRef.current) {
+        clearTimeout(saveStatusTimerRef.current);
+      }
+    };
+  }, []);
 
   // 기존 문서 불러오기
   useEffect(() => {
@@ -142,7 +151,10 @@ export const MarkdownEditorView: React.FC = () => {
         return;
       }
       setSaveStatus('saved');
-      setTimeout(() => setSaveStatus('idle'), 2000);
+      if (saveStatusTimerRef.current) {
+        clearTimeout(saveStatusTimerRef.current);
+      }
+      saveStatusTimerRef.current = setTimeout(() => setSaveStatus('idle'), 2000);
     } catch (err: unknown) {
       setSaveStatus('error');
       const msg = err instanceof Error ? err.message : '저장에 실패했습니다.';
@@ -469,3 +481,5 @@ export const MarkdownEditorView: React.FC = () => {
     </div>
   );
 };
+
+export default MarkdownEditorView;

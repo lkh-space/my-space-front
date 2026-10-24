@@ -2,6 +2,7 @@ import { RecentTaskItem } from '../types/dashboard';
 
 const STORAGE_KEY = 'my-space:recent-tasks';
 const MAX_TASKS = 10;
+export const RECENT_TASKS_UPDATED_EVENT = 'recent-tasks-updated';
 
 export const INITIAL_TASKS: RecentTaskItem[] = [
   {
@@ -38,6 +39,24 @@ export const INITIAL_TASKS: RecentTaskItem[] = [
   },
 ];
 
+function isValidRecentTaskItem(val: unknown): val is RecentTaskItem {
+  if (!val || typeof val !== 'object') return false;
+  const record = val as Record<string, unknown>;
+  return (
+    typeof record.id === 'string' &&
+    typeof record.title === 'string' &&
+    typeof record.type === 'string' &&
+    typeof record.status === 'string' &&
+    typeof record.timestamp === 'string'
+  );
+}
+
+export function notifyRecentTasksUpdated(): void {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(RECENT_TASKS_UPDATED_EVENT));
+  }
+}
+
 export function getRecentTasks(): RecentTaskItem[] {
   if (typeof window === 'undefined' || !window.localStorage) {
     return INITIAL_TASKS;
@@ -50,7 +69,12 @@ export function getRecentTasks(): RecentTaskItem[] {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_TASKS));
       return INITIAL_TASKS;
     }
-    return JSON.parse(raw) as RecentTaskItem[];
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      console.error('Invalid recent tasks format in localStorage (expected array)');
+      return INITIAL_TASKS;
+    }
+    return parsed.filter(isValidRecentTaskItem);
   } catch (error) {
     console.error('Failed to read recent tasks from localStorage:', error);
     return INITIAL_TASKS;
@@ -72,6 +96,7 @@ export function addRecentTask(item: Omit<RecentTaskItem, 'id' | 'timestamp'>): R
   const updated = [newItem, ...current].slice(0, MAX_TASKS);
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    notifyRecentTasksUpdated();
   } catch (error) {
     console.error('Failed to save recent task to localStorage:', error);
   }
@@ -85,6 +110,7 @@ export function clearRecentTasks(): RecentTaskItem[] {
 
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
+    notifyRecentTasksUpdated();
   } catch (error) {
     console.error('Failed to clear recent tasks in localStorage:', error);
   }

@@ -3,7 +3,11 @@ import { WorkspaceHeader } from './components/WorkspaceHeader';
 import { InstalledUtilitiesGrid } from './components/InstalledUtilitiesGrid';
 import { RecentTasksCard } from './components/RecentTasksCard';
 import { RuntimeEnvironmentCard } from './components/RuntimeEnvironmentCard';
-import { getRecentTasks, clearRecentTasks } from '../../shared/utils/storage';
+import {
+  getRecentTasks,
+  clearRecentTasks,
+  RECENT_TASKS_UPDATED_EVENT,
+} from '../../shared/utils/storage';
 import { RecentTaskItem } from '../../shared/types/dashboard';
 import './dashboard.css';
 
@@ -22,8 +26,8 @@ export const DashboardPage: React.FC = () => {
       loadTasks();
     };
 
-    window.addEventListener('recent-tasks-updated', handleUpdated);
-    return () => window.removeEventListener('recent-tasks-updated', handleUpdated);
+    window.addEventListener(RECENT_TASKS_UPDATED_EVENT, handleUpdated);
+    return () => window.removeEventListener(RECENT_TASKS_UPDATED_EVENT, handleUpdated);
   }, [loadTasks]);
 
   const handleClearTasks = () => {

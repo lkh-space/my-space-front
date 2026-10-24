@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback, useRef, useEffect } from 'react';
 import { DEFAULT_DBML_SCHEMA } from './model/defaultSchema';
 import { parseDbml } from './model/dbmlParser';
 import { calculateErdLayout } from './model/erdLayout';
@@ -27,10 +27,22 @@ export const DbmlToolsPage: React.FC = () => {
 
   // Toast 알림 상태 (브라우저 블로킹 alert 대체)
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) {
+        clearTimeout(toastTimerRef.current);
+      }
+    };
+  }, []);
 
   const showToast = useCallback((type: 'success' | 'error', message: string) => {
     setToast({ type, message });
-    setTimeout(() => {
+    if (toastTimerRef.current) {
+      clearTimeout(toastTimerRef.current);
+    }
+    toastTimerRef.current = setTimeout(() => {
       setToast(null);
     }, 3000);
   }, []);
