@@ -7,11 +7,9 @@ import { UserProfileBadge } from './UserProfileBadge';
 import { VersionBadge } from './VersionBadge';
 import './header.css';
 
-export interface HeaderProps {
-  onOpenCommandPalette: () => void;
-}
+export type HeaderProps = Record<string, never>;
 
-export const Header: React.FC<HeaderProps> = ({ onOpenCommandPalette }) => {
+export const Header: React.FC<HeaderProps> = () => {
   const location = useLocation();
   const { t, i18n } = useTranslation();
 
@@ -29,17 +27,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCommandPalette }) => {
         <span className="breadcrumb-current">{page}</span>
       </div>
 
-      {/* 1-B. Mobile Brand & Terminal Trigger Header (Shown on < 768px) */}
+      {/* 1-B. Mobile Brand Header (Shown on < 768px) */}
       <div className="top-mobile-brand">
-        <button
-          type="button"
-          className="mobile-terminal-btn"
-          onClick={onOpenCommandPalette}
-          title={t('header.mobileTerminalTitle')}
-          aria-label={t('header.mobileTerminalAria')}
-        >
-          <span className="material-symbols-outlined">terminal</span>
-        </button>
+        <span className="brand-avatar" aria-hidden="true">
+          μ
+        </span>
         <span className="mobile-brand-title">my-space</span>
         <span className="mobile-brand-version">v0.1</span>
       </div>
@@ -73,17 +65,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCommandPalette }) => {
         {/* 시스템 버전 및 서버 연결 상태 칩 (다중 서버 헬스체크 지원) */}
         <VersionBadge />
 
-        {/* Desktop Terminal Command Button */}
-        <button
-          type="button"
-          className="header-icon-btn desktop-only-action"
-          onClick={onOpenCommandPalette}
-          title={t('header.desktopTerminalTitle')}
-          aria-label={t('header.desktopTerminalAria')}
-        >
-          <span className="material-symbols-outlined">terminal</span>
-        </button>
-
         {/* 현재 로그인 사용자 프로필 및 배지 (Authelia SSO 연동) */}
         <UserProfileBadge />
 
@@ -106,17 +87,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCommandPalette }) => {
           aria-label={t('header.themeAria')}
         >
           <span className="material-symbols-outlined">dark_mode</span>
-        </button>
-
-        {/* Primary Action Button (Desktop Only) */}
-        <button
-          type="button"
-          className="header-cta-btn desktop-only-action"
-          onClick={onOpenCommandPalette}
-          aria-label={t('header.runTask')}
-        >
-          <span className="material-symbols-outlined">play_arrow</span>
-          <span>{t('header.runTask')}</span>
         </button>
       </div>
     </header>

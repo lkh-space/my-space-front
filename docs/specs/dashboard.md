@@ -23,12 +23,9 @@ last-updated: 2026-09-25
   * 좌측 고정 사이드바(`SideNavBar`, 너비 240px)와 상단 고정 헤더(`TopNavBar`, 높이 48px), 모바일 하단 네비게이션(`BottomNavBar`, 높이 56px)을 제공하는 레이아웃 구조 확립
   * React Router 6 기반의 중첩 라우팅(`ShellLayout` 및 `<Outlet />`) 구성
 * **네비게이션 및 라우팅 (Navigation & Routing)**:
-  * 대시보드(`/`), PDF 유틸리티(`/pdf-tools`), DBML 유틸리티(`/dbml-tools` - 준비 중), 마크다운 문서(`/docs` - 준비 중) 탭 간 매끄러운 화면 전환
-  * 공통 네비게이션 메타데이터 단일 레지스트리(`WORKSPACE_NAV_ENTRIES`)를 통한 일관된 라우트, 브레드크럼, 커맨드 팔레트 메타데이터 관리
+  * 대시보드(`/`), PDF 유틸리티(`/pdf-tools`), DBML 유틸리티(`/dbml-tools`), 마크다운 문서(`/docs`), AI 비서(`/ai`) 탭 간 매끄러운 화면 전환
+  * 공통 네비게이션 메타데이터 단일 레지스트리(`WORKSPACE_NAV_ENTRIES`)를 통한 일관된 라우트 및 브레드크럼 메타데이터 관리
   * 현재 위치한 경로에 따른 사이드바 및 바텀 네비게이션 탭의 활성(Active) 상태 자동 시각화
-* **퀵 커맨드 팔레트 (Quick Command & Palette)**:
-  * 사이드바 내 검색창 형태의 퀵 커맨드 버튼 및 단축키 배지(`<kbd>⌘K</kbd>`) 노출
-  * 키보드 단축키(`⌘K` / `Ctrl+K`) 입력 또는 버튼 클릭 시 열리는 경량 커맨드 팔레트(`cmdk` 기반) 모달 연동
 * **설치된 유틸리티 빠른 실행 그리드 (3-Column Bento Grid)**:
   * PDF 유틸리티, DBML 유틸리티, 마크다운 문서의 3개 카드 배치
   * 카드별 아이콘, 최근 사용 시간, 설명 문구, 상태 태그, 원클릭 진입 링크 제공
@@ -55,7 +52,6 @@ last-updated: 2026-09-25
 | `UC-F-D02` | 사용자 | 사이드바 탭을 통한 유틸리티 화면 전환 | 1. 사이드바의 'PDF 유틸리티' 탭 클릭 → 2. URL `/pdf-tools` 이동 → 3. 셸은 유지된 채 본문만 PDF 유틸리티 뷰로 전환 |
 | `UC-F-D03` | 사용자 | 벤토 그리드 카드를 통한 유틸리티 실행 | 1. 대시보드의 'PDF 유틸리티' 카드 내 '유틸리티 실행' 클릭 → 2. `/pdf-tools` 화면으로 즉시 이동 |
 | `UC-F-D04` | 사용자 | 상단 언어 전환 (KR / EN) 토글 | 1. 헤더 우측의 `KR` 또는 `EN` 버튼 클릭 → 2. 다국어 로케일 상태 변경 및 UI 텍스트 반영 |
-| `UC-F-D05` | 사용자 | 퀵 커맨드 트리거 클릭 | 1. 사이드바의 검색창/⌘K 버튼 클릭 → 2. 커맨드 팔레트 열기 이벤트 트리거 |
 
 ---
 
@@ -68,13 +64,12 @@ last-updated: 2026-09-25
 ```text
 ShellLayout (전체 웹 애플리케이션 최상위 공통 셸)
  ├── SideNavBar (좌측 240px 고정 네비게이션)
- │    ├── BrandHeader (시스템 아바타 'm', 버전 'v0.1.0-local', 상태 뱃지 'idle')
- │    ├── QuickCommandTrigger (검색창 형태 버튼 + <kbd>⌘K</kbd>)
- │    ├── NavTabList (대시보드, PDF 유틸리티, DBML 유틸리티, 마크다운 문서 링크)
- │    └── EngineStatusFooter (로컬 엔진 상태 점 '실행 중', 환경설정 링크)
- ├── TopNavBar (상단 48px 고정 헤더)
+ │    ├── BrandHeader (시스템 아바타 'μ', 버전 'v0.1.0')
+ │    ├── NavTabList (대시보드, PDF 유틸리티, DBML 유틸리티, 마크다운 문서, AI Workspace 링크)
+ │    └── EngineStatusFooter (로컬 엔진 인스턴스 상태 카드)
+ ├── TopNavBar / Header (상단 48px 고정 헤더)
  │    ├── BreadcrumbNav (my-space / 워크스페이스 / 대시보드)
- │    └── TopActionCluster (KR/EN 토글, 터미널/알림/테마 아이콘, Docs 버튼, 작업 실행 CTA)
+ │    └── TopActionCluster (KR/EN 토글, 버전/헬스체크 칩, 사용자 프로필 배지, 알림/테마 아이콘)
  ├── MainCanvas (본문 캔버스 영역)
  │    └── <Outlet />
  │         ├── DashboardPage (대시보드 메인 뷰)
@@ -179,5 +174,4 @@ export function clearRecentTasks(): RecentTaskItem[];
 
 ## 8. 오픈 질문 및 결정 사항 (Decisions & Open Questions)
 
-* [x] **커맨드 팔레트 모달 라이브러리 도입**: ⌘K 단축키 입력 시 열리는 모달에 경량 커맨드 메뉴 라이브러리인 **`cmdk`를 도입**하여 접근성 높은 키보드 네비게이션 및 빠른 화면 이동 지원 확정.
 * [x] **최근 작업 이력의 영속화**: 백엔드 DB 연동 전까지 브라우저의 **`localStorage`(`my-space:recent-tasks`)에 최대 10건의 최근 작업 이력을 영속화**하여 관리하기로 확정.

@@ -102,52 +102,6 @@
   50% { opacity: 0.4; transform: scale(0.85); }
 }
 
-/* Sidebar Search Command Trigger */
-.sidebar-command-trigger-wrap {
-  padding: var(--space-md) var(--space-md) var(--space-sm);
-}
-
-.sidebar-command-trigger {
-  width: 100%;
-  height: 32px;
-  background-color: var(--surface-container-lowest);
-  border: 1px solid var(--outline-variant);
-  border-radius: var(--radius-md);
-  padding: 0 var(--space-sm);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: var(--text-muted);
-  font-size: 12px;
-  cursor: pointer;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
-}
-
-.sidebar-command-trigger:hover {
-  border-color: var(--outline);
-  color: var(--on-surface-variant);
-}
-
-.command-trigger-left {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.command-trigger-left .material-symbols-outlined {
-  font-size: 16px;
-}
-
-.command-kbd {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  padding: 1px 5px;
-  background-color: var(--surface-container-highest);
-  border: 1px solid var(--outline-variant);
-  border-radius: var(--radius-sm);
-  color: var(--text-muted);
-}
-
 /* Sidebar Navigation Items */
 .sidebar-nav-section {
   flex: 1;
@@ -349,39 +303,6 @@
   font-size: 10px;
 }
 
-.sidebar-bottom-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.sidebar-action-btn {
-  flex: 1;
-  height: 28px;
-  background: transparent;
-  border: 1px solid var(--outline-variant);
-  border-radius: var(--radius-sm);
-  color: var(--on-surface-variant);
-  font-size: 11px;
-  font-weight: 400;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  cursor: pointer;
-  transition: all 0.12s ease;
-}
-
-.sidebar-action-btn:hover {
-  background-color: var(--surface-container);
-  color: var(--on-surface);
-  border-color: var(--outline);
-}
-
-.sidebar-action-btn .material-symbols-outlined {
-  font-size: 14px;
-}
-
 /* --------------------------------------------------------------------------
    2. Main Canvas Content Area
    -------------------------------------------------------------------------- */
@@ -505,30 +426,6 @@
   background-color: var(--secondary);
 }
 
-/* Header Primary Action Button */
-.header-cta-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  height: 28px;
-  padding: 0 12px;
-  background-color: var(--on-surface);
-  color: var(--surface-dim);
-  border-radius: var(--radius-md);
-  font-size: 12px;
-  font-weight: 600;
-  transition: background-color 0.12s ease, opacity 0.12s ease;
-  margin-left: var(--space-xs);
-}
-
-.header-cta-btn:hover {
-  background-color: #ffffff;
-}
-
-.header-cta-btn .material-symbols-outlined {
-  font-size: 16px;
-}
-
 /* Workspace Content Wrapper */
 .workspace-content {
   flex: 1;
@@ -581,7 +478,6 @@
 
   .brand-title-group,
   .sidebar-status-tag,
-  .sidebar-command-trigger-wrap,
   .nav-section-title,
   .nav-tab-label,
   .nav-tab-badge,
@@ -626,10 +522,6 @@
     padding: 0 var(--space-lg);
   }
 
-  .header-cta-btn {
-    display: none;
-  }
-
   .workspace-content {
     padding: var(--space-lg);
     max-width: 1024px;
@@ -669,28 +561,6 @@
     display: flex;
     align-items: center;
     gap: 8px;
-  }
-
-  .mobile-terminal-btn {
-    width: 28px;
-    height: 28px;
-    border-radius: var(--radius-md);
-    background-color: var(--surface-container-highest);
-    border: 1px solid var(--outline-variant);
-    color: var(--primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: transform 0.1s ease;
-  }
-
-  .mobile-terminal-btn:active {
-    transform: scale(0.92);
-  }
-
-  .mobile-terminal-btn .material-symbols-outlined {
-    font-size: 18px;
   }
 
   .mobile-brand-title {

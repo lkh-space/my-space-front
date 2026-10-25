@@ -4,11 +4,7 @@ import { useTranslation } from 'react-i18next';
 import '../../shared/i18n';
 import { WORKSPACE_NAV_ENTRIES } from '../../shared/constants/navigation';
 
-interface SideNavBarProps {
-  onOpenCommandPalette: () => void;
-}
-
-export const SideNavBar: React.FC<SideNavBarProps> = ({ onOpenCommandPalette }) => {
+export const SideNavBar: React.FC = () => {
   const { t } = useTranslation();
   const standardNavItems = WORKSPACE_NAV_ENTRIES.filter(
     (item) => item.id !== 'ai-workspace'
@@ -38,23 +34,7 @@ export const SideNavBar: React.FC<SideNavBarProps> = ({ onOpenCommandPalette }) 
         </div>
       </div>
 
-      {/* 2. Quick Command Palette Trigger Button (Jump to... ⌘K) */}
-      <div className="sidebar-command-trigger-wrap">
-        <button
-          type="button"
-          className="sidebar-command-trigger"
-          onClick={onOpenCommandPalette}
-          aria-label={t('sidebar.commandTriggerAria')}
-        >
-          <div className="command-trigger-left">
-            <span className="material-symbols-outlined">search</span>
-            <span>Jump to...</span>
-          </div>
-          <kbd className="command-kbd">⌘K</kbd>
-        </button>
-      </div>
-
-      {/* 3. Standard Navigation Links */}
+      {/* 2. Standard Navigation Links */}
       <nav className="sidebar-nav-section">
         {standardNavItems.map((item) => {
           const localizedTitle = t(`nav.entries.${item.id}.title`);
@@ -99,7 +79,7 @@ export const SideNavBar: React.FC<SideNavBarProps> = ({ onOpenCommandPalette }) 
         )}
       </nav>
 
-      {/* 4. Engine Instance & Bottom Utilities Footer */}
+      {/* 4. Engine Instance Footer */}
       <div className="sidebar-footer">
         <div className="engine-instance-card">
           <div className="engine-instance-header">
@@ -113,27 +93,6 @@ export const SideNavBar: React.FC<SideNavBarProps> = ({ onOpenCommandPalette }) 
             <span className="engine-host">localhost:8080</span>
             <span className="engine-type">WASM</span>
           </div>
-        </div>
-
-        <div className="sidebar-bottom-actions">
-          <button
-            type="button"
-            className="sidebar-action-btn"
-            title="Terminal"
-            onClick={onOpenCommandPalette}
-          >
-            <span className="material-symbols-outlined">terminal</span>
-            <span>Terminal</span>
-          </button>
-          <button
-            type="button"
-            className="sidebar-action-btn"
-            title="Settings"
-            onClick={onOpenCommandPalette}
-          >
-            <span className="material-symbols-outlined">settings</span>
-            <span>Settings</span>
-          </button>
         </div>
       </div>
     </aside>

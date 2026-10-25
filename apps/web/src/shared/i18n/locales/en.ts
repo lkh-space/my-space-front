@@ -64,16 +64,11 @@ export const en: TranslationSchema = {
   },
   header: {
     ariaLabel: 'Top navigation header',
-    mobileTerminalTitle: 'Search and run commands (⌘K)',
-    mobileTerminalAria: 'Open command palette',
     langSwitchAria: 'Select language',
-    desktopTerminalTitle: 'Terminal / Run command (⌘K)',
-    desktopTerminalAria: 'Open command runner',
     notificationsTitle: 'System notifications',
     notificationsAria: 'System notifications',
     themeTitle: 'Theme (Deep Dark mode active)',
     themeAria: 'Theme settings',
-    runTask: 'Run Task',
   },
   userProfile: {
     loadingTitle: 'Checking user session...',
@@ -103,19 +98,7 @@ export const en: TranslationSchema = {
   sidebar: {
     ariaLabel: 'Main sidebar navigation',
     activeVersionTitle: 'Active system version',
-    commandTriggerAria: 'Open command palette (Shortcut ⌘K)',
     bottomNavAria: 'Mobile bottom navigation',
-  },
-  commandPalette: {
-    dialogLabel: 'my-space command menu',
-    inputPlaceholder: 'Jump to tool or type a command...',
-    emptyText: 'No matching tools or commands found.',
-    shortcutsHeading: 'Tools & Workspace Shortcuts',
-    systemHeading: 'System & Data Management',
-    clearHistoryItem: 'Clear All Recent Task History (Clear Local Storage)',
-    footerNavigate: '↑↓ Navigate',
-    footerSelect: '↵ Select',
-    footerClose: 'ESC Close',
   },
   dashboard: {
     headerTitle: 'Workspace Overview',

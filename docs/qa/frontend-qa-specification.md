@@ -26,7 +26,7 @@ standard: ISO/IEC/IEEE 29119-3:2021 (Agile Tailored Integrated Test Specificatio
 
 | 기능 집합 ID | 기능 도메인 (Feature Set) | 참조 명세서 | 핵심 검증 범위 |
 | :--- | :--- | :--- | :--- |
-| **`FS-01`** | 공통 워크스페이스 셸 & 반응형 레이아웃 | [`dashboard.md`](../specs/dashboard.md), [`responsive-layout.md`](../specs/responsive-layout.md) | 중첩 라우팅, Lazy Chunk 로딩, 3단계 반응형 브레이크포인트, 커맨드 팔레트(`⌘K`), 404 방어 |
+| **`FS-01`** | 공통 워크스페이스 셸 & 반응형 레이아웃 | [`dashboard.md`](../specs/dashboard.md), [`responsive-layout.md`](../specs/responsive-layout.md) | 중첩 라우팅, Lazy Chunk 로딩, 3단계 반응형 브레이크포인트, 다국어(`KR / EN`) 토글, 404 방어 |
 | **`FS-02`** | 대시보드 & 로컬 작업 이력 영속화 | [`dashboard.md`](../specs/dashboard.md) | 벤토 그리드 런처, `localStorage` 최대 10건 FIFO 큐, 손상된 JSON 복원력 |
 | **`FS-03`** | Authelia SSO 인증 & 시스템 버전 헬스체크 | [`authelia-sso-integration.md`](../specs/authelia-sso-integration.md), [`system-version-check.md`](../specs/system-version-check.md) | 권한별 배지(`guest`/`admin`/`local-admin`), 3초 타임아웃 독립 장애 격리, `/version.json` 검증 |
 | **`FS-04`** | PDF 유틸리티 (사전검사/병합/분할/암호해제) | [`pdf-tools.md`](../specs/pdf-tools.md) | 파일 MIME/용량 경계값(50MB/100MB), 페이지 범위 정규식, 도메인 에러 핸들링, Blob 메모리 해제 |
@@ -57,7 +57,7 @@ standard: ISO/IEC/IEEE 29119-3:2021 (Agile Tailored Integrated Test Specificatio
 | **`RISK-03`** | 백엔드 일부 서비스 다운/지연 시 프론트엔드 전체가 멈추는 **연쇄 장애(Cascading Failure)** | 중 | **치명** | **High (P0)** | 장애 주입 (Fault Injection) / Timeout 검증 | `AU-03`, `VR-02`, `DBML-03`, `INF-02`, `INF-03` |
 | **`RISK-04`** | AI 텍스트 입력 중 스페이스바 입력이 PTT 음성 녹음이나 발화 중단으로 오작동하는 **단축키 충돌** | 상 | **높음** | **High (P0)** | 상태 전이 테스팅 (State Transition) / BVA | `AI-01`, `AI-02`, `AI-04` |
 | **`RISK-05`** | 계층형 폴더 이동 시 자기 자신 또는 하위 폴더를 부모로 지정하여 **트리 무한 루프(순환 참조) 발생** | 중 | **높음** | **Med (P1)** | 결정 테이블 (Decision Table) / BVA | `MD-04` |
-| **`RISK-06`** | 모바일/태블릿 뷰포트에서 고정 바텀바(`56px`)나 사이드바가 본문 조작 버튼을 가리는 **레이아웃 결함** | 중 | **중간** | **Med (P1)** | 뷰포트 동등 분할 (Equivalence Partitioning) | `SH-04`, `SH-05`, `DBML-06` |
+| **`RISK-06`** | 모바일/태블릿 뷰포트에서 고정 바텀바(`56px`)나 사이드바가 본문 조작 버튼을 가리는 **레이아웃 결함** | 중 | **중간** | **Med (P1)** | 뷰포트 동등 분할 (Equivalence Partitioning) | `SH-04`, `DBML-06` |
 | **`RISK-07`** | Kubernetes 파드 재기동 시 빌드 타임 환경변수가 덮어써지지 않아 **잘못된 API 서버로 요청 전송** | 하 | **치명** | **High (P0)** | 결정 테이블 (Decision Table) | `INF-01` |
 | **`RISK-08`** | 브라우저 `localStorage` 오염 또는 마이크 권한 차단 시 **앱 초기화 크래시(White Screen)** | 중 | **높음** | **Med (P1)** | 부정 테스트 (Negative Testing) / Fault Injection | `DB-05`, `AI-05` |
 
@@ -112,17 +112,15 @@ standard: ISO/IEC/IEEE 29119-3:2021 (Agile Tailored Integrated Test Specificatio
 > * `FI`: 장애 주입 / 오류 추정 (Fault Injection / Error Guessing)
 
 ### 5.1. [`FS-01`] 공통 워크스페이스 셸 & 반응형 네비게이션
-* **구현 코드**: [`ShellLayout.tsx`](../../apps/web/src/widgets/layout/ShellLayout.tsx), [`SideNavBar.tsx`](../../apps/web/src/widgets/layout/SideNavBar.tsx), [`TopNavBar.tsx`](../../apps/web/src/widgets/layout/TopNavBar.tsx), [`BottomNavBar.tsx`](../../apps/web/src/widgets/layout/BottomNavBar.tsx), [`CommandPalette.tsx`](../../apps/web/src/widgets/layout/CommandPalette.tsx), [`navigation.ts`](../../apps/web/src/shared/constants/navigation.ts)
-* **자동화 테스트**: [`app.spec.tsx`](../../apps/web/src/app/app.spec.tsx), [`navigation.spec.ts`](../../apps/web/src/shared/constants/navigation.spec.ts)
+* **구현 코드**: [`ShellLayout.tsx`](../../apps/web/src/widgets/layout/ShellLayout.tsx), [`SideNavBar.tsx`](../../apps/web/src/widgets/layout/SideNavBar.tsx), [`Header.tsx`](../../apps/web/src/widgets/header/ui/Header.tsx), [`BottomNavBar.tsx`](../../apps/web/src/widgets/layout/BottomNavBar.tsx), [`navigation.ts`](../../apps/web/src/shared/constants/navigation.ts), [`i18n/index.ts`](../../apps/web/src/shared/i18n/index.ts)
+* **자동화 테스트**: [`app.spec.tsx`](../../apps/web/src/app/app.spec.tsx), [`navigation.spec.ts`](../../apps/web/src/shared/constants/navigation.spec.ts), [`i18n.spec.tsx`](../../apps/web/src/shared/i18n/i18n.spec.tsx)
 
 | TC ID | 추적성 (Req / Risk) | 테스트 조건 (Test Condition) | 우선순위 / 기법 | 사전 조건 (Preconditions) | 입력 및 테스트 절차 (Inputs & Procedure) | 기대 결과 및 사후 조건 (Expected Results & Postconditions) |
 | :--- | :--- | :--- | :---: | :--- | :--- | :--- |
 | **SH-01** | `UC-F-D01`<br>`UC-F-D02` | 중첩 라우팅 전환 및 Suspense Lazy 로딩 검증 | **P0**<br>`ST` | 브라우저 `/` 초기 진입 완료 | 1. 좌측 사이드바에서 `/pdf-tools` 클릭<br>2. `/dbml-tools`, `/docs`, `/ai` 순차 클릭 | **[기대 결과]** 문서 전체 새로고침 없이 `<Outlet />`만 교체되며, 청크 로딩 중 `role="status"` (`PageLoadingFallback`) 노출 후 페이지 마운트<br>**[사후 조건]** `ShellLayout` DOM 인스턴스 유지 |
-| **SH-02** | `UC-F-D02` | URL 경로에 따른 네비게이션 Active 상태 및 브레드크럼 동기화 | **P1**<br>`EP` | `/docs/new` 또는 `/pdf-tools` 진입 | 1. 상단 `TopNavBar` 브레드크럼 확인<br>2. `SideNavBar` 및 `BottomNavBar` 탭 클래스 확인 | **[기대 결과]** `getBreadcrumbByPath` 반환값과 일치하는 카테고리/페이지명이 표시되고, 현재 경로 탭에만 `active` 스타일이 부여됨 |
-| **SH-03** | `UC-F-D05` | 커맨드 팔레트(`⌘K`) 모달 호출, 키워드 필터링 및 키보드 라우팅 | **P1**<br>`ST` | 임의 화면 체류 중 | 1. `⌘K` (`Ctrl+K`) 입력 또는 검색 트리거 클릭<br>2. `"DBML"` 입력<br>3. `ArrowDown` → `Enter` 입력 | **[기대 결과]** 모달 오픈 후 `"DBML"` 항목만 필터링되며, `Enter` 시 `/dbml-tools`로 이동<br>**[사후 조건]** 모달 닫힘(`open: false`) 및 포커스 해제 |
-| **SH-04** | `UC-RESP-01`<br>`UC-RESP-02`<br>`RISK-06` | 3단계 뷰포트 브레이크포인트 전환 시 셸 리플로우 검증 | **P0**<br>`BVA` | `/` 또는 `/pdf-tools` 진입 | 뷰포트 너비를 경계값 기준으로 변경:<br>1. `1024px` (Desktop 하한)<br>2. `1023px` & `768px` (Tablet 구간)<br>3. `767px` & `390px` (Mobile 구간) | **[기대 결과]**<br>• `≥1024px`: 240px 사이드바 노출, 바텀바 `display: none`<br>• `768~1023px`: 64px 아이콘 전용 사이드바(라벨/⌘K 숨김)<br>• `≤767px`: 사이드바 숨김, 56px 고정 `BottomNavBar` 노출, 본문 하단 `80px` 패딩 적용으로 컨텐츠 가림 없음 |
-| **SH-05** | `UC-RESP-02`<br>`RISK-06` | 모바일 뷰포트에서 터미널 아이콘 탭을 통한 커맨드 팔레트 호출 | **P2**<br>`EP` | 뷰포트 `390 × 844` 설정 | 상단 모바일 헤더 좌측 터미널 아이콘 버튼 클릭 | **[기대 결과]** 물리 단축키 없이도 커맨드 팔레트 모달이 즉시 열림 |
-| **SH-06** | `UC-F-D04` | 상단 헤더 다국어(`KR / EN`) 세그먼트 토글 동작 | **P2**<br>`ST` | 데스크톱 뷰포트(`≥1024px`) | 우측 상단 `KR`, `EN` 세그먼트 버튼을 교차 클릭 | **[기대 결과]** 선택된 언어 상태가 즉시 토글되며 활성 세그먼트 스타일이 전환됨 |
+| **SH-02** | `UC-F-D02` | URL 경로에 따른 네비게이션 Active 상태 및 브레드크럼 동기화 | **P1**<br>`EP` | `/docs/new` 또는 `/pdf-tools` 진입 | 1. 상단 `Header` 브레드크럼 확인<br>2. `SideNavBar` 및 `BottomNavBar` 탭 클래스 확인 | **[기대 결과]** `getBreadcrumbByPath` 반환값과 일치하는 카테고리/페이지명이 표시되고, 현재 경로 탭에만 `active` 스타일이 부여됨 |
+| **SH-04** | `UC-RESP-01`<br>`UC-RESP-02`<br>`RISK-06` | 3단계 뷰포트 브레이크포인트 전환 시 셸 리플로우 검증 | **P0**<br>`BVA` | `/` 또는 `/pdf-tools` 진입 | 뷰포트 너비를 경계값 기준으로 변경:<br>1. `1024px` (Desktop 하한)<br>2. `1023px` & `768px` (Tablet 구간)<br>3. `767px` & `390px` (Mobile 구간) | **[기대 결과]**<br>• `≥1024px`: 240px 사이드바 노출, 바텀바 `display: none`<br>• `768~1023px`: 64px 아이콘 전용 사이드바(라벨 숨김)<br>• `≤767px`: 사이드바 숨김, 56px 고정 `BottomNavBar` 노출, 본문 하단 `80px` 패딩 적용으로 컨텐츠 가림 없음 |
+| **SH-06** | `UC-F-D04` | 상단 헤더 다국어(`KR / EN`) 전환 및 `localStorage` 영속화 | **P1**<br>`ST` | 데스크톱 뷰포트(`≥1024px`) | 우측 상단 `KR`, `EN` 세그먼트 버튼을 교차 클릭 | **[기대 결과]** 전역 UI 텍스트가 한국어(`ko`) ↔ 영어(`en`)로 즉시 전환되며, `localStorage` (`my-space:locale`) 및 `<html lang>` 속성이 동기화됨 |
 | **SH-07** | `UC-F-D01` | 미정의 경로(404) 진입 시 Fallback 라우트 보호 | **P1**<br>`FI` | 브라우저 주소창 접근 | `/unknown-invalid-path` 입력 후 이동 | **[기대 결과]** `NotFoundPage`가 렌더링되며 '대시보드로 돌아가기' 클릭 시 `/`로 정상 복귀 |
 
 ---
@@ -240,8 +238,8 @@ standard: ISO/IEC/IEEE 29119-3:2021 (Agile Tailored Integrated Test Specificatio
 
 | 명세서 (Specification) | 요구사항 / 유스케이스 / 비즈니스 규칙 ID | 매핑된 테스트 케이스 (TC ID) | 커버리지 상태 |
 | :--- | :--- | :--- | :---: |
-| [`dashboard.md`](../specs/dashboard.md) | `UC-F-D01`, `UC-F-D02`, `UC-F-D03`, `UC-F-D04`, `UC-F-D05` | `SH-01`, `SH-02`, `SH-03`, `SH-06`, `SH-07`, `DB-01~05` | ✅ 100% |
-| [`responsive-layout.md`](../specs/responsive-layout.md) | `UC-RESP-01`, `UC-RESP-02`, `UC-RESP-03` | `SH-04`, `SH-05`, `DB-01`, `DBML-06` | ✅ 100% |
+| [`dashboard.md`](../specs/dashboard.md) | `UC-F-D01`, `UC-F-D02`, `UC-F-D03`, `UC-F-D04` | `SH-01`, `SH-02`, `SH-06`, `SH-07`, `DB-01~05` | ✅ 100% |
+| [`responsive-layout.md`](../specs/responsive-layout.md) | `UC-RESP-01`, `UC-RESP-02`, `UC-RESP-03` | `SH-04`, `DB-01`, `DBML-06` | ✅ 100% |
 | [`authelia-sso-integration.md`](../specs/authelia-sso-integration.md) | `UC-01`, `UC-02`, `UC-03` (SSO) | `AU-01`, `AU-02`, `AU-03` | ✅ 100% |
 | [`system-version-check.md`](../specs/system-version-check.md) & [`version-endpoint.md`](../specs/version-endpoint.md) | `UC-VER-01`, `UC-VER-02`, `UC-VER-03`, `UC-VER-04`, `UC-VER-05` | `VR-01`, `VR-02`, `VR-03` | ✅ 100% |
 | [`pdf-tools.md`](../specs/pdf-tools.md) | `UC-F-P01~P05`, `BR-F-P01~P04` | `PDF-01`, `PDF-02`, `PDF-03`, `PDF-04`, `PDF-05`, `PDF-06`, `PDF-07`, `PDF-08`, `PDF-09` | ✅ 100% |

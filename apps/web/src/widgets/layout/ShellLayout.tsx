@@ -1,32 +1,20 @@
-import React, { useState, useCallback } from 'react';
+import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { SideNavBar } from './SideNavBar';
 import { Header } from '../header';
 import { BottomNavBar } from './BottomNavBar';
-import { CommandPalette } from './CommandPalette';
 import { ErrorBoundary } from '../../shared/components/error/ErrorBoundary';
-import { notifyRecentTasksUpdated } from '../../shared/utils/storage';
 import './layout.css';
 
 export const ShellLayout: React.FC = () => {
-  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
-
-  const handleOpenCommandPalette = useCallback(() => {
-    setCommandPaletteOpen(true);
-  }, []);
-
-  const handleTasksCleared = useCallback(() => {
-    notifyRecentTasksUpdated();
-  }, []);
-
   return (
     <div className="shell-container">
       {/* 1. Left Sidebar (Desktop 240px, Tablet 64px, Mobile Hidden) */}
-      <SideNavBar onOpenCommandPalette={handleOpenCommandPalette} />
+      <SideNavBar />
 
       {/* 2. Main Content Canvas */}
       <div className="main-canvas-area">
-        <Header onOpenCommandPalette={handleOpenCommandPalette} />
+        <Header />
         <main className="workspace-content bg-grid-dots">
           <ErrorBoundary>
             <Outlet />
@@ -36,13 +24,6 @@ export const ShellLayout: React.FC = () => {
 
       {/* 3. Mobile Fixed Bottom Navigation Bar (< 768px only) */}
       <BottomNavBar />
-
-      {/* 4. Global Command Palette Modal */}
-      <CommandPalette
-        open={commandPaletteOpen}
-        onOpenChange={setCommandPaletteOpen}
-        onTasksCleared={handleTasksCleared}
-      />
     </div>
   );
 };

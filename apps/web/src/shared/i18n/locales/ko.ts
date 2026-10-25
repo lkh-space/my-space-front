@@ -58,16 +58,11 @@ export const ko = {
   },
   header: {
     ariaLabel: '상단 네비게이션 헤더',
-    mobileTerminalTitle: '명령어 검색 및 실행 (⌘K)',
-    mobileTerminalAria: '명령어 검색 팔레트 열기',
     langSwitchAria: '언어 선택',
-    desktopTerminalTitle: '터미널 / 명령어 실행 (⌘K)',
-    desktopTerminalAria: '명령어 실행창 열기',
     notificationsTitle: '시스템 알림',
     notificationsAria: '시스템 알림',
     themeTitle: '테마 (Deep Dark 모드 적용 중)',
     themeAria: '테마 설정',
-    runTask: '작업 실행',
   },
   userProfile: {
     loadingTitle: '사용자 정보 확인 중...',
@@ -97,19 +92,7 @@ export const ko = {
   sidebar: {
     ariaLabel: '메인 사이드바 네비게이션',
     activeVersionTitle: '시스템 활성 버전',
-    commandTriggerAria: '명령어 검색 팔레트 열기 (단축키 ⌘K)',
     bottomNavAria: '모바일 하단 네비게이션',
-  },
-  commandPalette: {
-    dialogLabel: 'my-space 커맨드 메뉴',
-    inputPlaceholder: '도구 이동 또는 명령어 입력...',
-    emptyText: '일치하는 도구 또는 명령어가 없습니다.',
-    shortcutsHeading: '도구 및 워크스페이스 바로가기',
-    systemHeading: '시스템 및 데이터 관리',
-    clearHistoryItem: '최근 작업 이력 모두 비우기 (Clear Local Storage)',
-    footerNavigate: '↑↓ 탐색',
-    footerSelect: '↵ 선택',
-    footerClose: 'ESC 닫기',
   },
   dashboard: {
     headerTitle: '워크스페이스 개요',

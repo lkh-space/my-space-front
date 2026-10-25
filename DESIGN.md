@@ -94,9 +94,6 @@
   * 배경: `bg-surface-container-low` (`#1a1b22`), 우측 1px 보더 `border-r border-outline-variant`.
   * **브랜드 헤더**:
     * 아바타 `24×24px`, 브랜드명 `my-space` (`headline-sm font-semibold`), 버전 뱃지(`v0.1.0-local`), 시스템 상태 태그(`IDLE`, 초록색 펄스 점).
-  * **퀵 커맨드 트리거**:
-    * 풀 너비 버튼 (`h-8`, `bg-surface-container-lowest border border-outline-variant rounded-lg`).
-    * 돋보기 아이콘 + 플레이스홀더 + 단축키 `<kbd class="command-kbd">⌘K</kbd>`.
   * **네비게이션 탭**:
     * 높이 `34px`, 패딩 `px-3 py-1.5`, 모서리 `rounded-lg`.
     * 아이콘(18px) + 라벨 텍스트 + 우측 뱃지(`Home`, `v1.2`, `Docs` 등).
@@ -106,7 +103,6 @@
   * 너비 `64px` (`w-16`), 높이 `100vh`, 좌측 고정 (`fixed top-0 left-0`), `z-index: 30`.
   * 배경: `bg-surface-container-low`, 우측 1px 보더 `border-r border-outline-variant`.
   * **브랜드 헤더**: `ms` 2글자 또는 심볼이 들어간 컴팩트 스퀘어 아바타(`36×36px`, `rounded-lg`). 텍스트/버전/상태 뱃지는 숨김.
-  * **퀵 커맨드 트리거**: 가로 검색창 숨김.
   * **네비게이션 탭**: 텍스트 라벨과 뱃지를 숨기고, **아이콘 중심 단독 탭**(`p-2 rounded-lg`, `flex items-center justify-center`)으로 수직 배치.
   * **푸터**: 컴팩트 상태 점 또는 축소형 아이콘으로 최소화.
 * **모바일**: 사이드바를 완전히 제거(숨김)하고, 하단 바텀 네비게이션으로 모든 기능을 이관합니다.
@@ -118,11 +114,10 @@
   * **브레드크럼**: `my-space / 워크스페이스 / 대시보드` 계층 구조 표시 (태블릿에서는 타이틀 + 상태 태그 중심으로 여백에 맞춰 압축).
   * **우측 액션 클러스터**:
     * `KR / EN` 언어 토글 캡슐 (`bg-surface-container-lowest border border-outline-variant`).
-    * 유틸리티 아이콘(터미널, 알림 뱃지 점, 다크모드).
-    * 메인 CTA 버튼 (`bg-on-surface text-surface-dim font-medium hover:bg-surface-bright rounded-lg px-3 py-1`).
+    * 시스템 버전 및 헬스체크 칩, 사용자 인증 프로필 배지, 유틸리티 아이콘(알림 뱃지 점, 다크모드).
 * **모바일 탑바 (Mobile Compact Header)**:
   * 높이 `48px` (`h-12`), 상단 고정 (`sticky top-0 z-50`), `bg-surface-container-low/95 backdrop-blur border-b border-outline-variant px-3`.
-  * 좌측: 28×28px 터미널 아이콘 박스 + 브랜드명 `my-space` + 버전 태그(`v0.1`).
+  * 좌측: 브랜드 아바타(`μ`) + 브랜드명 `my-space` + 버전 태그(`v0.1`).
   * 우측: 로컬 상태 칩(`LOCAL` 또는 점 인디케이터) 및 알림 아이콘으로 최소화 (언어 토글과 실행 버튼은 화면 맥락에 맞게 숨김/이동).
 * **모바일 하단 바텀 네비게이션 (`BottomNavBar`)**:
   * 높이 `56px` (`h-14`), 화면 최하단 고정 (`fixed bottom-0 left-0 w-full z-50`).
