@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { PdfOperationMode, PDF_OPERATION_METAS } from '../types';
 
 interface PdfOperationConfigProps {
   mode: PdfOperationMode;
   splitRangeInput: string;
   onSplitRangeChange: (value: string) => void;
+  unlockPassword?: string;
+  onUnlockPasswordChange?: (value: string) => void;
   fileCount: number;
 }
 
@@ -12,8 +14,11 @@ export const PdfOperationConfig: React.FC<PdfOperationConfigProps> = ({
   mode,
   splitRangeInput,
   onSplitRangeChange,
+  unlockPassword = '',
+  onUnlockPasswordChange,
   fileCount,
 }) => {
+  const [showPassword, setShowPassword] = useState(false);
   const meta = PDF_OPERATION_METAS[mode];
 
   return (
@@ -41,6 +46,36 @@ export const PdfOperationConfig: React.FC<PdfOperationConfigProps> = ({
             value={splitRangeInput}
             onChange={(e) => onSplitRangeChange(e.target.value)}
           />
+        </div>
+      )}
+
+      {mode === 'unlock' && (
+        <div className="pdf-input-group">
+          <label htmlFor="unlock-password-input" className="pdf-input-label">
+            <span>잠금 해제 비밀번호</span>
+            <span className="pdf-input-hint">문서 열기/권한 암호 입력</span>
+          </label>
+          <div className="pdf-password-config-wrapper">
+            <input
+              id="unlock-password-input"
+              type={showPassword ? 'text' : 'password'}
+              className="pdf-text-input pdf-unlock-password-input"
+              placeholder="잠금 해제할 PDF의 비밀번호를 입력하세요"
+              value={unlockPassword}
+              onChange={(e) => onUnlockPasswordChange?.(e.target.value)}
+            />
+            <button
+              type="button"
+              className="pdf-password-toggle-btn"
+              onClick={() => setShowPassword((prev) => !prev)}
+              aria-label={showPassword ? '비밀번호 숨기기' : '비밀번호 표시'}
+              title={showPassword ? '비밀번호 숨기기' : '비밀번호 표시'}
+            >
+              <span className="material-symbols-outlined">
+                {showPassword ? 'visibility_off' : 'visibility'}
+              </span>
+            </button>
+          </div>
         </div>
       )}
 

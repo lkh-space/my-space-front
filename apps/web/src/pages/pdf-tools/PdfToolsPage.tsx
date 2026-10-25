@@ -65,6 +65,7 @@ export const PdfToolsPage: React.FC = () => {
   const [mode, setMode] = useState<PdfOperationMode>('merge');
   const [files, setFiles] = useState<SelectedPdfFile[]>([]);
   const [splitRangeInput, setSplitRangeInput] = useState<string>('');
+  const [unlockPassword, setUnlockPassword] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [alert, setAlert] = useState<BannerAlert | null>(null);
 
@@ -168,12 +169,15 @@ export const PdfToolsPage: React.FC = () => {
         });
       } else {
         // 단일 파일 처리 모드인 경우 첫 번째 파일로 대체
-        const targetFile = validFiles[0];
+        const targetFile: SelectedPdfFile = {
+          ...validFiles[0],
+          password: unlockPassword || validFiles[0].password,
+        };
         setFiles([targetFile]);
         inspectSelectedFile(targetFile);
       }
     },
-    [files, mode, inspectSelectedFile],
+    [files, mode, unlockPassword, inspectSelectedFile],
   );
 
   // 개별 파일 삭제
@@ -190,7 +194,23 @@ export const PdfToolsPage: React.FC = () => {
   // 암호화 파일 비밀번호 변경
   const handlePasswordChange = useCallback((id: string, password: string) => {
     setFiles((prev) =>
-      prev.map((f) => (f.id === id ? { ...f, password } : f)),
+      prev.map((f, index) => {
+        if (f.id === id) {
+          if (index === 0) {
+            setUnlockPassword(password);
+          }
+          return { ...f, password };
+        }
+        return f;
+      }),
+    );
+  }, []);
+
+  // 암호 해제 모드 설정 패널 비밀번호 변경
+  const handleUnlockPasswordChange = useCallback((password: string) => {
+    setUnlockPassword(password);
+    setFiles((prev) =>
+      prev.map((f, index) => (index === 0 ? { ...f, password } : f)),
     );
   }, []);
 
@@ -198,6 +218,7 @@ export const PdfToolsPage: React.FC = () => {
   const handleReset = useCallback(() => {
     setFiles([]);
     setSplitRangeInput('');
+    setUnlockPassword('');
     setAlert(null);
   }, []);
 
@@ -209,6 +230,9 @@ export const PdfToolsPage: React.FC = () => {
       // 단일 파일 모드로 변경 시 파일이 2개 이상이면 첫 번째 파일만 유지
       if (newMode !== 'merge' && files.length > 1) {
         setFiles([files[0]]);
+      }
+      if (newMode === 'unlock' && files[0]?.password) {
+        setUnlockPassword(files[0].password);
       }
     },
     [files],
@@ -243,7 +267,11 @@ export const PdfToolsPage: React.FC = () => {
       return;
     }
 
-    if (mode === 'unlock' && !files[0]?.password?.trim()) {
+    const effectiveUnlockPassword = (
+      files[0]?.password || unlockPassword
+    ).trim();
+
+    if (mode === 'unlock' && !effectiveUnlockPassword) {
       setAlert({
         type: 'error',
         message: 'PDF 잠금을 해제하기 위한 비밀번호를 입력해 주세요.',
@@ -282,7 +310,7 @@ export const PdfToolsPage: React.FC = () => {
         case 'unlock': {
           downloadResult = await unlockPdf(
             files[0].file,
-            files[0].password || '',
+            effectiveUnlockPassword,
           );
           taskDetail = '암호 해제 완료';
           break;
@@ -318,7 +346,7 @@ export const PdfToolsPage: React.FC = () => {
     } finally {
       setIsProcessing(false);
     }
-  }, [files, mode, splitRangeInput]);
+  }, [files, mode, splitRangeInput, unlockPassword]);
 
   return (
     <div className="pdf-tools-page">
@@ -365,6 +393,8 @@ export const PdfToolsPage: React.FC = () => {
             mode={mode}
             splitRangeInput={splitRangeInput}
             onSplitRangeChange={setSplitRangeInput}
+            unlockPassword={unlockPassword}
+            onUnlockPasswordChange={handleUnlockPasswordChange}
             fileCount={files.length}
           />
         </div>

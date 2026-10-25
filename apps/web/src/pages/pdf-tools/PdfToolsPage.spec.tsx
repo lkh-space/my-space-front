@@ -72,6 +72,7 @@ describe('PdfToolsPage', () => {
     const unlockTab = screen.getByRole('tab', { name: /암호 해제/ });
     fireEvent.click(unlockTab);
     expect(screen.getByText('unlocked.pdf')).toBeTruthy();
+    expect(screen.getByLabelText(/잠금 해제 비밀번호/i)).toBeTruthy();
   });
 
   it('파일 드롭존을 통해 PDF 파일을 선택하면 파일 목록과 요약 용량이 갱신되고 백엔드 inspect가 반영되어야 한다', async () => {
@@ -486,6 +487,51 @@ describe('PdfToolsPage', () => {
       await waitFor(() => {
         expect(unlockSpy).toHaveBeenCalledWith(file, 'secret123');
         expect(api.triggerBlobDownload).toHaveBeenCalledWith(expect.any(Blob), 'unlocked.pdf');
+      });
+    });
+
+    it('unlock 모드 설정 패널의 잠금 해제 비밀번호 인풋에 암호를 입력하고 표시 토글 및 실행이 정상 동작해야 한다', async () => {
+      const unlockSpy = vi.spyOn(api, 'unlockPdf').mockResolvedValueOnce({
+        blob: new Blob(['dummy unlocked']),
+        filename: 'unlocked.pdf',
+      });
+      vi.spyOn(api, 'triggerBlobDownload').mockImplementation(() => undefined);
+
+      const { container } = render(<PdfToolsPage />);
+
+      const unlockTab = screen.getByRole('tab', { name: /암호 해제/ });
+      fireEvent.click(unlockTab);
+
+      const configPasswordInput = screen.getByLabelText(
+        /잠금 해제 비밀번호/i,
+      ) as HTMLInputElement;
+      expect(configPasswordInput.type).toBe('password');
+
+      // 비밀번호 표시/숨기기 토글 확인
+      const toggleBtn = screen.getByRole('button', { name: '비밀번호 표시' });
+      fireEvent.click(toggleBtn);
+      expect(configPasswordInput.type).toBe('text');
+
+      // 설정 패널에 먼저 비밀번호 입력 후 파일 선택
+      fireEvent.change(configPasswordInput, { target: { value: 'panel-pass-99' } });
+
+      const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+      const file = new File(['%PDF-1.4 test'], 'locked-doc.pdf', { type: 'application/pdf' });
+      fireEvent.change(fileInput, { target: { files: [file] } });
+
+      await waitFor(() => {
+        expect(screen.getByText('locked-doc.pdf')).toBeTruthy();
+      });
+
+      const executeBtn = screen.getByRole('button', { name: /작업 실행/i });
+      fireEvent.click(executeBtn);
+
+      await waitFor(() => {
+        expect(unlockSpy).toHaveBeenCalledWith(file, 'panel-pass-99');
+        expect(api.triggerBlobDownload).toHaveBeenCalledWith(
+          expect.any(Blob),
+          'unlocked.pdf',
+        );
       });
     });
   });

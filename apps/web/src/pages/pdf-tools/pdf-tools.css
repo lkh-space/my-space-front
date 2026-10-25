@@ -436,6 +436,41 @@
   border-color: var(--primary);
 }
 
+.pdf-password-config-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.pdf-unlock-password-input {
+  width: 100%;
+  padding-right: 36px;
+}
+
+.pdf-password-toggle-btn {
+  position: absolute;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.12s ease;
+}
+
+.pdf-password-toggle-btn:hover {
+  color: var(--on-surface);
+}
+
+.pdf-password-toggle-btn .material-symbols-outlined {
+  font-size: 16px;
+}
+
 .pdf-input-error {
   font-size: 11px;
   color: var(--error);
