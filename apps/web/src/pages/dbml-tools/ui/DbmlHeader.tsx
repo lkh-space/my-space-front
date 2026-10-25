@@ -5,8 +5,12 @@ interface DbmlHeaderProps {
   dialect: SqlDialect;
   onDialectChange: (dialect: SqlDialect) => void;
   onLoadExample: () => void;
+  onImportSchema?: () => void;
   onCopySchema: () => void;
-  onExportSvg: () => void;
+  onSaveDbml?: () => void;
+  onExportDbml?: () => void;
+  onExportImage?: () => void;
+  onExportSvg?: () => void;
   onFormatCode: () => void;
   onExecuteConvert: () => void;
   isConverting?: boolean;
@@ -16,7 +20,11 @@ export const DbmlHeader: React.FC<DbmlHeaderProps> = ({
   dialect,
   onDialectChange,
   onLoadExample,
+  onImportSchema,
   onCopySchema,
+  onSaveDbml,
+  onExportDbml,
+  onExportImage,
   onExportSvg,
   onFormatCode,
   onExecuteConvert,
@@ -58,6 +66,28 @@ export const DbmlHeader: React.FC<DbmlHeaderProps> = ({
           <span>Load Example</span>
         </button>
 
+        {onImportSchema && (
+          <button
+            onClick={onImportSchema}
+            className="dbml-btn"
+            title="DBML 또는 SQL DDL 파일 가져오기"
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>file_upload</span>
+            <span>Import</span>
+          </button>
+        )}
+
+        {onSaveDbml && (
+          <button
+            onClick={onSaveDbml}
+            className="dbml-btn"
+            title="현재 스키마 작업 공간에 저장 (Ctrl+S)"
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>save</span>
+            <span>Save (Ctrl+S)</span>
+          </button>
+        )}
+
         <button
           onClick={onCopySchema}
           className="dbml-btn"
@@ -67,14 +97,27 @@ export const DbmlHeader: React.FC<DbmlHeaderProps> = ({
           <span>Copy Schema</span>
         </button>
 
-        <button
-          onClick={onExportSvg}
-          className="dbml-btn"
-          title="ERD SVG 이미지 다운로드"
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>download</span>
-          <span>Export SVG</span>
-        </button>
+        {onExportDbml && (
+          <button
+            onClick={onExportDbml}
+            className="dbml-btn"
+            title="schema.dbml 파일 다운로드"
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>file_download</span>
+            <span>Export DBML</span>
+          </button>
+        )}
+
+        {(onExportImage || onExportSvg) && (
+          <button
+            onClick={onExportImage || onExportSvg}
+            className="dbml-btn"
+            title="ERD 다이어그램 이미지 내보내기 (SVG, PNG, JPG)"
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>image</span>
+            <span>Export Image</span>
+          </button>
+        )}
 
         <button
           onClick={onFormatCode}

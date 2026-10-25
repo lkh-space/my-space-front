@@ -1,5 +1,6 @@
 import { postJson } from '../../../shared/api/client';
 import { parseDbml } from '../model/dbmlParser';
+import { convertSqlToDbml } from '../model/sqlToDbmlParser';
 import { SqlDialect } from '../model/types';
 
 export interface ExportSqlResponse {
@@ -137,43 +138,8 @@ function generateClientFallbackSql(dbml: string, dialect: SqlDialect): string {
 }
 
 /**
- * 클라이언트 사이드 기본 SQL -> DBML 역변환기 (간단한 CREATE TABLE 파서)
+ * 클라이언트 사이드 기본 SQL -> DBML 역변환기 (순수 클라이언트 파서 호출)
  */
 function generateClientFallbackDbml(sql: string): string {
-  const tableRegex = /CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?["`]?([a-zA-Z0-9_]+)["`]?\s*\(([\s\S]*?)\);/gi;
-  const dbmlTables: string[] = [];
-  let match: RegExpExecArray | null;
-
-  while ((match = tableRegex.exec(sql)) !== null) {
-    const tableName = match[1];
-    const body = match[2];
-    const lines = body.split('\n');
-    const fieldLines: string[] = [];
-
-    for (const rawLine of lines) {
-      const line = rawLine.trim().replace(/,$/, '');
-      if (!line || line.startsWith('--') || /^PRIMARY\s+KEY/i.test(line) || /^CONSTRAINT/i.test(line)) {
-        continue;
-      }
-
-      const colMatch = line.match(/^["`]?([a-zA-Z0-9_]+)["`]?\s+([a-zA-Z0-9_()]+)(.*)/i);
-      if (colMatch) {
-        const colName = colMatch[1];
-        const colType = colMatch[2].toLowerCase();
-        const rest = colMatch[3] || '';
-        const tags: string[] = [];
-
-        if (/PRIMARY\s+KEY/i.test(rest)) tags.push('pk');
-        if (/UNIQUE/i.test(rest)) tags.push('unique');
-        if (/NOT\s+NULL/i.test(rest)) tags.push('not null');
-
-        const tagStr = tags.length > 0 ? ` [${tags.join(', ')}]` : '';
-        fieldLines.push(`  ${colName} ${colType}${tagStr}`);
-      }
-    }
-
-    dbmlTables.push(`Table ${tableName} {\n${fieldLines.join('\n')}\n}`);
-  }
-
-  return dbmlTables.length > 0 ? dbmlTables.join('\n\n') + '\n' : '// 변환 가능한 CREATE TABLE 구문을 찾지 못했습니다.\n';
+  return convertSqlToDbml(sql).dbml;
 }

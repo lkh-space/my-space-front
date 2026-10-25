@@ -778,6 +778,207 @@
 }
 
 /* --------------------------------------------------------------------------
+   8-1. Export Image Modal Styles
+   -------------------------------------------------------------------------- */
+.export-modal {
+  max-width: 560px;
+}
+
+.export-modal-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background-color: var(--surface-container-low);
+}
+
+.export-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.export-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.export-section-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--on-surface);
+}
+
+.export-hint {
+  font-size: 11px;
+  color: var(--primary);
+}
+
+.export-format-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.export-format-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  background-color: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-md);
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.export-format-card:hover {
+  border-color: var(--primary);
+  background-color: var(--surface-container-high);
+}
+
+.export-format-card.active {
+  border-color: var(--primary);
+  background-color: rgba(173, 198, 255, 0.08);
+  box-shadow: 0 0 12px rgba(173, 198, 255, 0.15);
+}
+
+.export-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.export-card-ext {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--on-surface);
+}
+
+.export-tag {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  background-color: var(--surface-container-highest);
+  color: var(--text-muted);
+}
+
+.export-tag.recommended {
+  background-color: rgba(78, 222, 163, 0.15);
+  color: var(--secondary);
+  font-weight: 600;
+}
+
+.export-card-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+.export-card-badge {
+  margin-top: 4px;
+  font-size: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-weight: 500;
+}
+
+.export-card-badge.transparent {
+  color: var(--secondary);
+}
+
+.export-card-badge.opaque {
+  color: var(--text-muted);
+}
+
+/* Resolution Scale Group */
+.export-scale-group {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.export-scale-group.disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.export-scale-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 10px 8px;
+  background-color: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.export-scale-btn:hover:not(:disabled) {
+  border-color: var(--primary);
+  background-color: var(--surface-container-high);
+}
+
+.export-scale-btn.active {
+  border-color: var(--primary);
+  background-color: rgba(173, 198, 255, 0.08);
+}
+
+.scale-val {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--on-surface);
+}
+
+.scale-desc {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+/* Summary Box */
+.export-summary-box {
+  background-color: var(--surface-container-lowest);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.summary-label {
+  color: var(--text-muted);
+}
+
+.summary-val {
+  font-family: var(--font-mono);
+  color: var(--on-surface);
+}
+
+.summary-val.highlight {
+  color: var(--secondary);
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
    9. Mobile Switcher & Responsive Breakpoints
    -------------------------------------------------------------------------- */
 .mobile-tab-bar {
@@ -887,4 +1088,211 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* --------------------------------------------------------------------------
+   8-2. Import Schema Modal Styles
+   -------------------------------------------------------------------------- */
+.import-modal {
+  max-width: 600px;
+}
+
+.import-tab-bar {
+  display: flex;
+  background-color: var(--surface-container-high);
+  border-bottom: 1px solid var(--outline-variant);
+  padding: 0 12px;
+  gap: 8px;
+}
+
+.import-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  border: none;
+  background: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.import-tab-btn:hover {
+  color: var(--on-surface);
+}
+
+.import-tab-btn.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.import-modal-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background-color: var(--surface-container-low);
+}
+
+.import-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 32px 20px;
+  border: 2px dashed var(--outline-variant);
+  border-radius: var(--radius-lg);
+  background-color: var(--surface-container);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.import-dropzone.drag-active {
+  border-color: var(--primary);
+  background-color: rgba(173, 198, 255, 0.08);
+}
+
+.import-dropzone.has-file {
+  border-style: solid;
+  border-color: var(--secondary);
+  background-color: rgba(78, 222, 163, 0.05);
+}
+
+.dropzone-icon {
+  font-size: 40px;
+  color: var(--primary);
+}
+
+.import-dropzone.has-file .dropzone-icon {
+  color: var(--secondary);
+}
+
+.dropzone-file-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.dropzone-file-info .file-name {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--on-surface);
+}
+
+.change-file-btn {
+  font-size: 12px;
+  color: var(--primary);
+  background: none;
+  border: none;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.dropzone-instruction .primary-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--on-surface);
+  margin-bottom: 4px;
+}
+
+.dropzone-instruction .secondary-text {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.browse-label {
+  color: var(--primary);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.dropzone-instruction .notice-text {
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--text-muted);
+  opacity: 0.85;
+}
+
+/* Text Area Tab */
+.import-text-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.import-textarea-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.import-textarea {
+  width: 100%;
+  padding: 12px;
+  background-color: var(--surface-container-lowest);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-md);
+  color: var(--on-surface);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.import-textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+/* Import Summary & Error */
+.import-summary-box {
+  background-color: var(--surface-container-lowest);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.summary-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  background-color: rgba(173, 198, 255, 0.12);
+  color: var(--primary);
+  border: 1px solid rgba(173, 198, 255, 0.25);
+}
+
+.summary-note {
+  font-size: 11px;
+  color: var(--secondary);
+  margin-top: 2px;
+}
+
+.import-error-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background-color: rgba(255, 180, 171, 0.1);
+  border: 1px solid var(--error);
+  border-radius: var(--radius-sm);
+  color: var(--error);
+  font-size: 12px;
 }

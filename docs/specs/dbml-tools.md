@@ -43,7 +43,9 @@ last-updated: 2026-10-25
 * **생산성 유틸리티 도구**:
   * 샘플 DBML 스키마 즉시 로드 (`Load Example DBML`)
   * DBML 코드 자동 포맷팅 (`Format Code`)
-  * ERD 다이어그램 SVG 이미지 내보내기 (`Export SVG/PNG`)
+  * **스키마 파일 및 텍스트 가져오기 (`Import Schema`)**: `.dbml` 및 `.sql` 파일 업로드 또는 직접 텍스트 붙여넣기 지원. SQL 파일의 경우 `CREATE DATABASE`, `USE`, `DROP DATABASE` 등 데이터베이스/환경 쿼리는 에러 없이 자동으로 필터링(무시)하고 순수 `CREATE TABLE` 및 외래키 구문만 DBML로 변환하여 에디터 및 ERD에 반영
+  * **ERD 다이어그램 다중 포맷 이미지 내보내기 (`Export Image`)**: 외부 라이브러리 없이 순수 브라우저 API(Canvas, SVG)를 통해 SVG, PNG, JPG 포맷 선택 및 고해상도 배율(1x, 2x, 3x) 출력 지원. 불필요한 배경 사각형과 도트 그리드를 완전히 제거하여 완전한 투명 배경(누끼) 상태의 다이어그램 이미지 제공 (JPG는 다크 배경 채움)
+  * **schema.dbml 로컬 저장 (`Ctrl + S` / `Cmd + S`) 및 파일 내보내기 (`Export DBML`)**: 에디터 내부 포커스 또는 전역 상태에서 `Ctrl + S` 입력 시 브라우저 기본 웹페이지 저장을 차단하고 작업 중인 코드를 `localStorage`(`my-space:dbml-schema`)에 즉시 확정 저장(새로고침 및 페이지 이동 후에도 유지)하며 토스트 안내 표출. 물리 파일 저장이 필요할 경우 상단 `Export DBML` 버튼을 통해 다운로드 수행
 
 ### 제외 대상 (Non-goals)
 * 라이브 RDBMS 데이터베이스 직접 원격 접속 및 리버스 엔지니어링 (초기 범위 제외)
@@ -59,10 +61,11 @@ last-updated: 2026-10-25
 | `UC-DBML-01` | 개발자 | DBML 코드 실시간 편집, Tab 자동완성 및 ERD 확인 | 1. 에디터에 DBML 작성 (추천 팝업 표시 시 `Tab` 키로 완성) → 2. 클라이언트 파서 즉시 구문 분석 → 3. 우측 캔버스에 테이블 카드 및 관계선 렌더링 → 4. 상태바에 유효성 및 개수 표시 |
 | `UC-DBML-02` | 개발자 | 샘플 DBML 로드 | 1. 상단 'Load Example DBML' 클릭 → 2. 기본 사용자/프로젝트/태스크 3개 테이블 샘플이 에디터에 채워짐 → 3. ERD 즉시 동기화 |
 | `UC-DBML-03` | 개발자 | DBML to SQL 변환 및 복사 | 1. 상단 다이얼렉트 선택(예: PostgreSQL) → 2. 'Execute Task' 또는 'Convert to SQL' 클릭 → 3. 변환된 SQL 모달/패널 확인 → 4. 'Copy Schema'로 클립보드 복사 |
-| `UC-DBML-04` | 개발자 | SQL to DBML 역변환 | 1. 에디터 SQL 모드 또는 'Import SQL' 선택 → 2. SQL DDL 붙여넣기 → 3. 'Convert to DBML' 실행 → 4. DBML로 변환되어 에디터에 반영 |
+| `UC-DBML-04` | 개발자 | 스키마 가져오기 (DBML / SQL) | 1. 상단 'Import' 클릭 → 2. .dbml 또는 .sql 파일 업로드 혹은 직접 텍스트 입력 → 3. SQL 입력 시 DB 생성 쿼리 무시 후 순수 테이블 DDL만 DBML로 자동 변환 → 4. '스키마 가져오기' 클릭 → 5. 에디터 및 ERD 실시간 동기화 |
 | `UC-DBML-05` | 개발자 | ERD 캔버스 탐색 및 테이블 검색 | 1. 줌 버튼 또는 휠로 확대/축소 → 2. 빈 캔버스 드래그하여 패닝 → 3. 'Search tables'에 테이블명 입력 시 일치 테이블 하이라이트 |
-| `UC-DBML-06` | 개발자 | ERD 다이어그램 이미지 내보내기 | 1. 'Export SVG/PNG' 클릭 → 2. 렌더링된 SVG 다이어그램을 브라우저 다운로드로 수신 |
+| `UC-DBML-06` | 개발자 | ERD 다이어그램 다중 포맷(SVG/PNG/JPG) 및 고해상도(1x/2x/3x) 내보내기 | 1. 상단 'Export Image' 클릭 → 2. 내보내기 대화상자에서 포맷(SVG, PNG, JPG) 및 해상도 배율(1x, 2x, 3x) 선택 → 3. '이미지 다운로드' 클릭 → 4. 투명 누끼 배경의 다이어그램 파일 다운로드 및 안내 토스트 표출 |
 | `UC-DBML-07` | 개발자 | ERD 테이블 카드 마우스 드래그 이동 | 1. 우측 캔버스의 특정 테이블 카드 클릭 및 마우스 드래그 → 2. 줌 배율이 보정된 실시간 위치 이동 → 3. 연결된 SVG 외래키 Bezier 곡선 실시간 갱신 → 4. 레이아웃 재정렬(Grid/Hierarchical) 시 초기화 |
+| `UC-DBML-08` | 개발자 | schema.dbml 단축키(Ctrl+S) 로컬 저장 및 파일 내보내기 | 1. 에디터 또는 캔버스에서 `Ctrl+S`(Mac은 `Cmd+S`) 입력 또는 상단 'Save (Ctrl+S)' 클릭 → 2. 브라우저 기본 웹페이지 저장 방지 → 3. 현재 DBML 코드가 `localStorage`에 즉시 확정 저장되어 새로고침 후에도 유지 → 4. 토스트 알림 안내 (물리 파일 다운로드는 상단 'Export DBML' 클릭 시 수행) |
 
 ---
 
@@ -80,11 +83,16 @@ src/pages/dbml-tools/
 │   ├── TableCard.tsx              # ERD 개별 테이블 엔티티 카드 (컬럼, 타입, 뱃지)
 │   ├── SvgRelations.tsx           # 외래키 베지어 곡선 커넥터 및 마커 레이어
 │   ├── SqlPreviewModal.tsx        # 변환된 SQL DDL 확인 및 복사 모달
+│   ├── ExportImageModal.tsx       # 다중 포맷(SVG/PNG/JPG) 및 해상도 배율 선택 모달
+│   ├── ImportSchemaModal.tsx      # DBML 및 SQL 파일/텍스트 가져오기 모달
 │   └── MobileFloatingControls.tsx # 모바일 전용 플로팅 줌 컨트롤 및 하단 상태 바
 ├── model/
 │   ├── types.ts                   # 스키마, 테이블, 컬럼, 관계 데이터 모델
 │   ├── dbmlParser.ts              # 브라우저 전용 경량 DBML 실시간 파서
+│   ├── sqlToDbmlParser.ts         # SQL DDL 필터링 및 DBML 역변환 파서 (DB생성 쿼리 무시)
 │   ├── erdLayout.ts               # 테이블 카드 자동 배치 및 커넥터 좌표 계산기
+│   ├── erdSvgGenerator.ts         # 테이블 카드와 관계선 포함 독립형 투명 SVG 벡터 생성기
+│   ├── erdImageExporter.ts        # Canvas 기반 래스터화(PNG/JPG) 및 고해상도 내보내기 엔진
 │   └── defaultSchema.ts           # 기본 샘플 스키마
 └── api/
     └── dbmlApi.ts                 # 백엔드 DBML 변환 API 연동 클라이언트

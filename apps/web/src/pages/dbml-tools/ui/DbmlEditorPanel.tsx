@@ -77,6 +77,7 @@ interface DbmlEditorPanelProps {
   parsedSchema: ParsedSchema;
   isSqlMode?: boolean;
   onToggleMode?: () => void;
+  onSave?: () => void;
 }
 
 export const DbmlEditorPanel: React.FC<DbmlEditorPanelProps> = ({
@@ -85,21 +86,30 @@ export const DbmlEditorPanel: React.FC<DbmlEditorPanelProps> = ({
   parsedSchema,
   isSqlMode,
   onToggleMode,
+  onSave,
 }) => {
   const [lineWrap, setLineWrap] = useState(false);
 
-  // Tab 키로 추천 팝업 선택 항목 즉시 자동완성 (최고 우선순위 바인딩)
-  const tabCompletionExtension = useMemo(() => {
-    if (!acceptCompletion) return [];
-    return Prec.highest(
-      keymap.of([
-        {
-          key: 'Tab',
-          run: acceptCompletion,
+  // Tab 키 자동완성 및 Ctrl+S / Cmd+S 저장 단축키 바인딩
+  const editorKeymapExtension = useMemo(() => {
+    const bindings = [];
+    if (acceptCompletion) {
+      bindings.push({
+        key: 'Tab',
+        run: acceptCompletion,
+      });
+    }
+    if (onSave) {
+      bindings.push({
+        key: 'Mod-s',
+        run: () => {
+          onSave();
+          return true;
         },
-      ])
-    );
-  }, []);
+      });
+    }
+    return bindings.length > 0 ? Prec.highest(keymap.of(bindings)) : [];
+  }, [onSave]);
 
   // 현재 파싱된 스키마 기반 테이블 및 컬럼명 자동완성 소스
   const schemaMap = useMemo(() => {
@@ -111,7 +121,7 @@ export const DbmlEditorPanel: React.FC<DbmlEditorPanelProps> = ({
   }, [parsedSchema.tables]);
 
   const extensions = useMemo(() => {
-    const exts: Extension[] = [tabCompletionExtension];
+    const exts: Extension[] = [editorKeymapExtension];
     if (lineWrap) {
       exts.push(EditorView.lineWrapping);
     }
@@ -127,7 +137,7 @@ export const DbmlEditorPanel: React.FC<DbmlEditorPanelProps> = ({
       );
     }
     return exts;
-  }, [tabCompletionExtension, lineWrap, isSqlMode, schemaMap]);
+  }, [editorKeymapExtension, lineWrap, isSqlMode, schemaMap]);
 
   return (
     <section className="dbml-editor-section">
