@@ -1,4 +1,6 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+import '../../../shared/i18n';
 import { DocumentDetail } from '../../../entities/markdown';
 
 interface DocumentInspectorProps {
@@ -16,13 +18,15 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
   onExportPdf,
   onDelete,
 }) => {
+  const { t } = useTranslation();
+
   if (!document) {
     return (
       <aside className="w-72 flex-shrink-0 border-l border-outline-variant bg-surface-container-low flex flex-col items-center justify-center p-6 text-center text-label-sm font-label-sm text-outline">
         <span className="material-symbols-outlined text-3xl text-outline mb-2">
           article
         </span>
-        <p>문서를 선택하면 상세 속성과 메타데이터가 표시됩니다.</p>
+        <p>{t('markdownDocs.inspector.emptyPrompt')}</p>
       </aside>
     );
   }
@@ -132,14 +136,16 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
           <span className="text-label-sm font-label-sm text-outline">Applied Tags</span>
           <div className="flex flex-wrap gap-1">
             {document.tags.length === 0 ? (
-              <span className="text-outline text-xs">지정된 태그 없음</span>
+              <span className="text-outline text-xs">
+                {t('markdownDocs.inspector.noAppliedTags')}
+              </span>
             ) : (
-              document.tags.map((t: string) => (
+              document.tags.map((tagName: string) => (
                 <span
-                  key={t}
+                  key={tagName}
                   className="px-2 py-0.5 rounded text-label-sm font-label-sm bg-surface-container border border-outline-variant text-primary"
                 >
-                  #{t.replace(/^#/, '')}
+                  #{tagName.replace(/^#/, '')}
                 </span>
               ))
             )}
@@ -177,7 +183,7 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
           className="w-full h-8 flex items-center justify-center gap-1.5 bg-on-background hover:bg-surface-bright text-surface hover:text-on-surface font-medium rounded text-label-md font-label-md transition-colors shadow-none"
         >
           <span className="material-symbols-outlined text-[15px]">edit_note</span>
-          <span>수정하기 (Edit Document)</span>
+          <span>{t('markdownDocs.inspector.editDocumentBtn')}</span>
         </button>
 
         <div className="grid grid-cols-2 gap-1.5">

@@ -1,10 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import '../../../shared/i18n';
 import { INSTALLED_UTILITIES } from '../../../shared/constants/navigation';
 
 export const InstalledUtilitiesGrid: React.FC = () => {
+  const { t } = useTranslation();
+
   return (
-    <section aria-label="설치된 로컬 유틸리티 그리드">
+    <section aria-label={t('dashboard.gridAriaLabel')}>
       <div className="bento-grid">
         {INSTALLED_UTILITIES.map((util) => {
           const iconThemeClass = util.id.startsWith('pdf')
@@ -13,14 +17,22 @@ export const InstalledUtilitiesGrid: React.FC = () => {
             ? 'dbml'
             : 'markdown';
 
-          const cardTitle = util.utilityTitle ?? util.title;
+          const cardTitle = t(`nav.entries.${util.id}.utilityTitle`, {
+            defaultValue: util.utilityTitle ?? util.title,
+          });
+          const cardDescription = t(`nav.entries.${util.id}.description`, {
+            defaultValue: util.description ?? '',
+          });
+          const cardLastUsed = t(`nav.entries.${util.id}.lastUsed`, {
+            defaultValue: util.lastUsed ?? '',
+          });
 
           return (
             <Link
               key={util.id}
               to={util.path}
               className="utility-card"
-              aria-label={`${cardTitle} 열기`}
+              aria-label={t('dashboard.openUtilityAria', { title: cardTitle })}
             >
               <div className="utility-card-top">
                 <div className={`utility-icon-box ${iconThemeClass}`}>
@@ -32,12 +44,12 @@ export const InstalledUtilitiesGrid: React.FC = () => {
               </div>
 
               <h2 className="utility-title">{cardTitle}</h2>
-              {util.description && <p className="utility-desc">{util.description}</p>}
+              {cardDescription && <p className="utility-desc">{cardDescription}</p>}
 
               <div className="utility-footer">
-                <span>{util.lastUsed}</span>
+                <span>{cardLastUsed}</span>
                 <span className="utility-action-link">
-                  <span>도구 열기</span>
+                  <span>{t('dashboard.openToolLink')}</span>
                   <span className="material-symbols-outlined">
                     arrow_forward
                   </span>

@@ -1,7 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import '../../../shared/i18n';
 import { useCurrentUser } from '../../../entities/auth';
 
 export const UserProfileBadge: React.FC = () => {
+  const { t } = useTranslation();
   const { user, isLoading, error, isGuest, isAdmin, isLocalAdmin, logout } =
     useCurrentUser();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -31,8 +34,8 @@ export const UserProfileBadge: React.FC = () => {
     return (
       <div
         className="user-profile-skeleton"
-        title="사용자 정보 확인 중..."
-        aria-label="사용자 정보 로딩 중"
+        title={t('userProfile.loadingTitle')}
+        aria-label={t('userProfile.loadingAria')}
       >
         <span className="user-skeleton-avatar" />
         <span className="user-skeleton-text" />
@@ -43,17 +46,22 @@ export const UserProfileBadge: React.FC = () => {
   // 에러 또는 미인증 상태
   if (error || !user) {
     return (
-      <div className="user-profile-error" title="인증 세션이 확인되지 않았습니다">
+      <div
+        className="user-profile-error"
+        title={t('userProfile.unauthenticatedTitle')}
+      >
         <span className="material-symbols-outlined error-icon">person_off</span>
-        <span className="user-error-text">미인증</span>
+        <span className="user-error-text">
+          {t('userProfile.unauthenticatedText')}
+        </span>
         <button
           type="button"
           className="user-logout-btn compact"
           onClick={logout}
-          title="로그인 / 재인증 포털로 이동"
-          aria-label="로그인 포털로 이동"
+          title={t('userProfile.loginTitle')}
+          aria-label={t('userProfile.loginAria')}
         >
-          로그인
+          {t('userProfile.loginBtn')}
         </button>
       </div>
     );
@@ -66,15 +74,15 @@ export const UserProfileBadge: React.FC = () => {
 
   if (isLocalAdmin) {
     badgeClass = 'user-badge-local';
-    badgeLabel = '[로컬 개발]';
+    badgeLabel = t('userProfile.badgeLocal');
     badgeIcon = 'terminal';
   } else if (isAdmin) {
     badgeClass = 'user-badge-admin';
-    badgeLabel = '[관리자] Administrator';
+    badgeLabel = t('userProfile.badgeAdmin');
     badgeIcon = 'shield_person';
   } else if (isGuest) {
     badgeClass = 'user-badge-guest';
-    badgeLabel = '[체험 모드] Guest Reviewer';
+    badgeLabel = t('userProfile.badgeGuest');
     badgeIcon = 'visibility';
   }
 
@@ -87,7 +95,7 @@ export const UserProfileBadge: React.FC = () => {
         onClick={() => setDropdownOpen((prev) => !prev)}
         aria-expanded={dropdownOpen}
         aria-haspopup="true"
-        title={`${user.displayName} (@${user.username}) - 클릭하여 프로필 정보 및 로그아웃`}
+        title={`${user.displayName} (@${user.username}) - ${t('userProfile.chipTitleSuffix')}`}
       >
         <span className="material-symbols-outlined user-badge-icon">
           {badgeIcon}
@@ -103,8 +111,8 @@ export const UserProfileBadge: React.FC = () => {
         type="button"
         className="user-quick-logout-btn desktop-only-action"
         onClick={logout}
-        title="세션 종료 및 로그아웃"
-        aria-label="로그아웃"
+        title={t('userProfile.quickLogoutTitle')}
+        aria-label={t('userProfile.logout')}
       >
         <span className="material-symbols-outlined">logout</span>
       </button>
@@ -114,7 +122,7 @@ export const UserProfileBadge: React.FC = () => {
         <div
           className="user-profile-dropdown"
           role="menu"
-          aria-label="사용자 계정 메뉴"
+          aria-label={t('userProfile.menuAria')}
         >
           <div className="user-dropdown-header">
             <div className="user-dropdown-avatar">
@@ -132,7 +140,9 @@ export const UserProfileBadge: React.FC = () => {
           {/* 소속 그룹 태그 */}
           {user.groups && user.groups.length > 0 && (
             <div className="user-dropdown-groups">
-              <span className="groups-title">소속 그룹:</span>
+              <span className="groups-title">
+                {t('userProfile.groupsTitle')}
+              </span>
               <div className="groups-chip-list">
                 {user.groups.map((group) => (
                   <span key={group} className="group-chip">
@@ -156,7 +166,7 @@ export const UserProfileBadge: React.FC = () => {
             role="menuitem"
           >
             <span className="material-symbols-outlined">logout</span>
-            <span>로그아웃</span>
+            <span>{t('userProfile.logout')}</span>
           </button>
         </div>
       )}

@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import '../../../shared/i18n';
 import { ServiceVersionInfo } from '../../../entities/version';
 
 interface VersionPopoverProps {
@@ -18,6 +20,7 @@ export const VersionPopover: React.FC<VersionPopoverProps> = ({
   onRefresh,
   isLoading,
 }) => {
+  const { t } = useTranslation();
   const popoverRef = useRef<HTMLDivElement>(null);
   const [copiedCommit, setCopiedCommit] = useState<string | null>(null);
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -76,7 +79,7 @@ export const VersionPopover: React.FC<VersionPopoverProps> = ({
       ref={popoverRef}
       className="version-popover"
       role="dialog"
-      aria-label="시스템 버전 및 서버 상태"
+      aria-label={t('versionPopover.dialogAria')}
     >
       {/* Popover Header */}
       <div className="version-popover-header">
@@ -90,7 +93,7 @@ export const VersionPopover: React.FC<VersionPopoverProps> = ({
           type="button"
           onClick={onClose}
           className="version-icon-close"
-          aria-label="팝오버 닫기"
+          aria-label={t('versionPopover.closeAria')}
         >
           <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>close</span>
         </button>
@@ -122,7 +125,7 @@ export const VersionPopover: React.FC<VersionPopoverProps> = ({
                 type="button"
                 onClick={() => handleCopyCommit(frontend.gitCommit)}
                 className="version-commit-btn"
-                title="클립보드에 커밋 해시 복사"
+                title={t('versionPopover.copyCommitTitle')}
               >
                 <span>{frontend.gitCommit || 'unknown'}</span>
                 <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>
@@ -197,7 +200,7 @@ export const VersionPopover: React.FC<VersionPopoverProps> = ({
                       type="button"
                       onClick={() => handleCopyCommit(service.gitCommit)}
                       className="version-commit-btn"
-                      title="클립보드에 커밋 해시 복사"
+                      title={t('versionPopover.copyCommitTitle')}
                     >
                       <span>{service.gitCommit || 'unknown'}</span>
                       <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>
@@ -225,11 +228,11 @@ export const VersionPopover: React.FC<VersionPopoverProps> = ({
                   <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--error)' }}>
                     error
                   </span>
-                  <span>{service.errorMessage || '서버 연결 실패 (Offline)'}</span>
+                  <span>{service.errorMessage || t('versionPopover.offlineDefault')}</span>
                 </div>
               ) : (
                 <div className="version-loading-box">
-                  <span>상태 확인 중...</span>
+                  <span>{t('versionPopover.checkingStatus')}</span>
                 </div>
               )}
             </div>
@@ -248,7 +251,7 @@ export const VersionPopover: React.FC<VersionPopoverProps> = ({
           onClick={onRefresh}
           disabled={isLoading}
           className="version-refresh-btn"
-          title="모든 서버 상태 새로고침"
+          title={t('versionPopover.refreshTitle')}
         >
           <span
             className={`material-symbols-outlined ${isLoading ? 'animate-spin' : ''}`}

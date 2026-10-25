@@ -1,4 +1,6 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+import '../../../shared/i18n';
 import { PdfOperationMode, PDF_OPERATION_METAS } from '../types';
 
 interface PdfOperationTabsProps {
@@ -10,13 +12,14 @@ export const PdfOperationTabs: React.FC<PdfOperationTabsProps> = ({
   currentMode,
   onModeChange,
 }) => {
+  const { t } = useTranslation();
   const modes = Object.values(PDF_OPERATION_METAS);
 
   return (
     <div
       className="pdf-tabs-panel"
       role="tablist"
-      aria-label="PDF 작업 모드 선택"
+      aria-label={t('pdfTools.modes.tabsAria')}
     >
       {modes.map((meta) => {
         const isActive = currentMode === meta.id;
@@ -30,7 +33,7 @@ export const PdfOperationTabs: React.FC<PdfOperationTabsProps> = ({
             onClick={() => onModeChange(meta.id)}
           >
             <span className="material-symbols-outlined">{meta.icon}</span>
-            <span>{meta.shortLabel}</span>
+            <span>{t(`pdfTools.modes.${meta.id}.shortLabel`)}</span>
           </button>
         );
       })}

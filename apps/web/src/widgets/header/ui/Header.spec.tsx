@@ -4,12 +4,15 @@ import { MemoryRouter } from 'react-router-dom';
 import { Header } from './Header';
 import { AuthProvider, CurrentUser } from '../../../entities/auth';
 import * as authApi from '../../../entities/auth/api/authApi';
+import { setAppLanguage, LOCALE_STORAGE_KEY } from '../../../shared/i18n';
 
 describe('Header & UserProfileBadge Component', () => {
   const mockOnOpenCommandPalette = vi.fn();
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.restoreAllMocks();
+    window.localStorage.clear();
+    await setAppLanguage('ko');
   });
 
   const renderWithProviders = (user: CurrentUser | null) => {
@@ -102,5 +105,40 @@ describe('Header & UserProfileBadge Component', () => {
     expect(screen.getByText('dev@homelab.local')).toBeTruthy();
     expect(screen.getByText('admins')).toBeTruthy();
     expect(screen.getByText('dev')).toBeTruthy();
+  });
+
+  it('상단 언어 전환 버튼(EN / KR) 클릭 시 헤더 브레드크럼과 버튼 라벨이 즉시 전환되어야 한다', async () => {
+    const localUser: CurrentUser = {
+      username: 'local-admin',
+      displayName: 'Local Developer',
+      email: 'dev@homelab.local',
+      groups: ['admins', 'dev'],
+    };
+
+    renderWithProviders(localUser);
+
+    expect(screen.getByText('워크스페이스')).toBeTruthy();
+    expect(screen.getByText('대시보드')).toBeTruthy();
+    expect(screen.getByText('작업 실행')).toBeTruthy();
+
+    // EN 버튼 클릭
+    const enButton = screen.getByRole('button', { name: 'EN' });
+    fireEvent.click(enButton);
+
+    expect(await screen.findByText('Workspace')).toBeTruthy();
+    expect(screen.getByText('Dashboard')).toBeTruthy();
+    expect(screen.getByText('Run Task')).toBeTruthy();
+    expect(screen.getByText('[Local Dev]')).toBeTruthy();
+    expect(window.localStorage.getItem(LOCALE_STORAGE_KEY)).toBe('en');
+
+    // KR 버튼 클릭 시 한국어로 복귀
+    const krButton = screen.getByRole('button', { name: 'KR' });
+    fireEvent.click(krButton);
+
+    expect(await screen.findByText('워크스페이스')).toBeTruthy();
+    expect(screen.getByText('대시보드')).toBeTruthy();
+    expect(screen.getByText('작업 실행')).toBeTruthy();
+    expect(screen.getByText('[로컬 개발]')).toBeTruthy();
+    expect(window.localStorage.getItem(LOCALE_STORAGE_KEY)).toBe('ko');
   });
 });

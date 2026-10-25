@@ -1,4 +1,6 @@
 import React, { useRef, useState, DragEvent, ChangeEvent } from 'react';
+import { useTranslation } from 'react-i18next';
+import '../../../shared/i18n';
 
 interface PdfDropzoneProps {
   onFilesSelected: (files: File[]) => void;
@@ -11,6 +13,7 @@ export const PdfDropzone: React.FC<PdfDropzoneProps> = ({
   multiple = true,
   disabled = false,
 }) => {
+  const { t } = useTranslation();
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -59,7 +62,7 @@ export const PdfDropzone: React.FC<PdfDropzoneProps> = ({
       onClick={handleClick}
       role="button"
       tabIndex={0}
-      aria-label="PDF 파일 드롭 또는 선택"
+      aria-label={t('pdfTools.dropzone.ariaLabel')}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
@@ -83,13 +86,13 @@ export const PdfDropzone: React.FC<PdfDropzoneProps> = ({
       </div>
 
       <div className="pdf-dropzone-title">
-        <span>문서를 드래그하여 놓거나 </span>
-        <span className="accent-text">파일 찾기</span>
+        <span>{t('pdfTools.dropzone.dragPrompt')}</span>
+        <span className="accent-text">
+          {t('pdfTools.dropzone.browseFiles')}
+        </span>
       </div>
 
-      <p className="pdf-dropzone-desc">
-        PDF 파일만 지원 (단일 파일 최대 50MB, 총 100MB 이내)
-      </p>
+      <p className="pdf-dropzone-desc">{t('pdfTools.dropzone.hint')}</p>
     </div>
   );
 };

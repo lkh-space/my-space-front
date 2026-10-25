@@ -1,4 +1,7 @@
 import React, { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
+import '../../shared/i18n';
 import { PdfOperationMode, SelectedPdfFile } from './types';
 import { PdfViewHeader } from './components/PdfViewHeader';
 import { PdfOperationTabs } from './components/PdfOperationTabs';
@@ -27,30 +30,30 @@ interface BannerAlert {
 }
 
 /**
- * 백엔드 도메인 비즈니스 에러 코드를 친절한 한국어 안내 메시지로 변환합니다.
+ * 백엔드 도메인 비즈니스 에러 코드를 친절한 안내 메시지로 변환합니다.
  */
-function getDomainErrorMessage(err: unknown): string {
+function getDomainErrorMessage(err: unknown, t: TFunction): string {
   if (err instanceof ApiError) {
     switch (err.code) {
       case 'PDF_INVALID_PASSWORD':
-        return '비밀번호가 올바르지 않습니다. 암호를 다시 확인해 주세요.';
+        return t('pdfTools.alerts.errors.invalidPassword');
       case 'PDF_PASSWORD_REQUIRED':
-        return '암호화된 PDF 파일입니다. 잠금 해제 비밀번호를 입력해 주세요.';
+        return t('pdfTools.alerts.errors.passwordRequired');
       case 'PDF_NOT_PASSWORD_PROTECTED':
-        return '암호화되지 않은 일반 PDF 파일입니다.';
+        return t('pdfTools.alerts.errors.notPasswordProtected');
       case 'PDF_MIN_FILE_COUNT_NOT_MET':
-        return '병합 작업을 수행하려면 최소 2개 이상의 PDF 파일이 필요합니다.';
+        return t('pdfTools.alerts.errors.minFileCountNotMet');
       case 'PDF_MAX_FILE_COUNT_EXCEEDED':
-        return '병합 가능한 최대 파일 개수(20개)를 초과했습니다.';
+        return t('pdfTools.alerts.errors.maxFileCountExceeded');
       case 'PDF_INVALID_PAGE_RANGE':
-        return '유효하지 않은 페이지 범위입니다. 문서의 총 페이지 수 내에서 올바른 형식(예: 1-3, 5)으로 입력해 주세요.';
+        return t('pdfTools.alerts.errors.invalidPageRange');
       case 'PDF_FILE_SIZE_EXCEEDED':
-        return '파일 용량 한도(단일 파일 50MB, 총합 100MB)를 초과했습니다.';
+        return t('pdfTools.alerts.errors.fileSizeExceeded');
       case 'PDF_FILE_CORRUPTED':
       case 'PDF_CORRUPTED_FILE':
-        return '손상되었거나 유효한 PDF 파일 형식(%PDF-)이 아닙니다.';
+        return t('pdfTools.alerts.errors.corruptedFile');
       default:
-        return err.message || '요청 처리 중 오류가 발생했습니다.';
+        return err.message || t('pdfTools.alerts.errors.defaultError');
     }
   }
 
@@ -58,10 +61,11 @@ function getDomainErrorMessage(err: unknown): string {
     return err.message;
   }
 
-  return '서버와 통신하는 중 알 수 없는 오류가 발생했습니다.';
+  return t('pdfTools.alerts.errors.networkError');
 }
 
 export const PdfToolsPage: React.FC = () => {
+  const { t } = useTranslation();
   const [mode, setMode] = useState<PdfOperationMode>('merge');
   const [files, setFiles] = useState<SelectedPdfFile[]>([]);
   const [splitRangeInput, setSplitRangeInput] = useState<string>('');
@@ -93,7 +97,9 @@ export const PdfToolsPage: React.FC = () => {
         setFiles((prev) => prev.filter((f) => f.id !== fileItem.id));
         setAlert({
           type: 'error',
-          message: `'${fileItem.name}' 파일이 손상되었거나 유효한 PDF 형식이 아닙니다.`,
+          message: t('pdfTools.alerts.corruptedFileNamed', {
+            name: fileItem.name,
+          }),
         });
       } else {
         // 기타 검사 실패 시 검사 상태만 해제
@@ -104,7 +110,7 @@ export const PdfToolsPage: React.FC = () => {
         );
       }
     }
-  }, []);
+  }, [t]);
 
   // 파일 추가 핸들러
   const handleFilesSelected = useCallback(
@@ -122,7 +128,9 @@ export const PdfToolsPage: React.FC = () => {
         if (!isPdf) {
           setAlert({
             type: 'error',
-            message: `'${file.name}' 파일은 지원되지 않는 형식입니다. PDF 파일만 업로드할 수 있습니다.`,
+            message: t('pdfTools.alerts.unsupportedFormat', {
+              name: file.name,
+            }),
           });
           continue;
         }
@@ -130,7 +138,9 @@ export const PdfToolsPage: React.FC = () => {
         if (file.size > MAX_SINGLE_FILE_SIZE) {
           setAlert({
             type: 'error',
-            message: `'${file.name}' 파일이 단일 파일 최대 용량(50MB)을 초과했습니다.`,
+            message: t('pdfTools.alerts.singleSizeExceeded', {
+              name: file.name,
+            }),
           });
           continue;
         }
@@ -138,7 +148,7 @@ export const PdfToolsPage: React.FC = () => {
         if (currentTotalSize + file.size > MAX_TOTAL_FILES_SIZE) {
           setAlert({
             type: 'error',
-            message: '전체 업로드 용량(100MB)을 초과할 수 없습니다.',
+            message: t('pdfTools.alerts.totalSizeExceeded'),
           });
           break;
         }
@@ -177,7 +187,7 @@ export const PdfToolsPage: React.FC = () => {
         inspectSelectedFile(targetFile);
       }
     },
-    [files, mode, unlockPassword, inspectSelectedFile],
+    [files, mode, unlockPassword, inspectSelectedFile, t],
   );
 
   // 개별 파일 삭제
@@ -246,7 +256,7 @@ export const PdfToolsPage: React.FC = () => {
     if (files.length === 0) {
       setAlert({
         type: 'error',
-        message: '작업을 수행할 PDF 파일을 선택해 주세요.',
+        message: t('pdfTools.alerts.selectFileFirst'),
       });
       return;
     }
@@ -254,7 +264,7 @@ export const PdfToolsPage: React.FC = () => {
     if (mode === 'merge' && files.length < 2) {
       setAlert({
         type: 'error',
-        message: '병합 작업을 수행하려면 최소 2개 이상의 PDF 파일이 필요합니다.',
+        message: t('pdfTools.alerts.mergeMinFiles'),
       });
       return;
     }
@@ -262,7 +272,7 @@ export const PdfToolsPage: React.FC = () => {
     if (mode === 'split-range' && !splitRangeInput.trim()) {
       setAlert({
         type: 'error',
-        message: '추출할 페이지 범위를 입력해 주세요. (예: 1-3, 5)',
+        message: t('pdfTools.alerts.enterSplitRange'),
       });
       return;
     }
@@ -274,7 +284,7 @@ export const PdfToolsPage: React.FC = () => {
     if (mode === 'unlock' && !effectiveUnlockPassword) {
       setAlert({
         type: 'error',
-        message: 'PDF 잠금을 해제하기 위한 비밀번호를 입력해 주세요.',
+        message: t('pdfTools.alerts.enterUnlockPassword'),
       });
       return;
     }
@@ -290,7 +300,9 @@ export const PdfToolsPage: React.FC = () => {
           const rawFiles = files.map((f) => f.file);
           const passwords = files.map((f) => f.password || '');
           downloadResult = await mergePdf(rawFiles, passwords);
-          taskDetail = `${files.length}개 파일 병합 완료`;
+          taskDetail = t('pdfTools.alerts.taskDetailMerge', {
+            count: files.length,
+          });
           break;
         }
         case 'split-range': {
@@ -299,12 +311,14 @@ export const PdfToolsPage: React.FC = () => {
             splitRangeInput.trim(),
             files[0].password,
           );
-          taskDetail = `페이지 범위 (${splitRangeInput}) 분할 완료`;
+          taskDetail = t('pdfTools.alerts.taskDetailSplitRange', {
+            range: splitRangeInput,
+          });
           break;
         }
         case 'split-all': {
           downloadResult = await splitPdfAll(files[0].file, files[0].password);
-          taskDetail = '전체 페이지 낱장 ZIP 분할 완료';
+          taskDetail = t('pdfTools.alerts.taskDetailSplitAll');
           break;
         }
         case 'unlock': {
@@ -312,7 +326,7 @@ export const PdfToolsPage: React.FC = () => {
             files[0].file,
             effectiveUnlockPassword,
           );
-          taskDetail = '암호 해제 완료';
+          taskDetail = t('pdfTools.alerts.taskDetailUnlock');
           break;
         }
       }
@@ -336,17 +350,19 @@ export const PdfToolsPage: React.FC = () => {
 
       setAlert({
         type: 'success',
-        message: `작업이 완료되어 '${downloadResult.filename}' 파일이 다운로드되었습니다.`,
+        message: t('pdfTools.alerts.successDownload', {
+          filename: downloadResult.filename,
+        }),
       });
     } catch (err) {
       setAlert({
         type: 'error',
-        message: getDomainErrorMessage(err),
+        message: getDomainErrorMessage(err, t),
       });
     } finally {
       setIsProcessing(false);
     }
-  }, [files, mode, splitRangeInput, unlockPassword]);
+  }, [files, mode, splitRangeInput, unlockPassword, t]);
 
   return (
     <div className="pdf-tools-page">

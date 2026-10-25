@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import '../../../shared/i18n';
 import { FolderTreeNode } from '../../../entities/markdown';
 
 interface FolderTreeProps {
@@ -29,6 +31,7 @@ const TreeNodeItem: React.FC<TreeNodeItemProps> = ({
   onOpenEditModal,
   onDeleteFolder,
 }) => {
+  const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(true);
   const isSelected = selectedFolderId === node.id;
   const hasChildren = node.children && node.children.length > 0;
@@ -76,7 +79,7 @@ const TreeNodeItem: React.FC<TreeNodeItemProps> = ({
           <button
             type="button"
             className="p-0.5 rounded text-outline hover:text-on-surface hover:bg-surface-container-high"
-            title="하위 폴더 추가"
+            title={t('markdownDocs.sidebar.addSubfolderTitle')}
             onClick={(e) => {
               e.stopPropagation();
               onOpenCreateModal(node.id);
@@ -87,7 +90,7 @@ const TreeNodeItem: React.FC<TreeNodeItemProps> = ({
           <button
             type="button"
             className="p-0.5 rounded text-outline hover:text-on-surface hover:bg-surface-container-high"
-            title="폴더 수정"
+            title={t('markdownDocs.sidebar.editFolderTitle')}
             onClick={(e) => {
               e.stopPropagation();
               onOpenEditModal(node);
@@ -98,7 +101,7 @@ const TreeNodeItem: React.FC<TreeNodeItemProps> = ({
           <button
             type="button"
             className="p-0.5 rounded text-outline hover:text-error hover:bg-surface-container-high"
-            title="폴더 삭제"
+            title={t('markdownDocs.sidebar.deleteFolderTitle')}
             onClick={(e) => {
               e.stopPropagation();
               onDeleteFolder(node.id);
@@ -138,6 +141,8 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
   onOpenEditModal,
   onDeleteFolder,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <div className="folder-tree-container flex flex-col space-y-0.5">
       {/* 1. All Documents Shortcut */}
@@ -152,7 +157,9 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
         <span className="material-symbols-outlined text-[15px] text-tertiary">
           source
         </span>
-        <span className="font-medium">전체 문서 (All)</span>
+        <span className="font-medium">
+          {t('markdownDocs.sidebar.allDocuments')}
+        </span>
       </div>
 
       {/* 2. Hierarchical Folders */}

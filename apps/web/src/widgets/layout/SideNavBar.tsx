@@ -1,5 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import '../../shared/i18n';
 import { WORKSPACE_NAV_ENTRIES } from '../../shared/constants/navigation';
 
 interface SideNavBarProps {
@@ -7,6 +9,7 @@ interface SideNavBarProps {
 }
 
 export const SideNavBar: React.FC<SideNavBarProps> = ({ onOpenCommandPalette }) => {
+  const { t } = useTranslation();
   const standardNavItems = WORKSPACE_NAV_ENTRIES.filter(
     (item) => item.id !== 'ai-workspace'
   );
@@ -15,7 +18,7 @@ export const SideNavBar: React.FC<SideNavBarProps> = ({ onOpenCommandPalette }) 
   );
 
   return (
-    <aside className="side-navbar" aria-label="메인 사이드바 네비게이션">
+    <aside className="side-navbar" aria-label={t('sidebar.ariaLabel')}>
       {/* 1. Header with Brand & Version */}
       <div className="sidebar-header">
         <div className="brand-wrapper">
@@ -26,7 +29,10 @@ export const SideNavBar: React.FC<SideNavBarProps> = ({ onOpenCommandPalette }) 
             <span className="brand-title">my-space</span>
           </div>
         </div>
-        <div className="sidebar-version-badge" title="시스템 활성 버전">
+        <div
+          className="sidebar-version-badge"
+          title={t('sidebar.activeVersionTitle')}
+        >
           <span className="version-status-dot" />
           <span className="version-text">v0.1.0</span>
         </div>
@@ -38,7 +44,7 @@ export const SideNavBar: React.FC<SideNavBarProps> = ({ onOpenCommandPalette }) 
           type="button"
           className="sidebar-command-trigger"
           onClick={onOpenCommandPalette}
-          aria-label="명령어 검색 팔레트 열기 (단축키 ⌘K)"
+          aria-label={t('sidebar.commandTriggerAria')}
         >
           <div className="command-trigger-left">
             <span className="material-symbols-outlined">search</span>
@@ -50,22 +56,25 @@ export const SideNavBar: React.FC<SideNavBarProps> = ({ onOpenCommandPalette }) 
 
       {/* 3. Standard Navigation Links */}
       <nav className="sidebar-nav-section">
-        {standardNavItems.map((item) => (
-          <NavLink
-            key={item.id}
-            to={item.path}
-            end={item.end}
-            title={item.title}
-            className={({ isActive }) =>
-              `nav-tab-item ${isActive ? 'active' : ''}`
-            }
-          >
-            <span className="material-symbols-outlined nav-tab-icon">
-              {item.icon}
-            </span>
-            <span className="nav-tab-label">{item.title}</span>
-          </NavLink>
-        ))}
+        {standardNavItems.map((item) => {
+          const localizedTitle = t(`nav.entries.${item.id}.title`);
+          return (
+            <NavLink
+              key={item.id}
+              to={item.path}
+              end={item.end}
+              title={localizedTitle}
+              className={({ isActive }) =>
+                `nav-tab-item ${isActive ? 'active' : ''}`
+              }
+            >
+              <span className="material-symbols-outlined nav-tab-icon">
+                {item.icon}
+              </span>
+              <span className="nav-tab-label">{localizedTitle}</span>
+            </NavLink>
+          );
+        })}
 
         {/* AI STUDIO Section */}
         {aiNavItem && (
@@ -73,7 +82,7 @@ export const SideNavBar: React.FC<SideNavBarProps> = ({ onOpenCommandPalette }) 
             <div className="ai-section-title">AI STUDIO</div>
             <NavLink
               to={aiNavItem.path}
-              title={aiNavItem.title}
+              title={t(`nav.entries.${aiNavItem.id}.title`)}
               className={({ isActive }) =>
                 `nav-tab-item ai-tab-item ${isActive ? 'active' : ''}`
               }
@@ -81,7 +90,9 @@ export const SideNavBar: React.FC<SideNavBarProps> = ({ onOpenCommandPalette }) 
               <span className="material-symbols-outlined nav-tab-icon">
                 {aiNavItem.icon}
               </span>
-              <span className="nav-tab-label">{aiNavItem.title}</span>
+              <span className="nav-tab-label">
+                {t(`nav.entries.${aiNavItem.id}.title`)}
+              </span>
               <span className="ai-active-indicator-dot" />
             </NavLink>
           </div>

@@ -1,6 +1,10 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+import '../../../shared/i18n';
 
 export const RuntimeEnvironmentCard: React.FC = () => {
+  const { t } = useTranslation();
+
   // 로컬 런타임 상태 메트릭 (초기 정적/시뮬레이션 값)
   const cacheUsed = 128;
   const cacheMax = 512;
@@ -11,13 +15,16 @@ export const RuntimeEnvironmentCard: React.FC = () => {
   const memoryPercent = Math.round((memoryUsed / memoryMax) * 100);
 
   return (
-    <div className="monitoring-card" aria-label="로컬 런타임 환경 상태 패널">
+    <div
+      className="monitoring-card"
+      aria-label={t('dashboard.runtime.panelAria')}
+    >
       <div className="monitoring-card-header">
         <h2>
           <span className="material-symbols-outlined">
             memory
           </span>
-          <span>로컬 런타임 환경 상태</span>
+          <span>{t('dashboard.runtime.title')}</span>
         </h2>
         <span className="runtime-status-tag">
           <span className="sidebar-status-dot runtime-status-dot" />
@@ -29,7 +36,9 @@ export const RuntimeEnvironmentCard: React.FC = () => {
         {/* Metric 1: Cache */}
         <div className="metric-group">
           <div className="metric-header">
-            <span className="metric-label">로컬 캐시 메모리</span>
+            <span className="metric-label">
+              {t('dashboard.runtime.cacheLabel')}
+            </span>
             <span className="metric-value">
               {cacheUsed} MB / {cacheMax} MB ({cachePercent}%)
             </span>
@@ -42,7 +51,9 @@ export const RuntimeEnvironmentCard: React.FC = () => {
         {/* Metric 2: Memory */}
         <div className="metric-group">
           <div className="metric-header">
-            <span className="metric-label">프로세스 힙 메모리</span>
+            <span className="metric-label">
+              {t('dashboard.runtime.heapLabel')}
+            </span>
             <span className="metric-value">
               {memoryUsed} MB / {memoryMax} MB ({memoryPercent}%)
             </span>
@@ -55,16 +66,22 @@ export const RuntimeEnvironmentCard: React.FC = () => {
         {/* Security & Isolation Box */}
         <div className="runtime-security-box">
           <div className="security-box-row">
-            <span className="label">프로세스 격리</span>
+            <span className="label">
+              {t('dashboard.runtime.isolationLabel')}
+            </span>
             <span className="val">Wasm & Native Sandbox</span>
           </div>
           <div className="security-box-row">
-            <span className="label">로컬 IPC 채널</span>
+            <span className="label">{t('dashboard.runtime.ipcLabel')}</span>
             <span className="val green">127.0.0.1:4200 (Connected)</span>
           </div>
           <div className="security-box-row">
-            <span className="label">원격 텔레메트리</span>
-            <span className="val green">비활성화 (100% Isolated)</span>
+            <span className="label">
+              {t('dashboard.runtime.telemetryLabel')}
+            </span>
+            <span className="val green">
+              {t('dashboard.runtime.telemetryValue')}
+            </span>
           </div>
         </div>
       </div>

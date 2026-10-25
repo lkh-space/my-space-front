@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { getBreadcrumbByPath } from '../../../shared/constants/navigation';
+import { setAppLanguage } from '../../../shared/i18n';
 import { UserProfileBadge } from './UserProfileBadge';
 import { VersionBadge } from './VersionBadge';
 import './header.css';
@@ -11,12 +13,13 @@ export interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ onOpenCommandPalette }) => {
   const location = useLocation();
-  const [lang, setLang] = useState<'KR' | 'EN'>('KR');
+  const { t, i18n } = useTranslation();
 
-  const { category, page } = getBreadcrumbByPath(location.pathname);
+  const currentLang = i18n.resolvedLanguage === 'en' ? 'EN' : 'KR';
+  const { category, page } = getBreadcrumbByPath(location.pathname, t);
 
   return (
-    <header className="top-navbar" aria-label="상단 네비게이션 헤더">
+    <header className="top-navbar" aria-label={t('header.ariaLabel')}>
       {/* 1-A. Desktop & Tablet Breadcrumbs */}
       <div className="top-breadcrumbs">
         <span className="breadcrumb-root">my-space</span>
@@ -32,8 +35,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCommandPalette }) => {
           type="button"
           className="mobile-terminal-btn"
           onClick={onOpenCommandPalette}
-          title="명령어 검색 및 실행 (⌘K)"
-          aria-label="명령어 검색 팔레트 열기"
+          title={t('header.mobileTerminalTitle')}
+          aria-label={t('header.mobileTerminalAria')}
         >
           <span className="material-symbols-outlined">terminal</span>
         </button>
@@ -44,20 +47,24 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCommandPalette }) => {
       {/* 2. Right Action Cluster */}
       <div className="top-actions-cluster">
         {/* Language Switcher (Desktop & Tablet) */}
-        <div className="lang-toggle-segment" role="group" aria-label="언어 선택">
+        <div
+          className="lang-toggle-segment"
+          role="group"
+          aria-label={t('header.langSwitchAria')}
+        >
           <button
             type="button"
-            className={`lang-btn ${lang === 'KR' ? 'active' : ''}`}
-            onClick={() => setLang('KR')}
-            aria-pressed={lang === 'KR'}
+            className={`lang-btn ${currentLang === 'KR' ? 'active' : ''}`}
+            onClick={() => void setAppLanguage('ko')}
+            aria-pressed={currentLang === 'KR'}
           >
             KR
           </button>
           <button
             type="button"
-            className={`lang-btn ${lang === 'EN' ? 'active' : ''}`}
-            onClick={() => setLang('EN')}
-            aria-pressed={lang === 'EN'}
+            className={`lang-btn ${currentLang === 'EN' ? 'active' : ''}`}
+            onClick={() => void setAppLanguage('en')}
+            aria-pressed={currentLang === 'EN'}
           >
             EN
           </button>
@@ -71,8 +78,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCommandPalette }) => {
           type="button"
           className="header-icon-btn desktop-only-action"
           onClick={onOpenCommandPalette}
-          title="터미널 / 명령어 실행 (⌘K)"
-          aria-label="명령어 실행창 열기"
+          title={t('header.desktopTerminalTitle')}
+          aria-label={t('header.desktopTerminalAria')}
         >
           <span className="material-symbols-outlined">terminal</span>
         </button>
@@ -84,8 +91,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCommandPalette }) => {
         <button
           type="button"
           className="header-icon-btn"
-          title="시스템 알림"
-          aria-label="시스템 알림"
+          title={t('header.notificationsTitle')}
+          aria-label={t('header.notificationsAria')}
         >
           <span className="material-symbols-outlined">notifications</span>
           <span className="header-notification-dot" />
@@ -95,8 +102,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCommandPalette }) => {
         <button
           type="button"
           className="header-icon-btn desktop-only-action"
-          title="테마 (Deep Dark 모드 적용 중)"
-          aria-label="테마 설정"
+          title={t('header.themeTitle')}
+          aria-label={t('header.themeAria')}
         >
           <span className="material-symbols-outlined">dark_mode</span>
         </button>
@@ -106,10 +113,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCommandPalette }) => {
           type="button"
           className="header-cta-btn desktop-only-action"
           onClick={onOpenCommandPalette}
-          aria-label="작업 실행"
+          aria-label={t('header.runTask')}
         >
           <span className="material-symbols-outlined">play_arrow</span>
-          <span>작업 실행</span>
+          <span>{t('header.runTask')}</span>
         </button>
       </div>
     </header>

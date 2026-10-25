@@ -1,6 +1,7 @@
-import { render, screen, within, waitFor } from '@testing-library/react';
+import { render, screen, within, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { setAppLanguage, LOCALE_STORAGE_KEY } from '../shared/i18n';
 import App from './app';
 
 const routerFutureConfig = {
@@ -26,7 +27,9 @@ function renderApp(initialEntries: string[] = ['/']) {
 describe('App', () => {
   const originalFetch = global.fetch;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    window.localStorage.clear();
+    await setAppLanguage('ko');
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -146,6 +149,40 @@ describe('App', () => {
           name: '요청하신 페이지를 찾을 수 없습니다',
         }),
       ).toBeTruthy();
+    });
+  });
+
+  describe('상단 헤더 다국어(KR / EN) 전환', () => {
+    it('EN 버튼 클릭 시 전체 화면이 영어로 전환되고 KR 버튼 클릭 시 한국어로 복원되어야 한다', async () => {
+      renderApp(['/']);
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole('heading', { name: '워크스페이스 개요' }),
+        ).toBeTruthy();
+      });
+
+      const enBtn = screen.getByRole('button', { name: 'EN' });
+      fireEvent.click(enBtn);
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole('heading', { name: 'Workspace Overview' }),
+        ).toBeTruthy();
+      });
+      expect(screen.getByText('Recent Local Tasks')).toBeTruthy();
+      expect(screen.getByText('Local Runtime Status')).toBeTruthy();
+      expect(window.localStorage.getItem(LOCALE_STORAGE_KEY)).toBe('en');
+
+      const krBtn = screen.getByRole('button', { name: 'KR' });
+      fireEvent.click(krBtn);
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole('heading', { name: '워크스페이스 개요' }),
+        ).toBeTruthy();
+      });
+      expect(window.localStorage.getItem(LOCALE_STORAGE_KEY)).toBe('ko');
     });
   });
 });

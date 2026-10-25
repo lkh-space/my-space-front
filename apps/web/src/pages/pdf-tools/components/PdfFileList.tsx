@@ -1,4 +1,6 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+import '../../../shared/i18n';
 import { SelectedPdfFile } from '../types';
 import { PdfFileCard } from './PdfFileCard';
 
@@ -15,6 +17,7 @@ export const PdfFileList: React.FC<PdfFileListProps> = ({
   onClearFiles,
   onPasswordChange,
 }) => {
+  const { t } = useTranslation();
   if (files.length === 0) return null;
 
   return (
@@ -22,16 +25,18 @@ export const PdfFileList: React.FC<PdfFileListProps> = ({
       <div className="pdf-file-list-header">
         <h3>
           <span className="material-symbols-outlined">inventory_2</span>
-          <span>선택된 파일 ({files.length}개)</span>
+          <span>
+            {t('pdfTools.fileList.selectedCount', { count: files.length })}
+          </span>
         </h3>
         <button
           type="button"
           className="header-action-btn"
           onClick={onClearFiles}
-          title="선택된 모든 파일 제거"
+          title={t('pdfTools.fileList.clearAllTitle')}
         >
           <span className="material-symbols-outlined">delete_sweep</span>
-          <span>모두 비우기</span>
+          <span>{t('pdfTools.fileList.clearAllBtn')}</span>
         </button>
       </div>
 

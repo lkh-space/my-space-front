@@ -1,4 +1,5 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
+import { i18n } from '../../i18n';
 import './error-boundary.css';
 
 interface ErrorBoundaryProps {
@@ -73,10 +74,8 @@ export class ErrorBoundary extends Component<
             <span className="material-symbols-outlined">error</span>
           </div>
 
-          <h2 className="error-title">일시적인 렌더링 오류가 발생했습니다</h2>
-          <p className="error-desc">
-            화면을 표시하는 과정에서 예기치 않은 문제가 발생했습니다. 페이지를 다시 시도하거나 대시보드로 돌아가실 수 있습니다.
-          </p>
+          <h2 className="error-title">{i18n.t('errorBoundary.title')}</h2>
+          <p className="error-desc">{i18n.t('errorBoundary.description')}</p>
 
           <div className="error-details-box">
             <code className="error-details-text">{error.message}</code>
@@ -89,7 +88,7 @@ export class ErrorBoundary extends Component<
               onClick={this.handleReset}
             >
               <span className="material-symbols-outlined">refresh</span>
-              <span>다시 시도</span>
+              <span>{i18n.t('errorBoundary.retryBtn')}</span>
             </button>
             <button
               type="button"
@@ -97,7 +96,7 @@ export class ErrorBoundary extends Component<
               onClick={this.handleNavigateHome}
             >
               <span className="material-symbols-outlined">home</span>
-              <span>대시보드로 복귀</span>
+              <span>{i18n.t('errorBoundary.backToDashboardBtn')}</span>
             </button>
           </div>
         </div>

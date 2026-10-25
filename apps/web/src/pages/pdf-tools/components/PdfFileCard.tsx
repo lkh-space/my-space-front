@@ -1,4 +1,6 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+import '../../../shared/i18n';
 import { SelectedPdfFile } from '../types';
 
 interface PdfFileCardProps {
@@ -18,6 +20,8 @@ export const PdfFileCard: React.FC<PdfFileCardProps> = ({
   onRemove,
   onPasswordChange,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <div className="pdf-file-item">
       <div className="pdf-file-row">
@@ -33,14 +37,20 @@ export const PdfFileCard: React.FC<PdfFileCardProps> = ({
               <span>{formatFileSize(file.size)}</span>
               {file.isInspecting && (
                 <span style={{ color: 'var(--on-surface-variant)' }}>
-                  • 검사 중...
+                  {t('pdfTools.fileList.inspecting')}
                 </span>
               )}
               {!file.isInspecting && file.pageCount !== undefined && (
-                <span>• {file.pageCount} 페이지</span>
+                <span>
+                  {t('pdfTools.fileList.pageCount', {
+                    count: file.pageCount,
+                  })}
+                </span>
               )}
               {!file.isInspecting && file.isEncrypted && (
-                <span style={{ color: 'var(--tertiary)' }}>• 암호화됨</span>
+                <span style={{ color: 'var(--tertiary)' }}>
+                  {t('pdfTools.fileList.encrypted')}
+                </span>
               )}
             </div>
           </div>
@@ -51,8 +61,10 @@ export const PdfFileCard: React.FC<PdfFileCardProps> = ({
             type="button"
             className="pdf-file-delete-btn"
             onClick={() => onRemove(file.id)}
-            title="파일 목록에서 제거"
-            aria-label={`${file.name} 파일 제거`}
+            title={t('pdfTools.fileList.removeTitle')}
+            aria-label={t('pdfTools.fileList.removeAria', {
+              name: file.name,
+            })}
           >
             <span className="material-symbols-outlined">close</span>
           </button>
@@ -65,10 +77,12 @@ export const PdfFileCard: React.FC<PdfFileCardProps> = ({
           <input
             type="password"
             className="pdf-password-input"
-            placeholder="암호화된 PDF 비밀번호 입력..."
+            placeholder={t('pdfTools.fileList.passwordPlaceholder')}
             value={file.password || ''}
             onChange={(e) => onPasswordChange(file.id, e.target.value)}
-            aria-label={`${file.name} 파일 비밀번호`}
+            aria-label={t('pdfTools.fileList.passwordAria', {
+              name: file.name,
+            })}
           />
         </div>
       )}

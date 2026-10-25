@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import '../../../shared/i18n';
 import {
   DocumentDetail,
   DocumentSummary,
@@ -29,6 +31,7 @@ function isSortField(value: string): value is SortField {
 
 export const DocumentLibraryView: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   // 1. Data States
   const [folders, setFolders] = useState<FolderTreeNode[]>([]);
@@ -171,7 +174,10 @@ export const DocumentLibraryView: React.FC = () => {
       await reloadDocuments();
       setSelectedDocId(created.id);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : '파일 가져오기에 실패했습니다.';
+      const msg =
+        err instanceof Error
+          ? err.message
+          : t('markdownDocs.library.importFailed');
       alert(msg);
     } finally {
       setIsImporting(false);
@@ -182,23 +188,26 @@ export const DocumentLibraryView: React.FC = () => {
   // 문서 삭제
   const handleDeleteDoc = useCallback(
     async (id: string) => {
-      if (!window.confirm('정말 이 문서를 삭제하시겠습니까?')) return;
+      if (!window.confirm(t('markdownDocs.library.confirmDeleteDoc'))) return;
       try {
         await deleteDocument(id);
         setSelectedDocId((prev) => (prev === id ? null : prev));
         await reloadDocuments();
       } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : '문서 삭제 실패';
+        const msg =
+          err instanceof Error
+            ? err.message
+            : t('markdownDocs.library.deleteDocFailed');
         alert(msg);
       }
     },
-    [reloadDocuments],
+    [reloadDocuments, t],
   );
 
   // 폴더 삭제
   const handleDeleteFolder = useCallback(
     async (folderId: string) => {
-      if (!window.confirm('폴더를 삭제하시겠습니까? (하위 문서는 미분류 상태로 보존됩니다)'))
+      if (!window.confirm(t('markdownDocs.library.confirmDeleteFolder')))
         return;
       try {
         await deleteFolder(folderId);
@@ -206,11 +215,14 @@ export const DocumentLibraryView: React.FC = () => {
         await reloadFoldersAndTags();
         await reloadDocuments();
       } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : '폴더 삭제 실패';
+        const msg =
+          err instanceof Error
+            ? err.message
+            : t('markdownDocs.library.deleteFolderFailed');
         alert(msg);
       }
     },
-    [reloadDocuments, reloadFoldersAndTags],
+    [reloadDocuments, reloadFoldersAndTags, t],
   );
 
   const handleOpenCreateFolderModal = useCallback((parentId?: string | null) => {
@@ -269,7 +281,11 @@ export const DocumentLibraryView: React.FC = () => {
               <span className="material-symbols-outlined text-[16px]">
                 file_upload
               </span>
-              <span>{isImporting ? '가져오는 중...' : 'Import .md'}</span>
+              <span>
+                {isImporting
+                  ? t('markdownDocs.library.importing')
+                  : t('markdownDocs.library.importMd')}
+              </span>
               <input
                 type="file"
                 accept=".md,.markdown"
@@ -286,7 +302,7 @@ export const DocumentLibraryView: React.FC = () => {
               className="h-8 px-3 flex items-center gap-1.5 bg-on-background text-surface font-medium hover:bg-surface-bright hover:text-on-surface rounded text-label-md font-label-md transition-colors shadow-none"
             >
               <span className="material-symbols-outlined text-[16px]">add</span>
-              <span>새 문서 작성</span>
+              <span>{t('markdownDocs.library.newDocument')}</span>
             </button>
           </div>
 
@@ -426,7 +442,7 @@ export const DocumentLibraryView: React.FC = () => {
         >
           {isLoading && (
             <div className="p-8 text-center text-label-sm font-label-sm text-outline col-span-full">
-              문서 목록을 불러오는 중...
+              {t('markdownDocs.library.loadingList')}
             </div>
           )}
 
@@ -436,14 +452,14 @@ export const DocumentLibraryView: React.FC = () => {
                 description
               </span>
               <p className="text-body-md font-body-md text-on-surface-variant mb-3">
-                작성된 문서가 없습니다.
+                {t('markdownDocs.library.emptyList')}
               </p>
               <button
                 type="button"
                 onClick={() => navigate('/docs/new')}
                 className="h-8 px-3 rounded bg-surface-container-highest hover:bg-surface-bright text-on-surface text-label-md font-label-md border border-outline-variant transition-colors"
               >
-                첫 문서 작성하기
+                {t('markdownDocs.library.createFirstDoc')}
               </button>
             </div>
           )}
@@ -453,7 +469,7 @@ export const DocumentLibraryView: React.FC = () => {
             const isDetailLoaded = doc.id === selectedDocId && selectedDocDetail;
             const snippet = isDetailLoaded
               ? selectedDocDetail.content.replace(/^#+.*$/gm, '').trim().slice(0, 140)
-              : 'Edge Worker 및 MinIO 기반의 고성능 문서 파이프라인. 오프라인 로컬 캐시와 실시간 동기화를 지원합니다.';
+              : t('markdownDocs.library.defaultSnippet');
             const wordCountLabel = isDetailLoaded
               ? `${(selectedDocDetail.content.trim() ? selectedDocDetail.content.trim().split(/\s+/).length : 0).toLocaleString()} words`
               : '1,420 words';
@@ -473,8 +489,17 @@ export const DocumentLibraryView: React.FC = () => {
 
         {/* Bottom Status Bar */}
         <div className="h-7 border-t border-outline-variant bg-surface-container-lowest px-3 flex items-center justify-between text-label-sm font-label-sm text-outline font-mono shrink-0">
-          <div>선택: {selectedDocDetail ? selectedDocDetail.title : '선택 없음'}</div>
-          <div>총 {displayedDocuments.length}개 문서</div>
+          <div>
+            {t('markdownDocs.library.selectedPrefix')}
+            {selectedDocDetail
+              ? selectedDocDetail.title
+              : t('markdownDocs.library.noneSelected')}
+          </div>
+          <div>
+            {t('markdownDocs.library.totalDocsCount', {
+              count: displayedDocuments.length,
+            })}
+          </div>
         </div>
       </section>
 

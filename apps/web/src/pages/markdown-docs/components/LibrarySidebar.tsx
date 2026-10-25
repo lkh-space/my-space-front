@@ -1,4 +1,6 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+import '../../../shared/i18n';
 import { FolderTreeNode, TagItem } from '../../../entities/markdown';
 import { FolderTree } from '../../../features/markdown/folder/FolderTree';
 
@@ -28,6 +30,8 @@ export const LibrarySidebar: React.FC<LibrarySidebarProps> = React.memo(
     onOpenEditFolderModal,
     onDeleteFolder,
   }) => {
+    const { t } = useTranslation();
+
     return (
       <aside className="w-64 flex-shrink-0 border-r border-outline-variant bg-surface-container-low flex flex-col justify-between overflow-y-auto">
         <div className="p-3 flex flex-col gap-4">
@@ -40,7 +44,7 @@ export const LibrarySidebar: React.FC<LibrarySidebarProps> = React.memo(
               <button
                 type="button"
                 className="text-outline hover:text-on-surface p-0.5 rounded hover:bg-surface-container transition-colors"
-                title="새 폴더 생성"
+                title={t('markdownDocs.sidebar.newFolderTitle')}
                 onClick={() => onOpenCreateFolderModal(null)}
               >
                 <span className="material-symbols-outlined text-[14px]">
@@ -98,7 +102,9 @@ export const LibrarySidebar: React.FC<LibrarySidebarProps> = React.memo(
                 );
               })}
               {tags.length === 0 && (
-                <span className="text-outline text-xs px-1">등록된 태그 없음</span>
+                <span className="text-outline text-xs px-1">
+                  {t('markdownDocs.sidebar.noTags')}
+                </span>
               )}
             </div>
           </div>

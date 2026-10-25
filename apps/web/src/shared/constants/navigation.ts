@@ -1,10 +1,13 @@
+import type { TFunction } from 'i18next';
+
 export interface WorkspaceNavEntry {
-  id: string;
+  id: 'dashboard' | 'pdf-tools' | 'dbml-tools' | 'docs' | 'ai-workspace';
   path: string;
   title: string;
   shortLabel: string;
   icon: string;
   category: '워크스페이스' | '유틸리티' | '시스템' | '탐색';
+  categoryKey: 'workspace' | 'utility' | 'system' | 'explore';
   breadcrumbPage: string;
   badge?: string;
   end?: boolean;
@@ -25,6 +28,7 @@ export const WORKSPACE_NAV_ENTRIES: WorkspaceNavEntry[] = [
     shortLabel: '대시보드',
     icon: 'dashboard',
     category: '워크스페이스',
+    categoryKey: 'workspace',
     breadcrumbPage: '대시보드',
     end: true,
     commandDescription: '대시보드 (Workspace Overview)',
@@ -37,6 +41,7 @@ export const WORKSPACE_NAV_ENTRIES: WorkspaceNavEntry[] = [
     shortLabel: 'PDF 도구',
     icon: 'picture_as_pdf',
     category: '유틸리티',
+    categoryKey: 'utility',
     breadcrumbPage: 'PDF 처리 엔진',
     commandDescription: 'PDF 처리 엔진 (Merge, Split, Compress)',
     isInstalledUtility: true,
@@ -52,6 +57,7 @@ export const WORKSPACE_NAV_ENTRIES: WorkspaceNavEntry[] = [
     shortLabel: 'DBML',
     icon: 'schema',
     category: '유틸리티',
+    categoryKey: 'utility',
     breadcrumbPage: 'DBML 스키마',
     commandDescription: 'DBML 스키마 변환기 (PostgreSQL, MySQL, DDL)',
     isInstalledUtility: true,
@@ -67,6 +73,7 @@ export const WORKSPACE_NAV_ENTRIES: WorkspaceNavEntry[] = [
     shortLabel: '문서',
     icon: 'description',
     category: '워크스페이스',
+    categoryKey: 'workspace',
     breadcrumbPage: '마크다운 문서',
     commandDescription: '마크다운 문서 뷰어',
     isInstalledUtility: true,
@@ -82,6 +89,7 @@ export const WORKSPACE_NAV_ENTRIES: WorkspaceNavEntry[] = [
     shortLabel: 'AI',
     icon: 'smart_toy',
     category: '워크스페이스',
+    categoryKey: 'workspace',
     breadcrumbPage: 'AI Workspace',
     commandDescription: 'AI 워크스페이스 (로컬 지식 기반 AI 어시스턴트)',
     isInstalledUtility: true,
@@ -102,15 +110,30 @@ export const INSTALLED_UTILITIES = WORKSPACE_NAV_ENTRIES.filter(
 /**
  * URL 경로(pathname)에 대응하는 브레드크럼 정보 반환
  */
-export function getBreadcrumbByPath(pathname: string): {
+export function getBreadcrumbByPath(
+  pathname: string,
+  t?: TFunction,
+): {
   category: string;
   page: string;
 } {
   const match = WORKSPACE_NAV_ENTRIES.find((entry) => entry.path === pathname);
   if (match) {
+    if (t) {
+      return {
+        category: t(`nav.categories.${match.categoryKey}`),
+        page: t(`nav.entries.${match.id}.breadcrumbPage`),
+      };
+    }
     return {
       category: match.category,
       page: match.breadcrumbPage,
+    };
+  }
+  if (t) {
+    return {
+      category: t('nav.categories.explore'),
+      page: t('nav.fallbackPage'),
     };
   }
   return {

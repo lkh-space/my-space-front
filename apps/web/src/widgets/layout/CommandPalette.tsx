@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 import { Command } from 'cmdk';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import '../../shared/i18n';
 import { clearRecentTasks } from '../../shared/utils/storage';
 import { WORKSPACE_NAV_ENTRIES } from '../../shared/constants/navigation';
 
@@ -16,6 +18,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   onTasksCleared,
 }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   // 전역 ⌘K / Ctrl+K 단축키 처리
   useEffect(() => {
@@ -59,7 +62,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         open={open}
         onOpenChange={onOpenChange}
         className="cmdk-dialog"
-        label="my-space 커맨드 메뉴"
+        label={t('commandPalette.dialogLabel')}
       >
         <div className="cmdk-input-wrapper">
           <span className="material-symbols-outlined">
@@ -67,7 +70,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           </span>
           <Command.Input
             className="cmdk-input"
-            placeholder="도구 이동 또는 명령어 입력..."
+            placeholder={t('commandPalette.inputPlaceholder')}
             autoFocus
           />
           <kbd className="command-kbd">ESC</kbd>
@@ -75,10 +78,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
         <Command.List className="cmdk-list">
           <Command.Empty className="cmdk-empty">
-            일치하는 도구 또는 명령어가 없습니다.
+            {t('commandPalette.emptyText')}
           </Command.Empty>
 
-          <Command.Group heading="도구 및 워크스페이스 바로가기">
+          <Command.Group heading={t('commandPalette.shortcutsHeading')}>
             {WORKSPACE_NAV_ENTRIES.map((entry) => (
               <Command.Item
                 key={entry.id}
@@ -88,13 +91,13 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                 <span className="material-symbols-outlined">
                   {entry.icon}
                 </span>
-                <span>{entry.commandDescription}</span>
+                <span>{t(`nav.entries.${entry.id}.commandDescription`)}</span>
                 <span className="cmdk-item-badge">{entry.path}</span>
               </Command.Item>
             ))}
           </Command.Group>
 
-          <Command.Group heading="시스템 및 데이터 관리">
+          <Command.Group heading={t('commandPalette.systemHeading')}>
             <Command.Item
               className="cmdk-item"
               onSelect={handleClearHistory}
@@ -102,16 +105,16 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
               <span className="material-symbols-outlined cmdk-item-danger-icon">
                 delete_sweep
               </span>
-              <span>최근 작업 이력 모두 비우기 (Clear Local Storage)</span>
+              <span>{t('commandPalette.clearHistoryItem')}</span>
               <span className="cmdk-item-badge">Storage</span>
             </Command.Item>
           </Command.Group>
         </Command.List>
 
         <div className="cmdk-footer">
-          <span>↑↓ 탐색</span>
-          <span>↵ 선택</span>
-          <span>ESC 닫기</span>
+          <span>{t('commandPalette.footerNavigate')}</span>
+          <span>{t('commandPalette.footerSelect')}</span>
+          <span>{t('commandPalette.footerClose')}</span>
         </div>
       </Command.Dialog>
     </div>

@@ -1,4 +1,6 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+import '../../../shared/i18n';
 import { PdfOperationMode, PDF_OPERATION_METAS, SelectedPdfFile } from '../types';
 
 interface PdfExecutionSummaryProps {
@@ -25,6 +27,7 @@ export const PdfExecutionSummary: React.FC<PdfExecutionSummaryProps> = ({
   onExecute,
   onReset,
 }) => {
+  const { t } = useTranslation();
   const meta = PDF_OPERATION_METAS[mode];
   const totalBytes = files.reduce((acc, f) => acc + f.size, 0);
 
@@ -33,24 +36,26 @@ export const PdfExecutionSummary: React.FC<PdfExecutionSummaryProps> = ({
   let validationMessage = '';
 
   if (files.length === 0) {
-    validationMessage = '처리할 PDF 파일을 먼저 추가해주세요.';
+    validationMessage = t('pdfTools.summary.validation.noFiles');
   } else if (mode === 'merge') {
     if (files.length < 2) {
-      validationMessage = '병합하려면 2개 이상의 파일이 필요합니다.';
+      validationMessage = t('pdfTools.summary.validation.mergeMinFiles');
     } else {
       canExecute = true;
     }
   } else if (mode === 'split-range') {
     if (files.length !== 1) {
-      validationMessage = '범위 분할은 1개의 파일만 처리 가능합니다.';
+      validationMessage = t(
+        'pdfTools.summary.validation.splitRangeSingleOnly',
+      );
     } else if (!splitRangeInput.trim()) {
-      validationMessage = '페이지 범위를 입력해주세요 (예: 1-3).';
+      validationMessage = t('pdfTools.summary.validation.splitRangeRequired');
     } else {
       canExecute = true;
     }
   } else if (mode === 'split-all' || mode === 'unlock') {
     if (files.length !== 1) {
-      validationMessage = '단일 파일(1개)만 처리 가능합니다.';
+      validationMessage = t('pdfTools.summary.validation.singleFileOnly');
     } else {
       canExecute = true;
     }
@@ -63,28 +68,32 @@ export const PdfExecutionSummary: React.FC<PdfExecutionSummaryProps> = ({
           <span className="material-symbols-outlined" aria-hidden="true">
             receipt_long
           </span>
-          <span>작업 실행 요약</span>
+          <span>{t('pdfTools.summary.title')}</span>
         </h3>
       </div>
 
       <div className="pdf-summary-body">
         <div className="pdf-summary-row">
-          <span className="label">작업 모드</span>
-          <span className="val">{meta.label}</span>
+          <span className="label">{t('pdfTools.summary.modeLabel')}</span>
+          <span className="val">{t(`pdfTools.modes.${mode}.label`)}</span>
         </div>
 
         <div className="pdf-summary-row">
-          <span className="label">예상 산출물</span>
+          <span className="label">
+            {t('pdfTools.summary.expectedOutputLabel')}
+          </span>
           <span className="val">{meta.expectedOutput}</span>
         </div>
 
         <div className="pdf-summary-row">
-          <span className="label">대상 파일 수</span>
-          <span className="val">{files.length}개</span>
+          <span className="label">{t('pdfTools.summary.fileCountLabel')}</span>
+          <span className="val">
+            {t('pdfTools.summary.fileCountValue', { count: files.length })}
+          </span>
         </div>
 
         <div className="pdf-summary-row">
-          <span className="label">총 파일 용량</span>
+          <span className="label">{t('pdfTools.summary.totalSizeLabel')}</span>
           <span className="val">{formatBytes(totalBytes)}</span>
         </div>
 
@@ -94,10 +103,10 @@ export const PdfExecutionSummary: React.FC<PdfExecutionSummaryProps> = ({
         <div className="pdf-security-card">
           <div className="pdf-security-title">
             <span className="material-symbols-outlined">shield</span>
-            <span>100% 로컬 보안 격리</span>
+            <span>{t('pdfTools.summary.securityTitle')}</span>
           </div>
           <p className="pdf-security-desc">
-            업로드된 문서는 외부 클라우드 서버로 유출되지 않으며, 로컬 워크스페이스 환경 내에서만 안전하게 처리됩니다.
+            {t('pdfTools.summary.securityDesc')}
           </p>
         </div>
 
@@ -115,7 +124,7 @@ export const PdfExecutionSummary: React.FC<PdfExecutionSummaryProps> = ({
             onClick={onReset}
             disabled={files.length === 0 && !splitRangeInput}
           >
-            초기화
+            {t('pdfTools.summary.resetBtn')}
           </button>
 
           <button
@@ -127,7 +136,11 @@ export const PdfExecutionSummary: React.FC<PdfExecutionSummaryProps> = ({
             <span className="material-symbols-outlined">
               {isProcessing ? 'progress_activity' : 'play_arrow'}
             </span>
-            <span>{isProcessing ? '처리 중...' : '작업 실행'}</span>
+            <span>
+              {isProcessing
+                ? t('pdfTools.summary.processingBtn')
+                : t('pdfTools.summary.executeBtn')}
+            </span>
           </button>
         </div>
       </div>
