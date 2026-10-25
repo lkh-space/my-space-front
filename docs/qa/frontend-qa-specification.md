@@ -30,7 +30,7 @@ standard: ISO/IEC/IEEE 29119-3:2021 (Agile Tailored Integrated Test Specificatio
 | **`FS-02`** | 대시보드 & 로컬 작업 이력 영속화 | [`dashboard.md`](../specs/dashboard.md) | 벤토 그리드 런처, `localStorage` 최대 10건 FIFO 큐, 손상된 JSON 복원력 |
 | **`FS-03`** | Authelia SSO 인증 & 시스템 버전 헬스체크 | [`authelia-sso-integration.md`](../specs/authelia-sso-integration.md), [`system-version-check.md`](../specs/system-version-check.md) | 권한별 배지(`guest`/`admin`/`local-admin`), 3초 타임아웃 독립 장애 격리, `/version.json` 검증 |
 | **`FS-04`** | PDF 유틸리티 (사전검사/병합/분할/암호해제) | [`pdf-tools.md`](../specs/pdf-tools.md) | 파일 MIME/용량 경계값(50MB/100MB), 페이지 범위 정규식, 도메인 에러 핸들링, Blob 메모리 해제 |
-| **`FS-05`** | DBML 스키마 변환기 & 인터랙티브 ERD | [`dbml-tools.md`](../specs/dbml-tools.md) | 50ms 디바운스 DBML 파서, ERD 캔버스 줌/패닝, 다중 SQL 다이얼렉트 변환 및 오프라인 Fallback |
+| **`FS-05`** | DBML 스키마 변환기 & 인터랙티브 ERD | [`dbml-tools.md`](../specs/dbml-tools.md) | 즉시 동기(`useMemo`) DBML 파서, ERD 캔버스 줌/패닝, 다중 SQL 다이얼렉트 변환 및 오프라인 Fallback |
 | **`FS-06`** | 마크다운 문서 스튜디오 & 리비전 관리 | [`markdown-docs.md`](../specs/markdown-docs.md) | 문서/폴더 CRUD, 순환 참조 방지, `DOMPurify` XSS 방어, OpenSearch 검색, 버전 Diff/복원 |
 | **`FS-07`** | AI 워크스페이스 (J.A.R.V.I.S. Neural Core) | [`ai-workspace.md`](../specs/ai-workspace.md) | PTT(`MediaRecorder`) 상태 전이, SSE 스트리밍 파싱, 발화 즉시 중단(`AbortController`), 마크다운 연동 |
 | **`FS-08`** | 런타임 환경변수 주입 & 전역 에러 복원력 | [`ADR-0001`](../adr/0001-api-client-and-proxy-strategy.md), [`ADR-0002`](../adr/0002-frontend-docker-deployment-and-runtime-env-strategy.md) | `window.__ENV__` 우선순위 해석, 전역 `ErrorBoundary` 격리, 비-JSON 502 응답 정규화 |
@@ -168,7 +168,7 @@ standard: ISO/IEC/IEEE 29119-3:2021 (Agile Tailored Integrated Test Specificatio
 | **PDF-06** | `UC-F-P03`<br>`BR-F-P04` | 범위 분할(`split-range`) 입력 정규식 및 최대 페이지 초과 검증 | **P0**<br>`BVA` / `EP` | `TD-PDF-01` (10페이지) 업로드 + '범위 분할' 탭 | 1. `"abc"`, `"1..3"`, `"0"` 입력<br>2. `"1-11"` (10페이지 초과) 입력<br>3. `"1-3, 5"` 입력 후 실행 | **[기대 결과]** 1, 2번은 인라인 에러 표시 및 실행 차단. 3번은 `POST /api/v1/pdf/split/range` 호출 후 추출된 PDF 다운로드 |
 | **PDF-07** | `UC-F-P04` | 낱장 분할(`split-all`) 실행 및 ZIP 아카이브 다운로드 | **P1**<br>`EP` | `TD-PDF-01` 업로드 + '낱장 분할' 탭 | '작업 실행' 클릭 | **[기대 결과]** `POST /api/v1/pdf/split/all` 응답(`application/zip`)을 받아 `.zip` 파일 다운로드 실행 |
 | **PDF-08** | `UC-F-P05` | 암호 해제(`unlock`) 및 백엔드 도메인 예외 코드(422) 매핑 검증 | **P0**<br>`DT` / `FI` | '암호 해제' 탭 | 1. `TD-PDF-02` + 오타 비밀번호 입력 (`PDF_INVALID_PASSWORD`)<br>2. `TD-PDF-01` 암호 없는 파일 실행 (`PDF_NOT_PASSWORD_PROTECTED`)<br>3. `TD-PDF-02` + `"pass1234"` 정상 실행 | **[기대 결과]** 각 도메인 에러 코드에 매핑된 한국어 안내 메시지가 정확히 표시되며, 3번 성공 시 복호화된 PDF 다운로드 |
-| **PDF-09** | `RISK-02` | 변환 중 중복 요청 차단 및 `URL.revokeObjectURL` 메모리 해제 | **P1**<br>`ST` | 변환 API 응답 대기 중 (`isProcessing: true`) | 1. 실행 버튼 연속 클릭 시도<br>2. 다운로드 완료 후 `triggerFileDownload` 내부 호출 확인 | **[기대 결과]** 처리 중 버튼/드롭존 `disabled`로 중복 요청 `0건` 보장<br>**[사후 조건]** 임시 생성된 `<a download>` DOM 제거 및 `URL.revokeObjectURL` 호출 완료 |
+| **PDF-09** | `RISK-02` | 변환 중 중복 요청 차단 및 `URL.revokeObjectURL` 메모리 해제 | **P1**<br>`ST` | 변환 API 응답 대기 중 (`isProcessing: true`) | 1. 실행 버튼 연속 클릭 시도<br>2. 다운로드 완료 후 `triggerBlobDownload` 내부 호출 확인 | **[기대 결과]** 처리 중 버튼/드롭존 `disabled`로 중복 요청 `0건` 보장<br>**[사후 조건]** 임시 생성된 `<a download>` DOM 제거 및 `URL.revokeObjectURL` 호출 완료 |
 
 ---
 
@@ -178,7 +178,7 @@ standard: ISO/IEC/IEEE 29119-3:2021 (Agile Tailored Integrated Test Specificatio
 
 | TC ID | 추적성 (Req / Risk) | 테스트 조건 (Test Condition) | 우선순위 / 기법 | 사전 조건 (Preconditions) | 입력 및 테스트 절차 (Inputs & Procedure) | 기대 결과 및 사후 조건 (Expected Results & Postconditions) |
 | :--- | :--- | :--- | :---: | :--- | :--- | :--- |
-| **DBML-01** | `UC-DBML-01`<br>`UC-DBML-02` | 실시간 DBML 파싱 및 ERD 테이블/외래키 곡선 렌더링 | **P0**<br>`EP` | `/dbml-tools` 진입 | `TD-DBML-01` 샘플 스키마 로드 또는 직접 타이핑 | **[기대 결과]** 50ms 디바운스 후 우측 캔버스에 테이블 카드 3개와 SVG 베지어 곡선 2개가 렌더링되고, 하단에 `Schema Valid (3 tables, 2 refs)` 표시 |
+| **DBML-01** | `UC-DBML-01`<br>`UC-DBML-02` | 실시간 DBML 파싱 및 ERD 테이블/외래키 곡선 렌더링 | **P0**<br>`EP` | `/dbml-tools` 진입 | `TD-DBML-01` 샘플 스키마 로드 또는 직접 타이핑 | **[기대 결과]** 즉시 동기 파싱(`useMemo`, 0~10ms) 후 우측 캔버스에 테이블 카드 3개와 SVG 베지어 곡선 2개가 렌더링되고, 하단에 `Schema Valid (3 tables, 2 refs)` 표시 |
 | **DBML-02** | `UC-DBML-01` | 비정상 DBML 구문 입력 시 에러 라인 감지 및 캔버스 보호 | **P0**<br>`FI` | `TD-DBML-01` 정상 렌더링 상태 | 에디터에 `TD-DBML-02` (문법 오류 구문) 입력 | **[기대 결과]** 에디터 하단 상태바에 `Line X` 에러 메시지와 붉은색 배지가 표시되며, 런타임 크래시 없이 ERD 뷰가 유지됨 |
 | **DBML-03** | `UC-DBML-03`<br>`RISK-03` | 다중 SQL 다이얼렉트 변환 및 백엔드 오프라인 Fallback 검증 | **P1**<br>`DT` / `FI` | 유효한 DBML 작성 상태 | 1. `PostgreSQL`, `MySQL`, `SQLite`, `MSSQL` 선택 후 변환 실행<br>2. 백엔드 API 네트워크 차단 후 변환 실행 | **[기대 결과]** `SqlPreviewModal`이 열리며 각 DB 문법에 맞는 DDL이 출력됨. 백엔드 오프라인 시에도 내장 클라이언트 Fallback 엔진으로 즉시 DDL 생성 및 클립보드 복사 성공 |
 | **DBML-04** | `UC-DBML-04` | SQL DDL → DBML 역변환 및 코드 포맷팅 | **P2**<br>`EP` | 유효한 `CREATE TABLE` SQL 준비 | SQL Import 실행 후 `Format Code` 클릭 | **[기대 결과]** SQL이 DBML 구문으로 역변환되어 에디터에 반영되고 ERD가 즉시 갱신됨 |
@@ -198,7 +198,7 @@ standard: ISO/IEC/IEEE 29119-3:2021 (Agile Tailored Integrated Test Specificatio
 | **MD-03** | `UC-MD-01` | Frontmatter, GFM, KaTeX 수식, Mermaid 다이어그램 통합 렌더링 | **P1**<br>`EP` | 에디터 진입 | `TD-MD-02` 입력 후 우측 프리뷰 및 코드 복사 버튼 확인 | **[기대 결과]** YAML Frontmatter 매니페스트 카드, GFM 표, KaTeX 수식, Mermaid SVG가 정상 렌더링되고 코드 블록 클립보드 복사가 동작함 |
 | **MD-04** | `UC-MD-10`<br>`RISK-05` | 계층형 폴더 부모 변경 시 순환 참조(Circular Dependency) 차단 | **P1**<br>`DT` / `BVA` | 폴더 트리 `A` → `B`(자식) → `C`(손자) 존재 | 폴더 `A`의 수정 모달(`FolderFormModal`)을 열고 부모 폴더 선택 드롭다운 확인 | **[기대 결과]** 자기 자신(`A`) 및 하위 자손(`B`, `C`)은 부모 선택지에서 비활성화(`disabled`)되거나 제외되어 순환 참조가 원천 차단됨 |
 | **MD-05** | `UC-MD-10` | 폴더 삭제 시 내부 문서 미분류(Root) 안전 이관 | **P1**<br>`ST` | 문서 2개가 속한 폴더 `A` 존재 | 폴더 `A` 삭제(`DELETE /folders/:id`) 실행 | **[기대 결과]** 폴더 `A`는 트리에서 제거되나, 내부 문서 2개는 삭제되지 않고 전체/미분류 목록에서 정상 조회됨 |
-| **MD-06** | `UC-MD-03` | OpenSearch 전문 검색 300ms 디바운스 및 `<mark>` 스니펫 하이라이트 | **P1**<br>`BVA` | `/docs` 검색창 포커스 | 300ms 이내에 `"k3s"` 연속 타이핑 | **[기대 결과]** 타이핑 완료 300ms 후 `GET /search?q=k3s`가 단 1회 호출되며, 결과 카드 스니펫에 `<mark>k3s</mark>` 하이라이트가 표시됨 |
+| **MD-06** | `UC-MD-03` | OpenSearch 전문 검색 250ms 디바운스 및 `<mark>` 스니펫 하이라이트 | **P1**<br>`BVA` | `/docs` 검색창 포커스 | 250ms 이내에 `"k3s"` 연속 타이핑 | **[기대 결과]** 타이핑 완료 250ms 후 `GET /search?q=k3s`가 단 1회 호출되며, 결과 카드 스니펫에 `<mark>k3s</mark>` 하이라이트가 표시됨 |
 | **MD-07** | `UC-MD-04` | 에디터 이미지 드래그앤드롭 / 클립보드 붙여넣기 업로드 및 용량 검증 | **P1**<br>`BVA` / `EP` | 에디터 본문 포커스 | 1. 5MB PNG 이미지를 드롭 또는 Paste<br>2. 11MB(10MB 초과) 이미지 또는 `.exe` 파일 드롭 | **[기대 결과]** 1번은 `POST /assets/upload` 성공 후 커서 위치에 `![...](/api/v1/markdown/assets/...)`가 자동 삽입됨. 2번은 업로드 차단 및 에러 토스트 표시 |
 | **MD-08** | `UC-MD-06`<br>`UC-MD-07` | 리비전 타임라인 조회, 두 버전 간 Diff 비교 및 과거 버전 복원 | **P1**<br>`ST` | `v1`, `v2` 리비전이 존재하는 문서 | 1. `RevisionHistoryModal` 오픈 후 `v1` vs `v2` Diff 조회<br>2. `v1` 선택 후 '이 버전으로 복원' 승인 | **[기대 결과]** 추가/삭제 라인이 색상별로 비교 표시되며, 복원 실행 시 `POST /revisions/:version/restore` 호출 후 본문이 복원됨 |
 | **MD-09** | `UC-MD-01` | 상세 뷰 우측 스티키 목차(`StickyToc`) 자동 추출 및 스크롤 이동 | **P2**<br>`EP` | `TD-MD-02`로 생성된 문서 상세 뷰(`/docs/:id`) | 우측 `StickyToc`의 헤딩 링크 클릭 | **[기대 결과]** 문서 내 `H1~H3` 계층이 목차로 추출되며, 클릭 시 해당 앵커 위치로 스크롤 이동함 |

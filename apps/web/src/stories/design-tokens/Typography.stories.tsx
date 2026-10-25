@@ -67,7 +67,7 @@ export const FontFamilies: StoryObj = {
           </span>
         </div>
         <p style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--primary)', marginBottom: '4px' }}>
-          const runtime = 'LOCAL_SANDBOX'; // ⌘K
+          const runtime = 'LOCAL_SANDBOX'; // ZERO_TELEMETRY
         </p>
         <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-muted)' }}>
           127.0.0.1:4200 · SHA-256: 7f83b165... · 24ms

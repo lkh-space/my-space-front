@@ -15,7 +15,7 @@ decision-makers: [Keunhyeok Lim]
 ## 의사결정 동기 (Decision Drivers)
 
 * **실무 표준 생태계 준수**: 업계 표준 다국어 라이브러리(`i18next`, `react-i18next`)를 활용하여 일관된 번역 리소스 관리, 보간(Interpolation), 네임스페이스 확장성 확보
-* **한국어(KR) 기본값 및 무결성 유지**: 기존 한국어 문구와 단위 테스트 스위트(33개 spec 파일)가 별도의 복잡한 테스트 수정 없이도 기본 로케일(`ko`)에서 100% 그대로 동작해야 함
+* **한국어(KR) 기본값 및 무결성 유지**: 기존 한국어 문구와 단위 테스트 스위트(34개 spec 파일)가 별도의 복잡한 테스트 수정 없이도 기본 로케일(`ko`)에서 100% 그대로 동작해야 함
 * **사용자 언어 설정 영속화**: 사용자가 선택한 언어(`ko` / `en`)를 `localStorage`(`my-space:locale`)에 보존하고 `<html lang>` 속성과 실시간 동기화
 * **TypeScript 기반 번역 키 관리**: 한국어(`ko.ts`)와 영어(`en.ts`) 리소스 구조의 일관성을 유지하여 번역 누락 방지
 
@@ -34,13 +34,13 @@ decision-makers: [Keunhyeok Lim]
 ### 기대 효과 및 영향 (Consequences)
 
 * **장점**:
-  * `useTranslation` 훅과 `i18n.changeLanguage`를 통해 헤더 `KR / EN` 토글 클릭 즉시 전체 워크스페이스 셸(사이드바, 브레드크럼, 바텀바, 커맨드 팔레트) 및 주요 페이지가 실시간 전환됨
+  * `useTranslation` 훅과 `i18n.changeLanguage`를 통해 헤더 `KR / EN` 토글 클릭 즉시 전체 워크스페이스 셸(사이드바, 브레드크럼, 바텀바) 및 모든 주요 유틸리티 페이지가 실시간 전환됨
   * `apps/web/src/shared/i18n` 단일 모듈에서 초기화되어 애플리케이션 진입점(`main.tsx` / `app.tsx`) 및 테스트 환경에서도 자동으로 한국어(`ko`) 기본 리소스가 로드됨
 * **단점**:
   * `i18next`, `react-i18next` 런타임 의존성이 `package.json`에 추가됨
 
 ### 구현 검증 계획 (Confirmation)
 
-1. 상단 헤더 `EN` 버튼 클릭 시 브레드크럼, 사이드바/바텀바 메뉴, 커맨드 팔레트, 대시보드 및 주요 유틸리티 UI가 영문으로 즉시 전환되는지 확인
+1. 상단 헤더 `EN` 버튼 클릭 시 브레드크럼, 사이드바/바텀바 메뉴, 대시보드 및 주요 유틸리티 UI가 영문으로 즉시 전환되는지 확인
 2. `localStorage`의 `my-space:locale`에 선택 언어가 저장되고 새로고침 시 복원되는지 단위 테스트로 검증
 3. `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm lint` 4대 검증 통과 확인

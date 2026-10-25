@@ -90,10 +90,23 @@ export const InputsAndShortcuts: StoryObj = {
           단축키 캡슐 (&lt;kbd&gt;)
         </span>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <kbd className="command-kbd">⌘K</kbd>
-          <kbd className="command-kbd">ESC</kbd>
-          <kbd className="command-kbd">↵</kbd>
-          <kbd className="command-kbd">Ctrl+C</kbd>
+          {['⌘F', 'ESC', '↵', 'Ctrl+C'].map((key) => (
+            <kbd
+              key={key}
+              style={{
+                padding: '2px 6px',
+                borderRadius: 'var(--radius-sm)',
+                backgroundColor: 'var(--surface-container-highest)',
+                border: '1px solid var(--outline-variant)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '11px',
+                fontWeight: 500,
+                color: 'var(--on-surface-variant)',
+              }}
+            >
+              {key}
+            </kbd>
+          ))}
         </div>
       </div>
     </div>

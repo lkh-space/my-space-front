@@ -103,10 +103,10 @@ src/pages/dbml-tools/
 ```mermaid
 graph TD
     User[사용자 입력] --> Editor[CodeMirror 에디터]
-    Editor -->|onChange (Debounced 50ms)| LocalParser[경량 dbmlParser]
+    Editor -->|onChange (즉시 동기 파싱 useMemo 0~10ms)| LocalParser[경량 dbmlParser]
     LocalParser -->|성공| SchemaModel[Schema AST 모델]
     LocalParser -->|실패| ErrorState[에러 상태 업데이트]
-    SchemaModel --> LayoutEngine[erdLayout 배치 엔진]
+    SchemaModel --> LayoutEngine[erdLayout 배치 엔진: Hierarchical / Grid]
     LayoutEngine --> Canvas[ErdCanvas & SvgRelations 렌더링]
     
     User -->|변환 요청| BackendApi[POST /api/v1/dbml/export-sql]

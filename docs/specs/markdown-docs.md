@@ -32,7 +32,7 @@ UI 디자인 및 컴포넌트 레이아웃은 **Stitch의 3대 핵심 디자인 
 * **체계적 탐색 및 검색**:
   * 계층형 폴더(Tree View) 생성/수정/삭제 (순환 참조 방지 적용)
   * 다중 태그 필터링 및 카운트 배지 표출
-  * OpenSearch 연동 실시간 전문 검색(디바운스 300ms) 및 `<mark>` 하이라이트 스니펫 노출
+  * OpenSearch 연동 실시간 전문 검색(디바운스 250ms) 및 `<mark>` 하이라이트 스니펫 노출
 * **파일 Import / Export**:
   * `.md` 파일 로컬 가져오기(Import)
   * 원본 마크다운(`.md`) 다운로드 및 렌더링 결과물 기반 PDF 내보내기
@@ -48,7 +48,7 @@ UI 디자인 및 컴포넌트 레이아웃은 **Stitch의 3대 핵심 디자인 
 
 | 경로 (Route) | 뷰 명칭 | 주요 레이아웃 | 설명 |
 | :--- | :--- | :--- | :--- |
-| `/docs` | `MarkdownLibraryView` | **Tri-Pane (3단 패널)** | 좌측 폴더/태그 트리(256px) + 중앙 검색/목록 + 우측 문서 인스펙터(288px) |
+| `/docs` | `DocumentLibraryView` | **Tri-Pane (3단 패널)** | 좌측 폴더/태그 트리(256px) + 중앙 검색/목록 + 우측 문서 인스펙터(288px) |
 | `/docs/new` | `MarkdownEditorView` | **Split View (50:50)** | 상단 서브헤더 + 좌측 CodeMirror 에디터 + 우측 실시간 렌더 프리뷰 + 하단 상태바 |
 | `/docs/:id` | `MarkdownDetailView` | **Article & Sticky TOC** | 상단 메타 스트립 & 액션바 + 중앙 읽기 뷰(최대 896px) + 우측 플로팅 TOC(256px) |
 | `/docs/:id/edit` | `MarkdownEditorView` | **Split View (50:50)** | 기존 문서 데이터 불러오기 후 수정 모드 |
@@ -61,7 +61,7 @@ UI 디자인 및 컴포넌트 레이아웃은 **Stitch의 3대 핵심 디자인 
 | :--- | :--- | :--- | :--- |
 | `UC-MD-01` | 개발자 | 새 마크다운 문서 작성 및 저장 | 1. `/docs`에서 `+ 새 문서 작성` 클릭 → 2. `/docs/new` 에디터 이동 → 3. 제목/폴더/태그 설정 및 본문 작성 → 4. 실시간 프리뷰 확인 → 5. `저장 (Save)` 클릭 → 6. 생성 완료 후 상세 뷰(`/docs/:id`)로 이동 |
 | `UC-MD-02` | 개발자 | 폴더 및 태그 기반 문서 탐색 | 1. `/docs` 좌측 패널에서 폴더 트리 확장/클릭 → 2. 해당 폴더 문서 목록 필터링 → 3. 특정 태그(`#architecture`) 클릭하여 교집합 필터링 |
-| `UC-MD-03` | 개발자 | OpenSearch 전문 검색 수행 | 1. 검색창에 검색어 입력(또는 ⌘F 단축키) → 2. 300ms 디바운스 후 백엔드 검색 호출 → 3. `<mark>` 하이라이트 스니펫 확인 → 4. 카드 클릭 시 상세 페이지 이동 |
+| `UC-MD-03` | 개발자 | OpenSearch 전문 검색 수행 | 1. 검색창에 검색어 입력(또는 ⌘F 단축키) → 2. 250ms 디바운스 후 백엔드 검색 호출 → 3. `<mark>` 하이라이트 스니펫 확인 → 4. 카드 클릭 시 상세 페이지 이동 |
 | `UC-MD-04` | 개발자 | 에디터에 이미지 첨부 | 1. 에디터 영역에 로컬 이미지 파일 드래그앤드롭 또는 클립보드 이미지 붙여넣기(Paste) → 2. `POST /assets/upload` 호출 → 3. `![파일명](/api/v1/markdown/assets/...)` 자동 삽입 |
 | `UC-MD-05` | 개발자 | 문서 수정 및 새 버전 생성 | 1. `/docs/:id`에서 `수정하기 (Edit Document)` 클릭 → 2. `/docs/:id/edit` 이동 → 3. 본문 수정 후 저장 → 4. 백엔드에서 버전 증가(v1 → v2) 및 리비전 생성 확인 |
 | `UC-MD-06` | 개발자 | 버전 이력 조회 및 Diff 비교 | 1. 상단 `버전 이력 (History)` 버튼 클릭 → 2. 리비전 모달 오픈 → 3. 두 버전(v1 vs v2) 선택 후 비교 요청 → 4. 변경된 텍스트 Diff 시각화 확인 |
@@ -79,25 +79,17 @@ apps/web/src/
 ├── entities/
 │   └── markdown/
 │       ├── model/
-│       │   └── types.ts             # Folder, Tag, Document, Revision, Search DTO 타입
-│       ├── api/
-│       │   ├── markdownApi.ts       # REST 클라이언트 (fetch 기반 엔드포인트 연동)
-│       │   ├── useFolders.ts        # 폴더 트리 조회/생성/수정/삭제 훅
-│       │   ├── useTags.ts           # 태그 목록 훅
-│       │   ├── useDocuments.ts      # 문서 목록 및 페이징/필터링 훅
-│       │   ├── useDocumentDetail.ts # 단일 문서 상세 조회 훅
-│       │   ├── useRevisions.ts      # 리비전 이력 및 Diff 비교 훅
-│       │   └── useSearch.ts         # OpenSearch 디바운스 검색 훅
-│       └── index.ts
+│       │   └── types.ts                # Folder, Tag, Document, Revision, Search DTO 타입
+│       └── api/
+│           └── markdownApi.ts          # REST 클라이언트 (폴더/태그/문서/리비전/검색/에셋 API 연동)
 ├── features/
 │   └── markdown/
 │       ├── editor/
-│       │   ├── MarkdownCodeEditor.tsx  # CodeMirror 기반 마크다운 입력기
-│       │   ├── MarkdownPreview.tsx     # GFM + KaTeX + Mermaid 렌더러
 │       │   └── useAssetUpload.ts       # 이미지 드래그/드롭/붙여넣기 업로드 훅
+│       ├── renderer/
+│       │   └── MarkdownPreview.tsx     # GFM + KaTeX + Mermaid + Frontmatter 렌더러
 │       ├── revision/
-│       │   ├── RevisionHistoryModal.tsx # 버전 타임라인 모달
-│       │   └── RevisionDiffViewer.tsx   # 두 버전 간 텍스트 차이 뷰어
+│       │   └── RevisionHistoryModal.tsx # 버전 타임라인 조회, Diff 비교 및 복원 모달
 │       └── folder/
 │           ├── FolderTree.tsx          # 계층형 트리 컴포넌트
 │           └── FolderFormModal.tsx     # 폴더 생성/수정 모달
@@ -109,8 +101,9 @@ apps/web/src/
 │       │   ├── MarkdownEditorView.tsx  # Stitch 화면 2 (Split View 에디터)
 │       │   └── MarkdownDetailView.tsx  # Stitch 화면 3 (독서 모드 포스트 뷰)
 │       ├── components/
+│       │   ├── LibrarySidebar.tsx      # 라이브러리 좌측 폴더 트리 및 태그 필터 패널
+│       │   ├── DocumentCardItem.tsx    # 문서 리스트 아이템 카드
 │       │   ├── DocumentInspector.tsx   # 라이브러리 우측 메타데이터 인스펙터
-│       │   ├── DocumentCard.tsx        # 문서 리스트 아이템 카드
 │       │   └── StickyToc.tsx           # 상세 뷰 우측 플로팅 목차
 │       ├── styles/
 │       │   ├── markdown-docs.css       # 라이브러리 및 레이아웃 CSS (DESIGN.md 준수)
@@ -185,23 +178,23 @@ apps/web/src/
 3. **에러 피드백**:
    - 백엔드 에러 응답(`{ statusCode, message, code }`) 수신 시 토스트 알림으로 사용자에게 즉시 안내
 4. **입력 지연 방지 (Performance)**:
-   - 수천 줄의 긴 마크다운 작성 시 타이핑 지연을 방지하기 위해 실시간 프리뷰 렌더링에 150ms 디바운스 또는 `startTransition` 적용
+   - 수천 줄의 긴 마크다운 작성 시 타이핑 지연을 방지하기 위해 실시간 프리뷰 렌더링에 250ms 디바운스 적용
 
 ---
 
-## 9. 외부 라이브러리 도입 계획
+## 9. 외부 라이브러리 도입 현황
 
-`AGENTS.md`의 의존성 관리 원칙에 따라, 실시간 렌더링 및 에디터 구현에 꼭 필요한 최소한의 검증된 경량 패키지만 선별하여 설치합니다:
+`AGENTS.md`의 의존성 관리 원칙에 따라, 실시간 렌더링 및 에디터 구현에 꼭 필요한 최소한의 검증된 경량 패키지만 선별하여 적용합니다:
 
-| 패키지명 | 버전 권장 | 용도 |
+| 패키지명 | 설치 버전 | 용도 |
 | :--- | :--- | :--- |
-| `@codemirror/lang-markdown` | `^6.3.0` | CodeMirror 마크다운 구문 강조 및 에디터 지원 (기존 `@uiw/react-codemirror`와 결합) |
-| `marked` | `^15.0.0` | 고속 마크다운 / GFM 파싱 |
-| `dompurify` / `@types/dompurify` | `^3.2.0` | 렌더링된 HTML에 대한 XSS 방어 새니타이저 |
-| `katex` / `@types/katex` | `^0.16.0` | 수학 수식 렌더링 |
-| `mermaid` | `^11.4.0` | 다이어그램(Flowchart, Sequence 등) 렌더링 |
-| `yaml` | `^2.7.0` | Frontmatter 파싱 및 직렬화 |
-| `diff` / `@types/diff` | `^7.0.0` | 리비전 버전 비교 시 텍스트 차이점 계산 |
+| `@codemirror/lang-markdown` | `^6.3.2` | CodeMirror 마크다운 구문 강조 및 에디터 지원 (기존 `@uiw/react-codemirror`와 결합) |
+| `marked` | `^18.0.14` | 고속 마크다운 / GFM 파싱 |
+| `dompurify` / `@types/dompurify` | `^3.4.16` | 렌더링된 HTML에 대한 XSS 방어 새니타이저 |
+| `katex` / `@types/katex` | `^0.19.0` | 수학 수식 렌더링 |
+| `mermaid` | `^12.1.0` | 다이어그램(Flowchart, Sequence 등) 렌더링 |
+| `yaml` | `^2.9.1` | Frontmatter 파싱 및 직렬화 |
+| `diff` / `@types/diff` | `^9.0.0` | 리비전 버전 비교 시 텍스트 차이점 계산 |
 
 ---
 

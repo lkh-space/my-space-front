@@ -11,6 +11,8 @@
 * **Application**: React 19, TypeScript
 * **Bundler & Dev Server**: Vite
 * **Test Runner**: Vitest (JSDOM)
+* **Internationalization**: i18next + react-i18next (KR / EN)
+* **Component Catalog**: Storybook (`@nx/storybook`)
 * **Styling**: Vanilla CSS (토큰 기반 [DESIGN.md](./DESIGN.md) 준수)
 * **Lint & Format**: ESLint (Flat Config) + Prettier
 
@@ -25,15 +27,17 @@ my-space-front/
 │       ├── src/
 │       │   ├── app/           # 루트 라우터, 엔트리 및 프로바이더
 │       │   ├── pages/         # 라우트 단위 페이지 컴포넌트 (대시보드, PDF, DBML, Docs, AI)
-│       │   ├── widgets/       # 합성 위젯 (Header, ShellLayout, SideNav, BottomNav, ⌘K)
-│       │   ├── features/      # 사용자 인터랙션 기능 단위 (Markdown 에디터/렌더러 등)
+│       │   ├── widgets/       # 합성 위젯 (Header, ShellLayout, SideNav, BottomNav)
+│       │   ├── features/      # 사용자 인터랙션 기능 단위 (Markdown 에디터/렌더러, AI 등)
 │       │   ├── entities/      # 비즈니스 도메인 모델 및 API 연동 (Auth, AI, Markdown, Version)
-│       │   ├── shared/        # 공통 API 클라이언트, 환경설정, 유틸리티, 디자인 토큰
+│       │   ├── shared/        # 공통 API 클라이언트, 다국어(i18n), 환경설정, 유틸리티
+│       │   ├── stories/       # 디자인 토큰 및 UI 컴포넌트 Storybook 스토리
 │       │   └── styles.css     # 시맨틱 디자인 토큰 및 글로벌 스타일
 │       └── vite.config.mts
 ├── docs/                      # SDD(Spec-Driven Development) 문서 체계
 │   ├── adr/                   # 아키텍처 결정 기록 (MADR)
-│   └── specs/                 # 기능별 요구사항 및 인터랙션 사양서
+│   ├── specs/                 # 기능별 요구사항 및 인터랙션 사양서
+│   └── qa/                    # 프론트엔드 품질보증(QA) 및 테스트 명세서
 ├── AGENTS.md                  # 프로젝트 컨텍스트 및 에이전트/개발 원칙
 └── DESIGN.md                  # UI 디자인 시스템 Single Source of Truth
 ```
@@ -54,8 +58,6 @@ pnpm install
 
 ```bash
 pnpm dev
-# 또는
-pnpm start
 ```
 
 ### 3. 검증 및 빌드
@@ -72,6 +74,9 @@ pnpm build
 
 # 코드 린트 검사
 pnpm lint
+
+# Storybook 컴포넌트 카탈로그 실행 (http://localhost:6006)
+pnpm storybook
 ```
 
 ---

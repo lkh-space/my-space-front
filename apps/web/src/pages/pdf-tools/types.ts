@@ -11,7 +11,7 @@ export type PdfOperationMode =
  * 백엔드 사전 검사 응답 DTO(InspectPdfResponse)를 상속받아 필드 중복을 제거하고 단일 진실 공급원을 유지합니다.
  */
 export interface SelectedPdfFile extends Partial<InspectPdfResponse> {
-  id: string; // 클라이언트 고유 식별자 (crypto.randomUUID() 등)
+  id: string; // 클라이언트 고유 식별자 (`pdf-${Date.now()}-${random}`)
   file: File;
   name: string;
   size: number;
@@ -24,6 +24,7 @@ export interface PdfToolsState {
   mode: PdfOperationMode;
   files: SelectedPdfFile[];
   splitRangeInput: string;
+  unlockPassword?: string;
   isProcessing: boolean;
   globalError: string | null;
 }

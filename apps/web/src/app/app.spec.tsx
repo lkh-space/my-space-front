@@ -94,7 +94,7 @@ describe('App', () => {
     });
   });
 
-  describe('플레이스홀더 및 404 라우팅', () => {
+  describe('유틸리티 페이지 및 404 라우팅', () => {
     it('/pdf-tools 경로 접속 시 PDF 처리 엔진 페이지를 렌더링해야 한다', async () => {
       renderApp(['/pdf-tools']);
 

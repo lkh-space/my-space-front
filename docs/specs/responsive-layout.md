@@ -52,13 +52,13 @@ last-updated: 2026-09-25
 - **시나리오**: 사용자가 데스크톱에서 브라우저 창의 가로폭을 줄이거나, 화면 분할(Split Screen) 모드를 활성화함.
 - **동작**:
   1. 가로폭이 1024px 미만으로 줄어들면, 좌측 사이드바가 240px에서 64px 아이콘 전용 모드로 즉시 축소되며 본문 좌측 오프셋이 `64px`로 조정됨.
-  2. 텍스트 라벨과 ⌘K 검색창은 부드럽게 사라지고, 아이콘 중심 탭으로 간결화됨.
+  2. 텍스트 라벨과 섹션 타이틀은 부드럽게 사라지고, 아이콘 중심 탭으로 간결화됨.
   3. 가로폭이 768px 미만으로 줄어들면, 사이드바가 완전히 숨겨지고 화면 최하단에 56px 높이의 `BottomNavBar`가 표시됨. 본문 최하단에 `pb-20` 패딩이 유지되어 내용이 바텀바에 가려지지 않음.
 
 ### UC-RESP-02: 모바일 환경에서의 한 손 네비게이션
 - **시나리오**: 스마트폰 브라우저에서 `my-space`에 접속함.
 - **동작**:
-  1. 상단에는 48px 반투명 헤더(터미널 아이콘 + 브랜드 로고 + `LOCAL` 점)가 고정 표시됨.
+  1. 상단에는 48px 반투명 헤더(브랜드 아바타 `μ` + 브랜드 로고 + `LOCAL` 점)가 고정 표시됨.
   2. 하단에는 화면 전체 너비의 고정 바텀바가 노출되며, 5개 도구(대시보드, PDF, DBML, 문서, AI) 탭이 수평 배치됨.
   3. 현재 활성 탭은 에메랄드/블루 액센트(`text-primary`)와 채워진 아이콘(`FILL: 1`)으로 즉시 식별됨.
   4. 탭 클릭 시 페이지가 즉시 전환되며, 터치 시 미세한 축소 피드백(`scale(0.96)`)이 제공됨.
@@ -88,9 +88,9 @@ last-updated: 2026-09-25
   5. **AI 비서**: 아이콘 `neurology`, 라벨 `AI`, 링크 `/ai`
 * **탭 UI 구조**:
   ```tsx
-  <NavLink to={tab.path} className={({ isActive }) => `bottom-tab-item ${isActive ? 'active' : ''}`}>
-    <span className="material-symbols-outlined tab-icon">{tab.icon}</span>
-    <span className="tab-label">{tab.label}</span>
+  <NavLink to={item.path} end={item.end} className={({ isActive }) => `bottom-tab-item ${isActive ? 'active' : ''}`}>
+    <span className="material-symbols-outlined bottom-tab-icon">{item.icon}</span>
+    <span className="bottom-tab-label">{t(`nav.entries.${item.id}.shortLabel`)}</span>
   </NavLink>
   ```
   * 활성 상태: `color: var(--primary)`, 아이콘 `FILL: 1`, 라벨 `font-medium`

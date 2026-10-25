@@ -21,7 +21,7 @@ export const DashboardPage: React.FC = () => {
   useEffect(() => {
     loadTasks();
 
-    // CommandPalette 등 외부에서 작업 기록이 변경/비워졌을 때 수신
+    // 유틸리티(PDF, 마크다운 등) 외부에서 작업 기록이 추가/변경되었을 때 수신
     const handleUpdated = () => {
       loadTasks();
     };
@@ -40,7 +40,7 @@ export const DashboardPage: React.FC = () => {
       {/* 1. Header with Overview Title & Local Isolation Badge */}
       <WorkspaceHeader />
 
-      {/* 2. 3-Column Bento Grid of Installed Utilities */}
+      {/* 2. Bento Grid of Installed Utilities */}
       <InstalledUtilitiesGrid />
 
       {/* 3. 60:40 Split Monitoring Section */}

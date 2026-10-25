@@ -17,8 +17,8 @@ last-updated: 2026-10-03
   * `guest`: `[체험 모드] Guest Reviewer` (노란색/연하늘색 톤)
   * `admin`: `[관리자] Administrator` (보라색 톤)
   * `local-admin`: `[로컬 개발] Local Developer` (에메랄드/청록 톤)
-* **로그아웃 흐름 구현**: 클릭 시 `https://auth.homelab.local/logout`으로 이동하여 Authelia 중앙 세션 해제
-* **로컬 개발 DX 보장**: `npm run dev` 실행 시 Vite 개발 프록시(`/api -> http://localhost:3000`)를 통해 백엔드의 `local-admin` 모킹 유저 정보를 자동으로 받아 로그인 절차 없이 즉시 개발 가능
+* **로그아웃 흐름 구현**: 프로필 팝오버 내부 로그아웃 버튼 및 헤더 인라인 빠른 로그아웃 버튼(`.user-quick-logout-btn`) 클릭 시 `https://auth.homelab.local/logout`으로 이동하여 Authelia 중앙 세션 해제
+* **로컬 개발 DX 보장**: `pnpm dev` 실행 시 Vite 개발 프록시(`/api -> http://localhost:3000`)를 통해 백엔드의 `local-admin` 모킹 유저 정보를 자동으로 받아 로그인 절차 없이 즉시 개발 가능
 
 ### 제외 대상 (Non-goals)
 * 프론트엔드 내 독자적인 아이디/비밀번호 로그인 폼 구현 (모든 인증은 중앙 Authelia 포털에서 전담)

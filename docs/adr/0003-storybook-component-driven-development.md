@@ -21,13 +21,13 @@ decision-makers: [개발팀, 프론트엔드 리드]
 
 ## 검토한 대안들 (Considered Options)
 
-* **대안 1**: Nx 공식 플러그인(`@nx/storybook`) 기반의 Storybook 8 + Vite 통합
+* **대안 1**: Nx 공식 플러그인(`@nx/storybook`) 기반의 Storybook 10 + Vite 통합
 * **대안 2**: 메인 웹앱 내부의 인하우스 StyleGuide 페이지(`/design-system`) 유지
-* **대안 3**: 독립형 순수 Storybook 8 CLI 직접 설치 (Nx 플러그인 미사용)
+* **대안 3**: 독립형 순수 Storybook CLI 직접 설치 (Nx 플러그인 미사용)
 
 ## 결정 내용 및 결과 (Decision Outcome)
 
-선택한 안: **대안 1 — "Nx 공식 플러그인(`@nx/storybook`) 기반의 Storybook 8 + Vite 통합"**
+선택한 안: **대안 1 — "Nx 공식 플러그인(`@nx/storybook`) 기반의 Storybook 10 + Vite 통합"**
 
 이유: 기존 모노레포 도구인 Nx 23.2와의 일관성을 유지하면서 `nx storybook @my-space-front/web` 및 `nx build-storybook` 태스크를 통해 로컬 실행과 정적 빌드를 손쉽게 관리할 수 있고, 메인 프로덕션 웹앱 번들을 전혀 오염시키지 않기 때문입니다.
 
@@ -50,7 +50,7 @@ decision-makers: [개발팀, 프론트엔드 리드]
 
 ## 대안별 장단점 세부 비교 (Pros and Cons of the Options)
 
-### 대안 1: Nx 공식 플러그인(@nx/storybook) 기반 Storybook 8 (선택안)
+### 대안 1: Nx 공식 플러그인(@nx/storybook) 기반 Storybook 10 (선택안)
 
 * 장점: Nx의 태스크 러너, 캐싱, Vite 설정 재사용이 가능하며 단일 명령어로 프로젝트 구성이 가능함.
 * 단점: Nx 버전과의 호환성을 고려하여 플러그인 버전을 맞춰야 함.

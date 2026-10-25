@@ -79,7 +79,7 @@ export const SideNavBar: React.FC = () => {
         )}
       </nav>
 
-      {/* 4. Engine Instance Footer */}
+      {/* 3. Engine Instance Footer */}
       <div className="sidebar-footer">
         <div className="engine-instance-card">
           <div className="engine-instance-header">

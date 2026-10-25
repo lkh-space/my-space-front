@@ -30,7 +30,7 @@
 
 | 순번 | 결정 사항 (제목) | 상태 |
 | :--- | :--- | :--- |
-| [0001](./0001-api-client-and-proxy-strategy.md) | Vite 개발 서버 프록시 및 경량 API 클라이언트 연동 전략 | proposed |
-| [0002](./0002-frontend-docker-deployment-and-runtime-env-strategy.md) | 프론트엔드 Docker 배포 및 런타임 환경변수 동적 주입 전략 | proposed |
+| [0001](./0001-api-client-and-proxy-strategy.md) | Vite 개발 서버 프록시 및 경량 API 클라이언트 연동 전략 | accepted |
+| [0002](./0002-frontend-docker-deployment-and-runtime-env-strategy.md) | 프론트엔드 Docker 배포 및 런타임 환경변수 동적 주입 전략 | accepted |
 | [0003](./0003-storybook-component-driven-development.md) | 컴포넌트 주도 개발 및 디자인 시스템 문서화를 위한 Nx Storybook 도입 | proposed |
 | [0004](./0004-i18next-internationalization-strategy.md) | 다국어(KR/EN) 지원을 위한 i18next 및 react-i18next 도입 | proposed |

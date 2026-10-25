@@ -66,7 +66,7 @@
   * 다국어 한글 글립의 선명한 가독성 보장
   * CSS 선언: `font-family: 'Geist', 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;`
 * **모노스페이스 서체**: **`JetBrains Mono`**
-  * 코드 에디터, 단축키(`⌘K`), 파일 크기, 해시, 포트 번호, 타임스탬프, 텔레메트리 지표, 상태 태그
+  * 코드 에디터, 단축키(`⌘F` 등), 파일 크기, 해시, 포트 번호, 타임스탬프, 텔레메트리 지표, 상태 태그
 
 ### 3.2. 타입 스케일 (Type Scale)
 | 스타일 명칭 | 크기 (Font Size) | 행간 (Line Height) | 자간 (Letter Spacing) | 굵기 (Weight) | 서체 | 주요 용도 |
@@ -93,18 +93,18 @@
   * 너비 `240px` (`w-60`), 높이 `100vh`, 좌측 고정 (`fixed top-0 left-0`), `z-index: 40`.
   * 배경: `bg-surface-container-low` (`#1a1b22`), 우측 1px 보더 `border-r border-outline-variant`.
   * **브랜드 헤더**:
-    * 아바타 `24×24px`, 브랜드명 `my-space` (`headline-sm font-semibold`), 버전 뱃지(`v0.1.0-local`), 시스템 상태 태그(`IDLE`, 초록색 펄스 점).
+    * 아바타 `24×24px`(`μ`), 브랜드명 `my-space` (`headline-sm font-semibold`), 버전 뱃지(`v0.1.0`, 초록색 상태 점).
   * **네비게이션 탭**:
     * 높이 `34px`, 패딩 `px-3 py-1.5`, 모서리 `rounded-lg`.
-    * 아이콘(18px) + 라벨 텍스트 + 우측 뱃지(`Home`, `v1.2`, `Docs` 등).
+    * 아이콘(18px) + 라벨 텍스트 (하단 `AI STUDIO` 섹션에는 활성 인디케이터 점 포함).
   * **푸터**:
-    * `Zero Telemetry` 뱃지 및 로컬 프로세스 엔진 정보(`127.0.0.1:4200 (Strictly Local)`).
+    * 로컬 엔진 인스턴스 정보 카드(`Engine Instance`, `ACTIVE`, `localhost:8080`, `WASM`).
 * **태블릿 아이콘 축소형 (Tablet Icon-Only)**:
   * 너비 `64px` (`w-16`), 높이 `100vh`, 좌측 고정 (`fixed top-0 left-0`), `z-index: 30`.
   * 배경: `bg-surface-container-low`, 우측 1px 보더 `border-r border-outline-variant`.
-  * **브랜드 헤더**: `ms` 2글자 또는 심볼이 들어간 컴팩트 스퀘어 아바타(`36×36px`, `rounded-lg`). 텍스트/버전/상태 뱃지는 숨김.
-  * **네비게이션 탭**: 텍스트 라벨과 뱃지를 숨기고, **아이콘 중심 단독 탭**(`p-2 rounded-lg`, `flex items-center justify-center`)으로 수직 배치.
-  * **푸터**: 컴팩트 상태 점 또는 축소형 아이콘으로 최소화.
+  * **브랜드 헤더**: `μ` 심볼이 들어간 컴팩트 스퀘어 아바타(`28×28px`, `rounded-lg`). 텍스트/버전 뱃지는 숨김.
+  * **네비게이션 탭**: 텍스트 라벨을 숨기고, **아이콘 중심 단독 탭**(`p-2 rounded-lg`, `flex items-center justify-center`)으로 수직 배치.
+  * **푸터**: 컴팩트 상태 점 또는 축소형으로 최소화.
 * **모바일**: 사이드바를 완전히 제거(숨김)하고, 하단 바텀 네비게이션으로 모든 기능을 이관합니다.
 
 ### 4.2. 상단 탑바 (`TopNavBar`) 및 모바일 바텀 네비게이션 (`BottomNavBar`)
@@ -122,7 +122,7 @@
 * **모바일 하단 바텀 네비게이션 (`BottomNavBar`)**:
   * 높이 `56px` (`h-14`), 화면 최하단 고정 (`fixed bottom-0 left-0 w-full z-50`).
   * 배경: `bg-surface-container-lowest border-t border-outline-variant`.
-  * 4개 주요 도구 탭(Dashboard, PDF Tool, DBML, Docs)을 균등 수평 배치 (`flex items-center justify-around px-2`).
+  * 5개 주요 도구 탭(Dashboard, PDF Tool, DBML, Docs, AI)을 균등 수평 배치 (`flex items-center justify-around px-2`).
   * **탭 아이템 구성**: 상단 20px 아이콘 + 하단 10px 라벨(`font-label-sm`)의 모바일 친화적 수직 레이아웃 (`flex flex-col items-center gap-0.5`).
   * **활성 상태**: `text-primary`, 아이콘 `font-variation-settings: 'FILL' 1`, 라벨 `font-medium`.
   * **비활성 상태**: `text-outline`, 터치 피드백 `active:scale-95`.
@@ -189,11 +189,11 @@ Stitch 디자인 화면 분석에 근거하여 3가지 핵심 디바이스 티�
 ```text
 [Desktop]
 ┌─────────────┬──────────────────────────────────────────────────────┐
-│ Sidebar     │ TopNavBar (Breadcrumbs, Language, Icons, CTA)        │
+│ Sidebar     │ TopNavBar (Breadcrumbs, Language, Version, Profile)  │
 │ (240px)     ├──────────────────────────────────────────────────────┤
 │ Brand, Ver  │ Main Content Canvas                                  │
-│ Quick ⌘K    │ (Offset: pl-60, max-w-7xl, 3-Col Bento / 6:4 Split) │
-│ Text Tabs   │                                                      │
+│ Text Tabs   │ (Offset: pl-60, max-w-7xl, 3-Col Bento / 6:4 Split) │
+│ AI Studio   │                                                      │
 │ Engine Meta │                                                      │
 └─────────────┴──────────────────────────────────────────────────────┘
 
@@ -201,19 +201,19 @@ Stitch 디자인 화면 분석에 근거하여 3가지 핵심 디바이스 티�
 ┌───────┬────────────────────────────────────────────────────────────┐
 │SideNav│ TopNavBar (Compact Title, Sync Status, Icons)              │
 │(64px) ├────────────────────────────────────────────────────────────┤
-│ms Icon│ Main Content Canvas (Offset: pl-16, 2-Col Grid / 1:1 Split)│
+│μ Icon │ Main Content Canvas (Offset: pl-16, 2-Col Grid / 1:1 Split)│
 │Icon-  ├────────────────────────────────────────────────────────────┤
 │only   │ IDE Footer Bar (h-7: Telemetry, Encoding, Port Info)       │
 └───────┴────────────────────────────────────────────────────────────┘
 
 [Mobile]
 ┌────────────────────────────────────────────────────────────────────┐
-│ Mobile Header (h-12: Terminal Icon, my-space, v0.1, Local Dot)     │
+│ Mobile Header (h-12: Brand Icon μ, my-space, v0.1, Local Dot)      │
 ├────────────────────────────────────────────────────────────────────┤
 │ Main Content Canvas (Offset: pl-0, max-w-lg, px-3.5, pb-20)        │
 │ (1-Col Vertical Stack / Compact Cards / 2D Panning Viewport)       │
 ├────────────────────────────────────────────────────────────────────┤
-│ Mobile BottomNavBar (h-14: Dashboard, PDF, DBML, Docs - Icon+Label)│
+│ Mobile BottomNavBar (h-14: Dashboard, PDF, DBML, Docs, AI)         │
 └────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -293,16 +293,16 @@ Stitch 디자인 화면 분석에 근거하여 3가지 핵심 디바이스 티�
 
 ### 6.2. 디바이스별 특화 셸 프롬프트 규칙
 * **Desktop 화면 생성 시**:
-  * `"Fixed left sidebar (240px width, w-60) with my-space logo, ⌘K command trigger, navigation links, and process engine footer"`
-  * `"Sticky top bar (48px height) with full breadcrumbs, KR/EN language toggle, and action buttons"`
+  * `"Fixed left sidebar (240px width, w-60) with my-space logo, navigation links, AI Studio section, and process engine footer"`
+  * `"Sticky top bar (48px height) with full breadcrumbs, KR/EN language toggle, version status chip, and profile badge"`
   * `"Main content with pl-60 offset, max-w-7xl centered container, and 3-column bento grid"`
 * **Tablet 화면 생성 시**:
-  * `"Fixed icon-only left sidebar (64px width, w-16) with ms square icon and vertical icon navigation tabs"`
+  * `"Fixed icon-only left sidebar (64px width, w-16) with μ square icon and vertical icon navigation tabs"`
   * `"Sticky compact top bar (48px height) with concise title and status badge"`
   * `"Main content with pl-16 offset, 2-column reflowed grid (grid-cols-2), and IDE-style bottom status bar (h-7)"`
 * **Mobile 화면 생성 시**:
-  * `"No sidebar (aside omitted). Fixed bottom navigation bar (56px height, h-14) with 4 horizontal items (icon + label stacked) in #0d0e15 background"`
-  * `"Sticky mobile header (48px height) with 28px terminal icon, my-space title, and v0.1 badge"`
+  * `"No sidebar (aside omitted). Fixed bottom navigation bar (56px height, h-14) with 5 horizontal items (icon + label stacked) in #0d0e15 background"`
+  * `"Sticky mobile header (48px height) with 28px brand icon (μ), my-space title, and v0.1 badge"`
   * `"Main content with full width, max-w-lg centered, px-3.5 padding, and mandatory pb-20 bottom padding to prevent bottom nav overlap"`
   * `"Convert grids into 1-column vertical stack with compact horizontal cards"`
   * `"For complex diagrams like DBML ERD, provide a 2D panning viewport (overflow-x-auto overflow-y-auto cursor-grab) with a floating zoom toolbar"`

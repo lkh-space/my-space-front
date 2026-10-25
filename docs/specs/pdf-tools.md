@@ -71,17 +71,17 @@ last-updated: 2026-09-26
 
 ```text
 PdfToolsPage (최상위 화면 컨테이너)
- ├── ViewHeader (타이틀: PDF Processing Engine, v2.4-wasm 뱃지, 제로 텔레메트리 칩)
- └── WorkflowGrid (4-Zone 12열 그리드 레이아웃)
+ ├── PdfViewHeader (타이틀: PDF 처리 엔진 / PDF Processing Engine, v1.2 뱃지, LOCAL-ISOLATED, ZERO-TELEMETRY 칩)
+ ├── AlertBanner (성공/에러 인라인 토스트 알림)
+ └── WorkflowGrid (12열 그리드 레이아웃: 좌측 7열 / 우측 5열)
       ├── LeftColumn (7열: 입력 및 설정 영역)
-      │    ├── DropzoneZone (드래그 앤 드롭 파일 선택 영역)
-      │    ├── SelectedFileList (선택된 파일 목록 및 프리뷰 카드)
-      │    │    └── FileItemCard (파일명, 크기, 페이지 수, 비밀번호 입력 필드, 삭제 버튼)
-      │    └── ModeConfigPanel (작업 모드 탭: 병합/범위분할/낱장분할/암호해제 및 설정 폼)
+      │    ├── PdfOperationTabs (작업 모드 탭: 병합/범위분할/낱장분할/암호해제)
+      │    ├── PdfDropzone (드래그 앤 드롭 파일 선택 영역)
+      │    ├── PdfFileList (선택된 파일 목록 및 전체 초기화 헤더)
+      │    │    └── PdfFileCard (파일명, 크기, 페이지 수, 암호 입력 필드, 순서 이동/삭제 버튼)
+      │    └── PdfOperationConfig (모드별 설정: 범위 입력 인풋, 암호 해제용 비밀번호 입력 및 보기 토글)
       └── RightColumn (5열: 실행 및 상태 요약 영역)
-           ├── ExecutionSummaryCard (선택된 작업 요약, 예상 산출물, 총 파일 크기)
-           ├── SecurityNoticeCard (100% 로컬/개인 격리 환경 안내)
-           └── ActionToolbar (초기화 버튼, 메인 '작업 실행' CTA 버튼)
+           └── PdfExecutionSummary (작업 모드/파일 수/용량/예상 산출물 요약, 로컬 격리 안내, 초기화 및 '작업 실행' CTA 버튼)
 ```
 
 ---
@@ -93,14 +93,11 @@ PdfToolsPage (최상위 화면 컨테이너)
 ```typescript
 export type PdfOperationMode = 'merge' | 'split-range' | 'split-all' | 'unlock';
 
-export interface SelectedPdfFile {
-  id: string; // 클라이언트 고유 식별자 (crypto.randomUUID())
+export interface SelectedPdfFile extends Partial<InspectPdfResponse> {
+  id: string; // 클라이언트 고유 식별자 (`pdf-${Date.now()}-${random}`)
   file: File;
   name: string;
   size: number;
-  isEncrypted?: boolean;
-  isPasswordValid?: boolean;
-  pageCount?: number;
   password?: string;
   isInspecting?: boolean;
   error?: string;
@@ -110,6 +107,7 @@ export interface PdfToolsState {
   mode: PdfOperationMode;
   files: SelectedPdfFile[];
   splitRangeInput: string; // 예: "1-3, 5"
+  unlockPassword?: string;
   isProcessing: boolean;
   globalError: string | null;
 }
@@ -156,16 +154,22 @@ export interface InspectPdfResponse {
   };
 }
 
-// 2. 바이너리 다운로드 헬퍼
-export function triggerFileDownload(blob: Blob, filename: string): void {
-  const url = URL.createObjectURL(blob);
+// 2. 바이너리 다운로드 헬퍼 (`src/shared/api/download.ts`)
+const BLOB_REVOKE_DELAY_MS = 1000;
+
+export function triggerBlobDownload(blob: Blob, filename: string): void {
+  const safeFilename = sanitizeFilename(filename);
+  const objectUrl = window.URL.createObjectURL(blob);
   const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = filename;
+  anchor.style.display = 'none';
+  anchor.href = objectUrl;
+  anchor.download = safeFilename;
   document.body.appendChild(anchor);
   anchor.click();
   document.body.removeChild(anchor);
-  URL.revokeObjectURL(url);
+  setTimeout(() => {
+    window.URL.revokeObjectURL(objectUrl);
+  }, BLOB_REVOKE_DELAY_MS);
 }
 ```
 

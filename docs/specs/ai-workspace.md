@@ -67,24 +67,29 @@ last-updated: 2026-10-17
 ```
 apps/web/src/
 ├── entities/ai/
-│   ├── model/types.ts           # 세션, 메시지, 텔레메트리, 오디오 상태 인터페이스
-│   ├── api/aiClient.ts          # REST/SSE 스트리밍 API 통신 함수
-│   └── hooks/useAiStream.ts     # 실시간 스트리밍 및 상태 제어 커스텀 훅
+│   ├── model/types.ts                  # 세션, 메시지, 텔레메트리, 오디오 상태 인터페이스
+│   ├── api/aiClient.ts                 # REST/SSE 스트리밍 API 통신 함수
+│   ├── lib/browserSpeech.ts            # 브라우저 표준 Web Speech API(speechSynthesis) 합성 헬퍼
+│   └── hooks/
+│       ├── useAiStream.ts              # 실시간 스트리밍 및 상태 제어 커스텀 훅
+│       ├── useMediaRecorderPtt.ts      # MediaRecorder 기반 Push-to-Talk 음성 녹음 훅
+│       └── useNeuralSessions.ts        # 세션 목록 조회 및 생성/전환 관리 훅
 ├── features/ai/
-│   ├── neural-core/             # 중앙 7컬럼: JARVIS 홀로그래픽 코어 & 비주얼라이저
+│   ├── neural-core/                    # 중앙 7컬럼: JARVIS 홀로그래픽 코어 & 비주얼라이저
 │   │   ├── JarvisHoloCore.tsx
 │   │   ├── VoiceVisualizer.tsx
-│   │   └── TacticalAudioBar.tsx
-│   ├── transcript-panel/        # 우측 5컬럼: 트랜스크립트, 플레이어, 벤치마크, 인풋
+│   │   ├── TacticalAudioBar.tsx
+│   │   └── PttInputBar.tsx
+│   ├── transcript-panel/               # 우측 5컬럼: 트랜스크립트, 플레이어, 벤치마크, 인풋
 │   │   ├── AudioPlayerPill.tsx
 │   │   ├── SpokenMessageCard.tsx
 │   │   ├── BenchmarkDeltaCard.tsx
 │   │   └── FollowUpInputBar.tsx
-│   └── neural-streams/          # 좌측 사이드바: 신경망 세션 스트림 리스트
+│   └── neural-streams/                 # 좌측 사이드바: 신경망 세션 스트림 리스트
 │       └── NeuralStreamList.tsx
 └── pages/ai/
-    ├── AiWorkspacePage.tsx      # 최상위 레이아웃 조립 페이지
-    └── ai-workspace-page.css    # 100% Vanilla CSS 스타일 & 홀로그래픽 애니메이션
+    ├── AiWorkspacePage.tsx             # 최상위 레이아웃 조립 페이지
+    └── ai-workspace-page.css           # 100% Vanilla CSS 스타일 & 홀로그래픽 애니메이션
 ```
 
 ### 4.1. 주요 컴포넌트 세부 명세
