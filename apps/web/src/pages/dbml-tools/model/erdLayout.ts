@@ -24,12 +24,83 @@ const HEADER_HEIGHT = 41;
 const ROW_HEIGHT = 37;
 
 /**
+ * 테이블 목록과 관계 목록을 바탕으로 관계선(SVG Bezier Connector) 경로 계산
+ */
+export function calculateConnectors(
+  tables: LayoutedTable[],
+  relationships: Array<Pick<ConnectorPath, 'id' | 'sourceTable' | 'sourceColumn' | 'targetTable' | 'targetColumn' | 'relationType'>>,
+): ConnectorPath[] {
+  const tableMap = new Map<string, LayoutedTable>();
+  tables.forEach((t) => tableMap.set(t.name, t));
+
+  const connectors: ConnectorPath[] = [];
+
+  relationships.forEach((rel) => {
+    const sourceTable = tableMap.get(rel.sourceTable);
+    const targetTable = tableMap.get(rel.targetTable);
+
+    if (!sourceTable || !targetTable) return;
+
+    // sourceColumn의 Y 위치 계산
+    const sourceFieldIndex = sourceTable.fields.findIndex(
+      (f) => f.name.toLowerCase() === rel.sourceColumn.toLowerCase(),
+    );
+    const sourceY =
+      sourceTable.y +
+      HEADER_HEIGHT +
+      (sourceFieldIndex >= 0 ? sourceFieldIndex * ROW_HEIGHT + ROW_HEIGHT / 2 : ROW_HEIGHT / 2);
+
+    // targetColumn의 Y 위치 계산
+    const targetFieldIndex = targetTable.fields.findIndex(
+      (f) => f.name.toLowerCase() === rel.targetColumn.toLowerCase(),
+    );
+    const targetY =
+      targetTable.y +
+      HEADER_HEIGHT +
+      (targetFieldIndex >= 0 ? targetFieldIndex * ROW_HEIGHT + ROW_HEIGHT / 2 : ROW_HEIGHT / 2);
+
+    // 테이블의 좌우 위치에 따라 핸들 결정
+    let startX = 0;
+    let endX = 0;
+
+    if (sourceTable.x < targetTable.x) {
+      // source가 왼쪽, target이 오른쪽
+      startX = sourceTable.x + sourceTable.width;
+      endX = targetTable.x;
+    } else {
+      // target이 왼쪽, source가 오른쪽
+      startX = sourceTable.x;
+      endX = targetTable.x + targetTable.width;
+    }
+
+    // 3차 베지어 곡선 경로 생성: M x1 y1 C cp1x cp1y, cp2x cp2y, x2 y2
+    const dx = Math.abs(endX - startX) * 0.5;
+    const cp1x = startX < endX ? startX + dx : startX - dx;
+    const cp2x = startX < endX ? endX - dx : endX + dx;
+    const d = `M ${startX} ${sourceY} C ${cp1x} ${sourceY}, ${cp2x} ${targetY}, ${endX} ${targetY}`;
+
+    connectors.push({
+      id: rel.id,
+      sourceTable: rel.sourceTable,
+      sourceColumn: rel.sourceColumn,
+      targetTable: rel.targetTable,
+      targetColumn: rel.targetColumn,
+      d,
+      relationType: rel.relationType,
+    });
+  });
+
+  return connectors;
+}
+
+/**
  * 테이블 목록과 관계 목록을 바탕으로 각 테이블 카드의 절대 좌표 및 크기를 계산
  */
 export function calculateErdLayout(
   tables: TableEntity[],
   relationships: RelationshipEdge[],
   layoutType: 'hierarchical' | 'grid' = 'hierarchical',
+  customPositions?: Record<string, { x: number; y: number }>,
 ): { tables: LayoutedTable[]; connectors: ConnectorPath[] } {
   if (tables.length === 0) {
     return { tables: [], connectors: [] };
@@ -103,65 +174,22 @@ export function calculateErdLayout(
     });
   }
 
+  // 사용자 지정 위치가 있는 경우 덮어쓰기
+  if (customPositions) {
+    baseTables.forEach((table) => {
+      const custom = customPositions[table.name];
+      if (custom) {
+        table.x = custom.x;
+        table.y = custom.y;
+        tableMap.set(table.name, table);
+      }
+    });
+  }
+
   const layoutedTables = Array.from(tableMap.values());
 
   // 3. 관계선(SVG Bezier Connector) 경로 계산
-  const connectors: ConnectorPath[] = [];
-
-  relationships.forEach((rel) => {
-    const sourceTable = tableMap.get(rel.sourceTable);
-    const targetTable = tableMap.get(rel.targetTable);
-
-    if (!sourceTable || !targetTable) return;
-
-    // sourceColumn의 Y 위치 계산
-    const sourceFieldIndex = sourceTable.fields.findIndex(
-      (f) => f.name.toLowerCase() === rel.sourceColumn.toLowerCase(),
-    );
-    const sourceY =
-      sourceTable.y +
-      HEADER_HEIGHT +
-      (sourceFieldIndex >= 0 ? sourceFieldIndex * ROW_HEIGHT + ROW_HEIGHT / 2 : ROW_HEIGHT / 2);
-
-    // targetColumn의 Y 위치 계산
-    const targetFieldIndex = targetTable.fields.findIndex(
-      (f) => f.name.toLowerCase() === rel.targetColumn.toLowerCase(),
-    );
-    const targetY =
-      targetTable.y +
-      HEADER_HEIGHT +
-      (targetFieldIndex >= 0 ? targetFieldIndex * ROW_HEIGHT + ROW_HEIGHT / 2 : ROW_HEIGHT / 2);
-
-    // 테이블의 좌우 위치에 따라 핸들 결정
-    let startX = 0;
-    let endX = 0;
-
-    if (sourceTable.x < targetTable.x) {
-      // source가 왼쪽, target이 오른쪽
-      startX = sourceTable.x + sourceTable.width;
-      endX = targetTable.x;
-    } else {
-      // target이 왼쪽, source가 오른쪽
-      startX = sourceTable.x;
-      endX = targetTable.x + targetTable.width;
-    }
-
-    // 3차 베지어 곡선 경로 생성: M x1 y1 C cp1x cp1y, cp2x cp2y, x2 y2
-    const dx = Math.abs(endX - startX) * 0.5;
-    const cp1x = startX < endX ? startX + dx : startX - dx;
-    const cp2x = startX < endX ? endX - dx : endX + dx;
-    const d = `M ${startX} ${sourceY} C ${cp1x} ${sourceY}, ${cp2x} ${targetY}, ${endX} ${targetY}`;
-
-    connectors.push({
-      id: rel.id,
-      sourceTable: rel.sourceTable,
-      sourceColumn: rel.sourceColumn,
-      targetTable: rel.targetTable,
-      targetColumn: rel.targetColumn,
-      d,
-      relationType: rel.relationType,
-    });
-  });
+  const connectors = calculateConnectors(layoutedTables, relationships);
 
   return { tables: layoutedTables, connectors };
 }

@@ -5,12 +5,16 @@ interface TableCardProps {
   table: TableEntity & { x?: number; y?: number };
   isHighlighted?: boolean;
   isDimmed?: boolean;
+  isDragging?: boolean;
+  onMouseDown?: (e: React.MouseEvent, tableName: string) => void;
 }
 
 export const TableCard: React.FC<TableCardProps> = React.memo(({
   table,
   isHighlighted,
   isDimmed,
+  isDragging,
+  onMouseDown,
 }) => {
   const getHeaderDotColor = (name: string) => {
     if (name.includes('user') || name.includes('auth')) return 'blue';
@@ -38,7 +42,11 @@ export const TableCard: React.FC<TableCardProps> = React.memo(({
         left: table.x || 0,
         top: table.y || 0,
       }}
-      className={`erd-card ${isHighlighted ? 'highlighted' : ''} ${isDimmed ? 'dimmed' : ''}`}
+      className={`erd-card ${isHighlighted ? 'highlighted' : ''} ${isDimmed ? 'dimmed' : ''} ${
+        isDragging ? 'dragging' : ''
+      }`}
+      onMouseDown={(e) => onMouseDown?.(e, table.name)}
+      data-testid={`erd-card-${table.name}`}
     >
       {/* Card Header */}
       <div className="erd-card-header">
@@ -51,11 +59,11 @@ export const TableCard: React.FC<TableCardProps> = React.memo(({
 
       {/* Column Fields List */}
       <div className="erd-fields-list">
-        {table.fields.map((field) => {
+        {table.fields.map((field, idx) => {
           const { icon, color } = getFieldIcon(field);
           return (
             <div
-              key={field.name}
+              key={`${field.name}-${idx}`}
               className={`erd-field-row ${field.ref ? 'is-fk' : ''}`}
             >
               {/* Field Name & Icon */}

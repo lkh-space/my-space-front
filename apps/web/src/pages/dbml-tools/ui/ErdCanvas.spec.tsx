@@ -218,4 +218,65 @@ describe('ErdCanvas Component (P1)', () => {
     expect(postsCard?.className).toContain('dimmed');
     expect(postsCard?.className).not.toContain('highlighted');
   });
+
+  it('마우스 드래그를 통해 테이블 카드를 캔버스 내에서 자유롭게 이동할 수 있어야 한다', () => {
+    const { container } = render(
+      <ErdCanvas
+        tables={mockTables}
+        connectors={mockConnectors}
+        searchQuery=""
+        onSearchChange={onSearchChangeMock}
+        layoutType="hierarchical"
+        onLayoutChange={onLayoutChangeMock}
+      />
+    );
+
+    const usersCard = container.querySelector('[data-testid="erd-card-users"]') as HTMLElement;
+    expect(usersCard).toBeTruthy();
+    expect(usersCard.style.left).toBe('100px');
+    expect(usersCard.style.top).toBe('100px');
+
+    // 1. 드래그 시작 (MouseDown on users card)
+    fireEvent.mouseDown(usersCard, { clientX: 200, clientY: 200, button: 0 });
+    expect(usersCard.className).toContain('dragging');
+
+    // 2. 마우스 이동 (MouseMove on window, dx: +50, dy: +70)
+    fireEvent.mouseMove(window, { clientX: 250, clientY: 270 });
+    expect(usersCard.style.left).toBe('150px');
+    expect(usersCard.style.top).toBe('170px');
+
+    // 3. 드래그 종료 (MouseUp on window)
+    fireEvent.mouseUp(window);
+    expect(usersCard.className).not.toContain('dragging');
+    expect(usersCard.style.left).toBe('150px');
+    expect(usersCard.style.top).toBe('170px');
+  });
+
+  it('레이아웃 재정렬 시 사용자 정의 이동 좌표가 초기화되어야 한다', () => {
+    const { container } = render(
+      <ErdCanvas
+        tables={mockTables}
+        connectors={mockConnectors}
+        searchQuery=""
+        onSearchChange={onSearchChangeMock}
+        layoutType="hierarchical"
+        onLayoutChange={onLayoutChangeMock}
+      />
+    );
+
+    const usersCard = container.querySelector('[data-testid="erd-card-users"]') as HTMLElement;
+
+    // 드래그로 이동
+    fireEvent.mouseDown(usersCard, { clientX: 100, clientY: 100, button: 0 });
+    fireEvent.mouseMove(window, { clientX: 200, clientY: 200 });
+    fireEvent.mouseUp(window);
+    expect(usersCard.style.left).toBe('200px');
+
+    // Grid 레이아웃 클릭 -> 커스텀 좌표 리셋
+    const gridBtn = screen.getByRole('button', { name: 'Grid' });
+    fireEvent.click(gridBtn);
+
+    // mockTables 원본의 100px로 복구
+    expect(usersCard.style.left).toBe('100px');
+  });
 });

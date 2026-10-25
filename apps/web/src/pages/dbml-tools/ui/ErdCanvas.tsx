@@ -1,5 +1,5 @@
-import React, { useRef, useState } from 'react';
-import { ConnectorPath, LayoutedTable } from '../model/erdLayout';
+import React, { useRef, useState, useMemo, useEffect, useCallback } from 'react';
+import { ConnectorPath, LayoutedTable, calculateConnectors } from '../model/erdLayout';
 import { SvgRelations } from './SvgRelations';
 import { TableCard } from './TableCard';
 
@@ -10,6 +10,7 @@ interface ErdCanvasProps {
   onSearchChange: (q: string) => void;
   layoutType: 'hierarchical' | 'grid';
   onLayoutChange: (type: 'hierarchical' | 'grid') => void;
+  onTableMove?: (tableName: string, x: number, y: number) => void;
 }
 
 export const ErdCanvas: React.FC<ErdCanvasProps> = ({
@@ -19,6 +20,7 @@ export const ErdCanvas: React.FC<ErdCanvasProps> = ({
   onSearchChange,
   layoutType,
   onLayoutChange,
+  onTableMove,
 }) => {
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -26,6 +28,54 @@ export const ErdCanvas: React.FC<ErdCanvasProps> = ({
   const dragStart = useRef({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // 사용자가 마우스로 드래그하여 이동시킨 테이블 좌표
+  const [customPositions, setCustomPositions] = useState<Record<string, { x: number; y: number }>>({});
+  const [draggingTable, setDraggingTable] = useState<string | null>(null);
+  const dragTableRef = useRef<{
+    tableName: string;
+    startClientX: number;
+    startClientY: number;
+    startTableX: number;
+    startTableY: number;
+  } | null>(null);
+
+  // 사용자 수동 위치가 반영된 테이블 목록
+  const effectiveTables = useMemo(() => {
+    return tables.map((t) => {
+      const pos = customPositions[t.name];
+      return pos ? { ...t, x: pos.x, y: pos.y } : t;
+    });
+  }, [tables, customPositions]);
+
+  // 테이블 위치 변경에 따라 실시간으로 재계산되는 관계선
+  const effectiveConnectors = useMemo(() => {
+    const hasCustom = Object.keys(customPositions).length > 0;
+    if (!hasCustom) return connectors;
+    return calculateConnectors(effectiveTables, connectors);
+  }, [effectiveTables, connectors, customPositions]);
+
+  // 테이블 드래그 시작
+  const handleTableMouseDown = useCallback(
+    (e: React.MouseEvent, tableName: string) => {
+      if (e.button !== 0) return; // 좌클릭만 허용
+      e.stopPropagation(); // 캔버스 패닝 이벤트 전파 차단
+
+      const target = effectiveTables.find((t) => t.name === tableName);
+      if (!target) return;
+
+      dragTableRef.current = {
+        tableName,
+        startClientX: e.clientX,
+        startClientY: e.clientY,
+        startTableX: target.x,
+        startTableY: target.y,
+      };
+      setDraggingTable(tableName);
+    },
+    [effectiveTables]
+  );
+
+  // 캔버스 패닝 시작
   const handleMouseDown = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('.erd-card')) return;
     setIsDragging(true);
@@ -33,27 +83,89 @@ export const ErdCanvas: React.FC<ErdCanvasProps> = ({
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
-    setPan({
-      x: e.clientX - dragStart.current.x,
-      y: e.clientY - dragStart.current.y,
-    });
+    // 1. 테이블 드래그 처리
+    if (dragTableRef.current) {
+      const { tableName, startClientX, startClientY, startTableX, startTableY } = dragTableRef.current;
+      const dx = (e.clientX - startClientX) / zoom;
+      const dy = (e.clientY - startClientY) / zoom;
+      const newX = Math.max(0, Math.round(startTableX + dx));
+      const newY = Math.max(0, Math.round(startTableY + dy));
+
+      setCustomPositions((prev) => ({
+        ...prev,
+        [tableName]: { x: newX, y: newY },
+      }));
+      onTableMove?.(tableName, newX, newY);
+      return;
+    }
+
+    // 2. 캔버스 배경 패닝 처리
+    if (isDragging) {
+      setPan({
+        x: e.clientX - dragStart.current.x,
+        y: e.clientY - dragStart.current.y,
+      });
+    }
   };
 
   const handleMouseUp = () => {
+    if (dragTableRef.current) {
+      dragTableRef.current = null;
+      setDraggingTable(null);
+    }
     setIsDragging(false);
   };
 
+  // 브라우저 뷰포트 바깥으로 마우스가 나갔을 때도 부드럽게 위치 갱신 및 종료
+  useEffect(() => {
+    if (!draggingTable) return;
+
+    const onWindowMove = (e: MouseEvent) => {
+      if (!dragTableRef.current) return;
+      const { tableName, startClientX, startClientY, startTableX, startTableY } = dragTableRef.current;
+      const dx = (e.clientX - startClientX) / zoom;
+      const dy = (e.clientY - startClientY) / zoom;
+      const newX = Math.max(0, Math.round(startTableX + dx));
+      const newY = Math.max(0, Math.round(startTableY + dy));
+
+      setCustomPositions((prev) => ({
+        ...prev,
+        [tableName]: { x: newX, y: newY },
+      }));
+      onTableMove?.(tableName, newX, newY);
+    };
+
+    const onWindowUp = () => {
+      dragTableRef.current = null;
+      setDraggingTable(null);
+    };
+
+    window.addEventListener('mousemove', onWindowMove);
+    window.addEventListener('mouseup', onWindowUp);
+
+    return () => {
+      window.removeEventListener('mousemove', onWindowMove);
+      window.removeEventListener('mouseup', onWindowUp);
+    };
+  }, [draggingTable, zoom, onTableMove]);
+
   const handleZoomIn = () => setZoom((prev) => Math.min(1.5, Math.round((prev + 0.1) * 10) / 10));
   const handleZoomOut = () => setZoom((prev) => Math.max(0.5, Math.round((prev - 0.1) * 10) / 10));
+
   const handleResetView = () => {
     setZoom(1);
     setPan({ x: 0, y: 0 });
+    setCustomPositions({});
   };
 
-  const totalColumns = tables.reduce((acc, t) => acc + t.fields.length, 0);
-  const maxX = Math.max(1200, ...tables.map((t) => t.x + t.width + 100));
-  const maxY = Math.max(800, ...tables.map((t) => t.y + t.height + 100));
+  const handleLayoutToggle = (type: 'hierarchical' | 'grid') => {
+    setCustomPositions({});
+    onLayoutChange(type);
+  };
+
+  const totalColumns = effectiveTables.reduce((acc, t) => acc + t.fields.length, 0);
+  const maxX = Math.max(1200, ...effectiveTables.map((t) => t.x + t.width + 100));
+  const maxY = Math.max(800, ...effectiveTables.map((t) => t.y + t.height + 100));
 
   return (
     <section className="dbml-canvas-section">
@@ -74,13 +186,13 @@ export const ErdCanvas: React.FC<ErdCanvasProps> = ({
 
           <div className="dbml-layout-toggle">
             <button
-              onClick={() => onLayoutChange('hierarchical')}
+              onClick={() => handleLayoutToggle('hierarchical')}
               className={`dbml-layout-btn ${layoutType === 'hierarchical' ? 'active' : ''}`}
             >
               Hierarchical
             </button>
             <button
-              onClick={() => onLayoutChange('grid')}
+              onClick={() => handleLayoutToggle('grid')}
               className={`dbml-layout-btn ${layoutType === 'grid' ? 'active' : ''}`}
             >
               Grid
@@ -135,14 +247,14 @@ export const ErdCanvas: React.FC<ErdCanvasProps> = ({
             position: 'relative',
             width: maxX,
             height: maxY,
-            transition: isDragging ? 'none' : 'transform 0.1s ease-out',
+            transition: isDragging || draggingTable ? 'none' : 'transform 0.1s ease-out',
           }}
         >
           {/* SVG Relation Connectors */}
-          <SvgRelations connectors={connectors} width={maxX} height={maxY} />
+          <SvgRelations connectors={effectiveConnectors} width={maxX} height={maxY} />
 
           {/* Table Cards */}
-          {tables.map((table) => {
+          {effectiveTables.map((table) => {
             const isMatch =
               !searchQuery || table.name.toLowerCase().includes(searchQuery.toLowerCase());
             return (
@@ -151,6 +263,8 @@ export const ErdCanvas: React.FC<ErdCanvasProps> = ({
                 table={table}
                 isHighlighted={Boolean(searchQuery && isMatch)}
                 isDimmed={Boolean(searchQuery && !isMatch)}
+                isDragging={draggingTable === table.name}
+                onMouseDown={handleTableMouseDown}
               />
             );
           })}
@@ -180,7 +294,7 @@ export const ErdCanvas: React.FC<ErdCanvasProps> = ({
           <span>
             Objects:{' '}
             <span style={{ color: 'var(--on-surface)' }}>
-              {tables.length} Tables, {totalColumns} Columns, {connectors.length} Connectors
+              {effectiveTables.length} Tables, {totalColumns} Columns, {effectiveConnectors.length} Connectors
             </span>
           </span>
         </div>

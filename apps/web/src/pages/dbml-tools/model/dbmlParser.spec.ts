@@ -134,6 +134,57 @@ describe('dbmlParser', () => {
       expect(result.tables[0].fields[1].name).toBe('display-name');
       expect(result.tables[0].fields[1].notNull).toBe(true);
     });
+
+    it('다양한 형식의 필드 추가(배열, 공백/콤마 포함 타입, 타입 미지정 등)를 정상 파싱해야 한다', () => {
+      const dbml = `
+        Table users {
+          id int [pk]
+          name varchar
+          salary decimal(10, 2)
+          tags text[]
+          created_at timestamp with time zone
+          bio text
+          status
+        }
+      `;
+      const result = parseDbml(dbml);
+
+      expect(result.isValid).toBe(true);
+      expect(result.tables).toHaveLength(1);
+      const fields = result.tables[0].fields;
+      expect(fields.map((f) => f.name)).toEqual([
+        'id',
+        'name',
+        'salary',
+        'tags',
+        'created_at',
+        'bio',
+        'status',
+      ]);
+      expect(fields.find((f) => f.name === 'salary')?.type).toBe('decimal(10, 2)');
+      expect(fields.find((f) => f.name === 'tags')?.type).toBe('text[]');
+      expect(fields.find((f) => f.name === 'created_at')?.type).toBe('timestamp with time zone');
+      expect(fields.find((f) => f.name === 'status')?.type).toBe('');
+    });
+
+    it('테이블 내에 indexes 블록이나 멀티라인 Note가 포함되어도 필드를 정상 파싱해야 한다', () => {
+      const dbml = `
+        Table users {
+          id int [pk]
+          email varchar
+          indexes {
+            (id, email) [unique]
+          }
+          phone_number varchar
+        }
+      `;
+      const result = parseDbml(dbml);
+
+      expect(result.isValid).toBe(true);
+      expect(result.tables).toHaveLength(1);
+      const fields = result.tables[0].fields;
+      expect(fields.map((f) => f.name)).toEqual(['id', 'email', 'phone_number']);
+    });
   });
 });
 

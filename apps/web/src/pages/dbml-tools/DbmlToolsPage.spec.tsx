@@ -38,4 +38,15 @@ describe('DbmlToolsPage', () => {
 
     expect(screen.getAllByText('users').length).toBeGreaterThanOrEqual(1);
   });
+
+  it('초기 스키마 기반 테이블 엔티티 카드가 정상적으로 마운트되어야 한다', () => {
+    const { container } = render(<DbmlToolsPage />);
+
+    // 초기 users 카드의 필드 개수 확인
+    const usersCard = container.querySelector('[data-testid="erd-card-users"]') as HTMLElement;
+    expect(usersCard).toBeTruthy();
+    expect(usersCard.textContent).toContain('email');
+    expect(usersCard.textContent).toContain('created_at');
+    expect(usersCard.textContent).toContain('3 fields');
+  });
 });
