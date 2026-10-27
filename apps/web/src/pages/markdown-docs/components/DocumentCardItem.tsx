@@ -1,4 +1,6 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+import '../../../shared/i18n';
 import { DocumentSummary } from '../../../entities/markdown';
 
 interface DocumentCardItemProps {
@@ -11,6 +13,7 @@ interface DocumentCardItemProps {
 
 export const DocumentCardItem: React.FC<DocumentCardItemProps> = React.memo(
   ({ doc, isSelected, snippet, wordCountLabel, onSelect }) => {
+    const { t } = useTranslation();
     return (
       <div
         onClick={() => onSelect(doc.id)}
@@ -62,7 +65,10 @@ export const DocumentCardItem: React.FC<DocumentCardItemProps> = React.memo(
               </span>
             ))}
             {doc.tags.length === 0 && (
-              <span className="text-outline text-label-sm font-label-sm">#general</span>
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-surface-container-lowest border border-outline-variant text-outline text-label-sm font-label-sm">
+                <span className="material-symbols-outlined text-[11px] text-outline">label_off</span>
+                <span>{t('markdownDocs.common.untagged')}</span>
+              </span>
             )}
           </div>
 

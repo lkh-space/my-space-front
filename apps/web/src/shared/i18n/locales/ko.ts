@@ -230,6 +230,9 @@ export const ko = {
     },
   },
   markdownDocs: {
+    common: {
+      untagged: '미등록',
+    },
     library: {
       importing: '가져오는 중...',
       importMd: 'Import .md',

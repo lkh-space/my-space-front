@@ -145,9 +145,80 @@ export function getExportPdfUrl(id: string): string {
   return `${BASE_URL}/documents/${encodeURIComponent(id)}/export/pdf`;
 }
 
+/**
+ * 마크다운 문서를 PDF 파일로 직접 다운로드합니다.
+ * - 클라이언트에서 렌더링된 Mermaid 다이어그램 및 KaTeX 수식 그래픽 자산이 있을 경우 이를 포함하여 고품질 PDF를 생성합니다.
+ * - window.print() 인쇄창 대신 브라우저의 기본 파일 다운로드 메커니즘을 트리거합니다.
+ */
+export async function exportDocumentPdf(
+  id: string,
+  renderedAssets?: Array<{
+    type: string;
+    code: string;
+    imageBase64: string;
+    width?: number;
+    height?: number;
+  }>,
+  customFilename?: string,
+): Promise<void> {
+  const url = `${BASE_URL}/documents/${encodeURIComponent(id)}/export/pdf`;
+
+  let blob: Blob;
+  let filename = customFilename || 'document.pdf';
+
+  if (renderedAssets && renderedAssets.length > 0) {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/pdf',
+      },
+      body: JSON.stringify({ renderedAssets }),
+    });
+    if (!res.ok) {
+      throw new Error(`PDF 내보내기 실패: ${res.statusText}`);
+    }
+    const disposition = res.headers.get('Content-Disposition');
+    if (disposition && disposition.includes('filename=')) {
+      const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+      if (match && match[1]) {
+        filename = decodeURIComponent(match[1].replace(/['"]/g, ''));
+      }
+    }
+    blob = await res.blob();
+  } else {
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/pdf',
+      },
+    });
+    if (!res.ok) {
+      throw new Error(`PDF 내보내기 실패: ${res.statusText}`);
+    }
+    const disposition = res.headers.get('Content-Disposition');
+    if (disposition && disposition.includes('filename=')) {
+      const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+      if (match && match[1]) {
+        filename = decodeURIComponent(match[1].replace(/['"]/g, ''));
+      }
+    }
+    blob = await res.blob();
+  }
+
+  // 브라우저 파일 다운로드 트리거 (window.print 배제, 순수 파일 저장)
+  const downloadUrl = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = downloadUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(downloadUrl);
+}
+
 export async function exportPdf(id: string): Promise<void> {
-  const url = getExportPdfUrl(id);
-  window.open(url, '_blank');
+  return exportDocumentPdf(id);
 }
 
 export function downloadMarkdown(doc: { title: string; content: string }): void {
@@ -185,12 +256,35 @@ export async function fetchRevision(
 
 export async function compareRevisions(
   documentId: string,
-  v1: number,
-  v2: number,
+  targetOrV1: number,
+  baseOrV2?: number,
 ): Promise<RevisionCompareResponse> {
-  return getJson<RevisionCompareResponse>(
-    `${BASE_URL}/documents/${encodeURIComponent(documentId)}/revisions/compare?v1=${v1}&v2=${v2}`,
+  // 백엔드 계약: GET /api/v1/markdown/documents/:documentId/revisions/compare?targetVersion=:targetVersion
+  // 백엔드는 ParseIntPipe로 targetVersion을 필수로 검증하므로, 과거 비교 대상 버전을 targetVersion 파라미터로 전달합니다.
+  const targetVersion =
+    baseOrV2 !== undefined ? Math.min(targetOrV1, baseOrV2) : targetOrV1;
+
+  const res = await getJson<{
+    baseVersion: number;
+    baseContent: string;
+    targetVersion: number;
+    targetContent: string;
+  }>(
+    `${BASE_URL}/documents/${encodeURIComponent(documentId)}/revisions/compare?targetVersion=${targetVersion}`,
   );
+
+  return {
+    ...res,
+    documentId,
+    v1: {
+      version: res.targetVersion,
+      content: res.targetContent,
+    },
+    v2: {
+      version: res.baseVersion,
+      content: res.baseContent,
+    },
+  };
 }
 
 export async function restoreRevision(

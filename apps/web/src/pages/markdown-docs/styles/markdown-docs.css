@@ -367,16 +367,113 @@
   color: var(--primary, #adc6ff);
 }
 
-/* Mermaid Wrapper */
+/* Mermaid Wrapper & SVG Diagram */
 .mermaid-container {
   margin: 1.5em 0;
   padding: 1.25em;
-  border: 1px solid var(--outline-variant, #424754);
-  background-color: var(--surface-container-lowest, #0d0e15);
-  border-radius: 6px;
+  border: 1px solid var(--outline-variant, #3f3f46);
+  background-color: var(--surface-container-lowest, #09090b);
+  border-radius: 8px;
   display: flex;
   justify-content: center;
+  align-items: center;
   overflow-x: auto;
+  min-height: 80px;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.mermaid-container.is-updating {
+  opacity: 0.95;
+}
+
+.mermaid-container svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* foreignObject 레이아웃 및 텍스트 오버플로우 방지 */
+.mermaid-container svg foreignObject {
+  overflow: visible !important;
+}
+
+/* foreignObject 내부 래퍼 div를 100% 확장하여 라벨을 상자 정중앙에 정렬 */
+.mermaid-container svg foreignObject > div {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  text-align: center !important;
+  box-sizing: border-box !important;
+}
+
+/* Mermaid 노드 박스 내부 텍스트 - SVG text 및 HTML label(foreignObject) 완벽 지원 */
+.mermaid-container svg text,
+.mermaid-container svg tspan,
+.mermaid-container svg .node text,
+.mermaid-container svg .node .label,
+.mermaid-container svg .nodeLabel,
+.mermaid-container svg .nodeLabel p,
+.mermaid-container svg .nodeLabel span,
+.mermaid-container svg .label text,
+.mermaid-container svg .label tspan,
+.mermaid-container svg foreignObject div,
+.mermaid-container svg foreignObject p,
+.mermaid-container svg foreignObject span {
+  fill: #f4f4f5 !important;
+  color: #f4f4f5 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  text-align: center !important;
+  line-height: 1.4 !important;
+  font-family: var(--font-sans, system-ui, -apple-system, sans-serif) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  white-space: nowrap !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+}
+
+.mermaid-container svg foreignObject .nodeLabel {
+  display: inline-flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  text-align: center !important;
+  width: auto !important;
+  box-sizing: border-box !important;
+}
+
+/* Mermaid 노드 박스(rect, circle, polygon, path) 스타일 */
+.mermaid-container svg .node rect,
+.mermaid-container svg .node circle,
+.mermaid-container svg .node polygon,
+.mermaid-container svg .node path {
+  fill: #27272a !important;
+  stroke: #3f3f46 !important;
+  stroke-width: 1.5px !important;
+}
+
+/* Mermaid 연결선(엣지) 및 화살표 마커 */
+.mermaid-container svg .flowchart-link,
+.mermaid-container svg path.edge-thickness-normal {
+  stroke: #71717a !important;
+  stroke-width: 1.5px !important;
+}
+
+.mermaid-container svg .marker {
+  fill: #71717a !important;
+  stroke: #71717a !important;
+}
+
+/* Mermaid 연결선 라벨 (텍스트) */
+.mermaid-container svg .edgeLabel,
+.mermaid-container svg .edgeLabel p,
+.mermaid-container svg .edgeLabel span {
+  background-color: #18181b !important;
+  color: #a1a1aa !important;
+  fill: #a1a1aa !important;
+  font-size: 12px !important;
 }
 
 /* --------------------------------------------------------------------------
@@ -982,31 +1079,137 @@
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Print Styles */
+/* Print Styles: A4 규격 고해상도 벡터 PDF 출력 완벽 지원 */
 @media print {
+  /* 불필요한 UI 크롬 및 도구 모음 전면 차단 */
   header,
   aside,
+  .stitch-action-bar,
+  .editor-header-bar,
+  .editor-preview-subtoolbar,
   .library-pane-tree,
   .library-pane-inspector,
   .editor-splitter-divider,
   .editor-pane-left,
-  .detail-sticky-toolbar {
+  .detail-sticky-toolbar,
+  .sticky-toc-container,
+  button {
     display: none !important;
   }
 
+  /* 인쇄 페이지 배경 및 본문 색상 초기화 */
   body,
+  html,
+  #root,
   .markdown-docs-page-root,
+  .editor-split-container,
+  .editor-pane-right,
   .detail-view-container {
     background: white !important;
     color: black !important;
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: static !important;
+  }
+
+  .editor-pane-right > div {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .markdown-rendered-content {
+    background: white !important;
+    color: #111827 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: 11pt !important;
+    line-height: 1.6 !important;
   }
 
   .markdown-rendered-content h1,
   .markdown-rendered-content h2,
   .markdown-rendered-content h3,
+  .markdown-rendered-content h4,
+  .markdown-rendered-content h5,
+  .markdown-rendered-content h6,
   .markdown-rendered-content p,
+  .markdown-rendered-content li,
   .markdown-rendered-content td,
   .markdown-rendered-content th {
-    color: black !important;
+    color: #111827 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* 코드 블록 인쇄 스타일 */
+  .markdown-rendered-content pre,
+  .markdown-rendered-content code {
+    background-color: #f4f4f5 !important;
+    color: #18181b !important;
+    border-color: #e4e4e7 !important;
+  }
+
+  /* KaTeX 수식 인쇄 최적화: 수식 기호가 선명한 검은색으로 고해상도 출력 */
+  .katex-display {
+    color: #09090b !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    margin: 1.5em 0 !important;
+  }
+
+  .katex,
+  .katex * {
+    color: #09090b !important;
+    fill: #09090b !important;
+  }
+
+  /* Mermaid 다이어그램 인쇄 최적화: 고해상도 벡터 그래픽으로 페이지 분할 방지 */
+  .mermaid-container {
+    background: white !important;
+    border: 1px solid #d4d4d8 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    margin: 1.5em 0 !important;
+    padding: 1em !important;
+    box-shadow: none !important;
+  }
+
+  .mermaid-container svg {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  .mermaid-container svg .node rect,
+  .mermaid-container svg .node circle,
+  .mermaid-container svg .node polygon,
+  .mermaid-container svg .node path {
+    fill: #f4f4f5 !important;
+    stroke: #52525b !important;
+    stroke-width: 1.5px !important;
+  }
+
+  .mermaid-container svg text,
+  .mermaid-container svg tspan,
+  .mermaid-container svg .nodeLabel,
+  .mermaid-container svg .nodeLabel span,
+  .mermaid-container svg foreignObject div {
+    fill: #09090b !important;
+    color: #09090b !important;
+  }
+
+  .mermaid-container svg .flowchart-link,
+  .mermaid-container svg path.edge-thickness-normal {
+    stroke: #52525b !important;
+  }
+
+  .mermaid-container svg .marker {
+    fill: #52525b !important;
+    stroke: #52525b !important;
   }
 }

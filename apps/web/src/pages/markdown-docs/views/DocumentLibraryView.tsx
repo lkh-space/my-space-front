@@ -9,11 +9,11 @@ import {
   TagItem,
   deleteDocument,
   deleteFolder,
+  exportDocumentPdf,
   fetchDocument,
   fetchDocuments,
   fetchFolders,
   fetchTags,
-  getExportPdfUrl,
   importDocument,
   searchDocuments,
 } from '../../../entities/markdown';
@@ -36,6 +36,7 @@ export const DocumentLibraryView: React.FC = () => {
   // 1. Data States
   const [folders, setFolders] = useState<FolderTreeNode[]>([]);
   const [tags, setTags] = useState<TagItem[]>([]);
+  const [untaggedCount, setUntaggedCount] = useState<number>(0);
   const [documents, setDocuments] = useState<DocumentSummary[]>([]);
   const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
   const [selectedDocDetail, setSelectedDocDetail] = useState<DocumentDetail | null>(null);
@@ -71,12 +72,14 @@ export const DocumentLibraryView: React.FC = () => {
   // 폴더 & 태그 불러오기
   const reloadFoldersAndTags = useCallback(async () => {
     try {
-      const [foldersRes, tagsRes] = await Promise.all([
+      const [foldersRes, tagsRes, untaggedDocsRes] = await Promise.all([
         fetchFolders().catch(() => []),
         fetchTags().catch(() => []),
+        fetchDocuments({ tag: '__untagged__', limit: 1 }).catch(() => ({ total: 0 })),
       ]);
       setFolders(foldersRes);
       setTags(tagsRes);
+      setUntaggedCount(untaggedDocsRes.total);
     } catch {
       // 무시
     }
@@ -171,7 +174,7 @@ export const DocumentLibraryView: React.FC = () => {
     setIsImporting(true);
     try {
       const created = await importDocument(file, selectedFolderId);
-      await reloadDocuments();
+      await Promise.all([reloadFoldersAndTags(), reloadDocuments()]);
       setSelectedDocId(created.id);
     } catch (err: unknown) {
       const msg =
@@ -192,7 +195,7 @@ export const DocumentLibraryView: React.FC = () => {
       try {
         await deleteDocument(id);
         setSelectedDocId((prev) => (prev === id ? null : prev));
-        await reloadDocuments();
+        await Promise.all([reloadFoldersAndTags(), reloadDocuments()]);
       } catch (err: unknown) {
         const msg =
           err instanceof Error
@@ -201,7 +204,7 @@ export const DocumentLibraryView: React.FC = () => {
         alert(msg);
       }
     },
-    [reloadDocuments, t],
+    [reloadDocuments, reloadFoldersAndTags, t],
   );
 
   // 폴더 삭제
@@ -245,8 +248,18 @@ export const DocumentLibraryView: React.FC = () => {
         selectedFolderId={selectedFolderId}
         selectedTag={selectedTag}
         documentCount={documents.length}
-        onSelectFolder={setSelectedFolderId}
-        onSelectTag={setSelectedTag}
+        untaggedCount={untaggedCount}
+        onSelectFolder={(fId) => {
+          setSelectedFolderId(fId);
+          setSelectedTag(null); // 폴더 탐색 시 태그 필터 해제하여 전체 문서 접근 보장
+        }}
+        onSelectTag={(tagName) => {
+          setSelectedTag(tagName);
+          if (tagName) {
+            setSelectedFolderId(null); // 태그 필터 활성화 시 폴더 제한을 해제하여 해당 태그의 모든 문서 표출
+            setFilterTab('all'); // 특정 탭(starred 등)으로 인한 문서 숨김 방지
+          }
+        }}
         onOpenCreateFolderModal={handleOpenCreateFolderModal}
         onOpenEditFolderModal={handleOpenEditFolderModal}
         onDeleteFolder={handleDeleteFolder}
@@ -298,7 +311,12 @@ export const DocumentLibraryView: React.FC = () => {
             {/* Primary CTA: 새 문서 작성 */}
             <button
               type="button"
-              onClick={() => navigate('/docs/new')}
+              onClick={() => {
+                const targetUrl = selectedFolderId
+                  ? `/docs/new?folderId=${selectedFolderId}`
+                  : '/docs/new';
+                navigate(targetUrl);
+              }}
               className="h-8 px-3 flex items-center gap-1.5 bg-on-background text-surface font-medium hover:bg-surface-bright hover:text-on-surface rounded text-label-md font-label-md transition-colors shadow-none"
             >
               <span className="material-symbols-outlined text-[16px]">add</span>
@@ -358,7 +376,14 @@ export const DocumentLibraryView: React.FC = () => {
                 <>
                   <div className="h-3 w-[1px] bg-outline-variant mx-1" />
                   <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-primary/10 border border-primary/30 text-primary text-label-sm font-label-sm">
-                    <span>Tag: #{selectedTag}</span>
+                    {selectedTag === '__untagged__' ? (
+                      <span className="inline-flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[11px]">label_off</span>
+                        <span>{t('markdownDocs.common.untagged')}</span>
+                      </span>
+                    ) : (
+                      <span>Tag: #{selectedTag}</span>
+                    )}
                     <span
                       className="material-symbols-outlined text-[12px] cursor-pointer hover:text-on-surface"
                       onClick={() => setSelectedTag(null)}
@@ -456,7 +481,12 @@ export const DocumentLibraryView: React.FC = () => {
               </p>
               <button
                 type="button"
-                onClick={() => navigate('/docs/new')}
+                onClick={() => {
+                  const targetUrl = selectedFolderId
+                    ? `/docs/new?folderId=${selectedFolderId}`
+                    : '/docs/new';
+                  navigate(targetUrl);
+                }}
                 className="h-8 px-3 rounded bg-surface-container-highest hover:bg-surface-bright text-on-surface text-label-md font-label-md border border-outline-variant transition-colors"
               >
                 {t('markdownDocs.library.createFirstDoc')}
@@ -508,7 +538,14 @@ export const DocumentLibraryView: React.FC = () => {
         document={selectedDocDetail}
         onEdit={(id) => navigate(`/docs/${id}/edit`)}
         onRead={(id) => navigate(`/docs/${id}`)}
-        onExportPdf={(id) => window.open(getExportPdfUrl(id), '_blank')}
+        onExportPdf={async (id) => {
+          try {
+            await exportDocumentPdf(id, undefined, `${selectedDocDetail?.title || 'document'}.pdf`);
+          } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : 'PDF 다운로드에 실패했습니다.';
+            alert(msg);
+          }
+        }}
         onDelete={handleDeleteDoc}
       />
 

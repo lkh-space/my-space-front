@@ -10,6 +10,7 @@ interface LibrarySidebarProps {
   selectedFolderId: string | null | undefined;
   selectedTag: string | null;
   documentCount: number;
+  untaggedCount?: number;
   onSelectFolder: (folderId: string | null) => void;
   onSelectTag: (tagName: string | null) => void;
   onOpenCreateFolderModal: (parentId?: string | null) => void;
@@ -24,6 +25,7 @@ export const LibrarySidebar: React.FC<LibrarySidebarProps> = React.memo(
     selectedFolderId,
     selectedTag,
     documentCount,
+    untaggedCount = 0,
     onSelectFolder,
     onSelectTag,
     onOpenCreateFolderModal,
@@ -70,38 +72,70 @@ export const LibrarySidebar: React.FC<LibrarySidebarProps> = React.memo(
                 Tags
               </span>
               <span className="text-label-sm font-label-sm text-outline">
-                {tags.length} Filterable
+                {tags.filter((t) => t.documentCount > 0 && t.name !== '__untagged__').length + (untaggedCount > 0 ? 1 : 0)} Filterable
               </span>
             </div>
 
             <div className="flex flex-wrap gap-1.5">
-              {tags.map((t) => {
-                const isTagActive = selectedTag === t.name;
+              {/* 미등록(Untagged) 태그 필터 뱃지 버튼 */}
+              {(() => {
+                const isUntaggedActive = selectedTag === '__untagged__';
                 return (
                   <button
-                    key={t.id}
                     type="button"
-                    onClick={() => onSelectTag(isTagActive ? null : t.name)}
+                    onClick={() => onSelectTag(isUntaggedActive ? null : '__untagged__')}
                     className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-label-sm font-label-sm transition-colors ${
-                      isTagActive
+                      isUntaggedActive
                         ? 'bg-primary/10 border border-primary/40 text-primary font-medium'
-                        : 'bg-surface-container border border-outline-variant text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
+                        : 'bg-surface-container border border-outline-variant text-outline hover:text-on-surface hover:bg-surface-container-high'
                     }`}
+                    title="태그가 등록되지 않은 문서 필터링"
                   >
-                    <span>#{t.name}</span>
+                    <span className="material-symbols-outlined text-[11px]">label_off</span>
+                    <span>{t('markdownDocs.common.untagged')}</span>
                     <span
-                      className={`text-[9px] px-1 py-0.2 rounded ${
-                        isTagActive
+                      className={`text-[9px] px-1 py-0.2 rounded font-mono ${
+                        isUntaggedActive
                           ? 'bg-primary/20 text-primary'
                           : 'text-outline bg-surface-container-high'
                       }`}
                     >
-                      {t.documentCount}
+                      {untaggedCount}
                     </span>
                   </button>
                 );
-              })}
-              {tags.length === 0 && (
+              })()}
+
+              {/* 등록된 일반 태그 목록 */}
+              {tags
+                .filter((t) => t.documentCount > 0 && t.name !== '__untagged__')
+                .map((t) => {
+                  const isTagActive = selectedTag === t.name;
+                  return (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => onSelectTag(isTagActive ? null : t.name)}
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-label-sm font-label-sm transition-colors ${
+                        isTagActive
+                          ? 'bg-primary/10 border border-primary/40 text-primary font-medium'
+                          : 'bg-surface-container border border-outline-variant text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
+                      }`}
+                    >
+                      <span>#{t.name}</span>
+                      <span
+                        className={`text-[9px] px-1 py-0.2 rounded font-mono ${
+                          isTagActive
+                            ? 'bg-primary/20 text-primary'
+                            : 'text-outline bg-surface-container-high'
+                        }`}
+                      >
+                        {t.documentCount}
+                      </span>
+                    </button>
+                  );
+                })}
+              {tags.filter((t) => t.documentCount > 0 && t.name !== '__untagged__').length === 0 && untaggedCount === 0 && (
                 <span className="text-outline text-xs px-1">
                   {t('markdownDocs.sidebar.noTags')}
                 </span>

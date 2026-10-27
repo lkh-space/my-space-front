@@ -67,21 +67,25 @@ describe('markdownApi', () => {
     );
   });
 
-  it('compareRevisions는 올바른 쿼리 스트링으로 비교 요청을 수행해야 한다', async () => {
-    const mockDiff = {
-      documentId: 'd1',
-      v1: { version: 1, title: 'v1', content: 'A' },
-      v2: { version: 2, title: 'v2', content: 'B' },
+  it('compareRevisions는 targetVersion 쿼리 스트링으로 비교 요청을 수행해야 한다', async () => {
+    const mockBackendDto = {
+      baseVersion: 2,
+      baseContent: 'B',
+      targetVersion: 1,
+      targetContent: 'A',
     };
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => mockDiff,
+      json: async () => mockBackendDto,
     });
 
     const res = await api.compareRevisions('d1', 1, 2);
-    expect(res).toEqual(mockDiff);
+    expect(res.baseVersion).toBe(2);
+    expect(res.targetVersion).toBe(1);
+    expect(res.v1?.content).toBe('A');
+    expect(res.v2?.content).toBe('B');
     expect(global.fetch).toHaveBeenCalledWith(
-      '/api/v1/markdown/documents/d1/revisions/compare?v1=1&v2=2',
+      '/api/v1/markdown/documents/d1/revisions/compare?targetVersion=1',
       expect.anything(),
     );
   });
@@ -99,5 +103,45 @@ describe('markdownApi', () => {
       '/api/v1/markdown/search?q=test+query&page=1&limit=20',
       expect.anything(),
     );
+  });
+
+  it('exportDocumentPdf는 자산이 있을 때 POST로 PDF를 요청하고 다운로드를 트리거해야 한다', async () => {
+    const mockBlob = new Blob(['%PDF-1.7'], { type: 'application/pdf' });
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      headers: {
+        get: (h: string) => (h === 'Content-Disposition' ? 'attachment; filename="doc.pdf"' : null),
+      },
+      blob: async () => mockBlob,
+    });
+
+    const mockClick = vi.fn();
+    const origCreateElement = document.createElement.bind(document);
+    vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
+      const elem = origCreateElement(tag);
+      if (tag === 'a') {
+        elem.click = mockClick;
+      }
+      return elem;
+    });
+
+    await api.exportDocumentPdf('d1', [
+      {
+        type: 'mermaid',
+        code: 'graph TD',
+        imageBase64: 'data:image/png;base64,123',
+        width: 100,
+        height: 50,
+      },
+    ]);
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/v1/markdown/documents/d1/export/pdf',
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({ 'Content-Type': 'application/json' }),
+      }),
+    );
+    expect(mockClick).toHaveBeenCalled();
   });
 });

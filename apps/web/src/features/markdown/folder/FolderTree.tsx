@@ -175,6 +175,17 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
           onDeleteFolder={onDeleteFolder}
         />
       ))}
+
+      {folders.length === 0 && (
+        <button
+          type="button"
+          onClick={() => onOpenCreateModal(null)}
+          className="mt-1 flex items-center gap-1.5 px-2 py-1 rounded text-body-sm font-body-sm text-outline hover:text-on-surface hover:bg-surface-container transition-colors text-left"
+        >
+          <span className="material-symbols-outlined text-[14px]">add</span>
+          <span>{t('markdownDocs.sidebar.newFolderTitle')}</span>
+        </button>
+      )}
     </div>
   );
 };

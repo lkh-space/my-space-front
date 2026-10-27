@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useRef } from 'react';
-import { marked } from 'marked';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Marked } from 'marked';
 import DOMPurify from 'dompurify';
 import katex from 'katex';
 import yaml from 'yaml';
@@ -19,32 +19,80 @@ interface MarkdownPreviewProps {
 }
 
 let mermaidInitialized = false;
+let mermaidIdCounter = 0;
+
+/**
+ * 렌더링된 다이어그램 SVG 인메모리 캐시 (code -> sanitizedSvg)
+ * 동일한 다이어그램을 재계산 없이 즉시 주입하여 깜빡임을 차단합니다.
+ */
+export const mermaidSvgCache = new Map<string, string>();
+
+export const DARK_MERMAID_CONFIG = {
+  startOnLoad: false,
+  theme: 'dark' as const,
+  themeVariables: {
+    darkMode: true,
+    // DESIGN.md 기반 표준 타이포그래피를 Mermaid 테마 측정 메트릭에 정확히 일치시킵니다.
+    // 불일치 시 Mermaid가 16px 기준으로 너비를 측정하여 박스 오른쪽이 텅 비어버리는 현상을 방지합니다.
+    fontFamily:
+      "'Geist', 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
+    fontSize: '13px',
+    background: '#09090b',
+    primaryColor: '#27272a',
+    primaryTextColor: '#f4f4f5',
+    primaryBorderColor: '#3f3f46',
+    lineColor: '#71717a',
+    secondaryColor: '#18181b',
+    tertiaryColor: '#12131a',
+    mainBkg: '#27272a',
+    nodeBorder: '#3f3f46',
+    nodeTextColor: '#f4f4f5',
+    textColor: '#f4f4f5',
+    titleColor: '#f4f4f5',
+    edgeLabelBackground: '#18181b',
+    actorTextColor: '#f4f4f5',
+    actorLineColor: '#71717a',
+    signalColor: '#71717a',
+    signalTextColor: '#f4f4f5',
+    labelTextColor: '#f4f4f5',
+  },
+  flowchart: {
+    // wrappingWidth에 Number.POSITIVE_INFINITY를 설정하면 Mermaid가 텍스트 길이에 맞춰 박스 크기를 100% 동적(Auto-fit)으로 확장합니다.
+    // 고정 폭 제한(120px, 360px 등)이 완전히 제거되어 긴 단어나 문장도 임의로 줄바꿈되지 않고 온전히 박스 안에 표시됩니다.
+    wrappingWidth: Number.POSITIVE_INFINITY,
+    nodeSpacing: 45,
+    rankSpacing: 45,
+    curve: 'basis' as const,
+    padding: 15,
+  },
+  securityLevel: 'strict' as const,
+};
 
 /**
  * 다이어그램 블록이 존재할 때만 Mermaid 엔진을 온디맨드로 지연 로드합니다.
  */
-async function getMermaid() {
+export async function getMermaid() {
   const mermaidModule = await import('mermaid');
   const mermaid = mermaidModule.default;
   if (!mermaidInitialized) {
-    mermaid.initialize({
-      startOnLoad: false,
-      theme: 'dark',
-      themeVariables: {
-        darkMode: true,
-        background: '#18181b',
-        primaryColor: '#27272a',
-        primaryTextColor: '#adc6ff',
-        primaryBorderColor: '#3f3f46',
-        lineColor: '#8c909f',
-        secondaryColor: '#1a1b22',
-        tertiaryColor: '#12131a',
-      },
-      securityLevel: 'strict',
-    });
+    mermaid.initialize(DARK_MERMAID_CONFIG);
     mermaidInitialized = true;
   }
   return mermaid;
+}
+
+// 브라우저 유휴 시간에 Mermaid 엔진 사전 로드 (첫 다이어그램 렌더링 지연 제거)
+if (typeof window !== 'undefined') {
+  const preloadMermaid = () => {
+    void getMermaid().catch(() => {
+      /* ignore background preload error */
+    });
+  };
+  if ('requestIdleCallback' in window) {
+    window.requestIdleCallback(preloadMermaid);
+  } else {
+    setTimeout(preloadMermaid, 500);
+  }
 }
 
 /**
@@ -74,6 +122,19 @@ export function extractFrontmatter(rawContent: string): {
 }
 
 /**
+ * 본문 내의 ```mermaid 블록 코드들을 순서대로 추출합니다.
+ */
+function extractMermaidBlocks(body: string): string[] {
+  const blocks: string[] = [];
+  const regex = /```mermaid[ \t]*\r?\n([\s\S]*?)```/g;
+  let match;
+  while ((match = regex.exec(body)) !== null) {
+    blocks.push(match[1].trim());
+  }
+  return blocks;
+}
+
+/**
  * KaTeX 수식 사전 변환: 코드 블록을 보호한 뒤 $$...$$ (블록) 및 $...$ (인라인) 변환
  */
 function renderMath(text: string): string {
@@ -86,7 +147,8 @@ function renderMath(text: string): string {
   // 1. Block math: $$ ... $$
   let replaced = masked.replace(/\$\$([\s\S]+?)\$\$/g, (_, math: string) => {
     try {
-      return `<div class="math-block">${katex.renderToString(math.trim(), { displayMode: true, throwOnError: false })}</div>`;
+      const trimmed = math.trim();
+      return `<div class="math-block" data-math-code="${encodeURIComponent(trimmed)}">${katex.renderToString(trimmed, { displayMode: true, throwOnError: false })}</div>`;
     } catch {
       return `$$${math}$$`;
     }
@@ -134,20 +196,167 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = React.memo(
 
     const manifest = frontmatterOverride ?? parsedFrontmatter;
 
-    // 2. 마크다운 + 수식 파싱
+    // 2. 본문 내 Mermaid 블록 목록 및 마지막 유효 SVG 참조
+    const mermaidCodes = useMemo(() => extractMermaidBlocks(body), [body]);
+    const lastValidSvgsRef = useRef<Map<number, string>>(new Map());
+    const [renderTrigger, setRenderTrigger] = useState(0);
+
+    // 3. 백그라운드 Mermaid 비동기 렌더링
+    // 사용자가 타이핑하는 동안에도 이전 다이어그램을 유지(Seamless Swap)하여 깜빡임 원천 차단
+    useEffect(() => {
+      let isCancelled = false;
+
+      const renderPendingBlocks = async () => {
+        const needsRender = mermaidCodes.some(
+          (code) => code && !mermaidSvgCache.has(code),
+        );
+
+        if (!needsRender) {
+          // 모든 블록이 캐시에 있으면 인덱스 매핑 갱신
+          mermaidCodes.forEach((code, idx) => {
+            const cached = mermaidSvgCache.get(code);
+            if (cached) lastValidSvgsRef.current.set(idx, cached);
+          });
+          return;
+        }
+
+        let mermaidInstance;
+        try {
+          mermaidInstance = await getMermaid();
+        } catch {
+          return;
+        }
+        if (isCancelled) return;
+
+        let hasNewRender = false;
+
+        for (let i = 0; i < mermaidCodes.length; i++) {
+          if (isCancelled) break;
+          const code = mermaidCodes[i];
+          if (!code) continue;
+
+          if (mermaidSvgCache.has(code)) {
+            const cached = mermaidSvgCache.get(code);
+            if (cached) lastValidSvgsRef.current.set(i, cached);
+            continue;
+          }
+
+          const id = `mermaid-svg-${++mermaidIdCounter}-${Date.now()}`;
+
+          try {
+            const { svg } = await mermaidInstance.render(id, code);
+            if (isCancelled) break;
+
+            // DOMPurify 살균 시 HTML_INTEGRATION_POINTS: { foreignobject: true } 필수!
+            // 이 설정이 있어야 foreignObject 내부 div, span, p 텍스트가 삭제되지 않고 온전히 보존됩니다.
+            const sanitizedSvg = DOMPurify.sanitize(svg, {
+              ADD_TAGS: [
+                'foreignobject',
+                'foreignObject',
+                'style',
+                'svg',
+                'g',
+                'rect',
+                'circle',
+                'polygon',
+                'line',
+                'path',
+                'text',
+                'tspan',
+                'defs',
+                'marker',
+              ],
+              ADD_ATTR: [
+                'dominant-baseline',
+                'text-anchor',
+                'alignment-baseline',
+                'transform',
+                'xmlns',
+                'viewBox',
+                'viewbox',
+                'width',
+                'height',
+                'x',
+                'y',
+                'rx',
+                'ry',
+                'd',
+                'fill',
+                'stroke',
+                'stroke-width',
+                'style',
+                'class',
+                'id',
+              ],
+              HTML_INTEGRATION_POINTS: { foreignobject: true },
+            });
+
+            mermaidSvgCache.set(code, sanitizedSvg);
+            lastValidSvgsRef.current.set(i, sanitizedSvg);
+            hasNewRender = true;
+          } catch {
+            // 문법 미완성 상태 등으로 인한 에러 시 Mermaid DOM 잔여물 정리
+            const errorElement =
+              document.getElementById(id) || document.getElementById(`d${id}`);
+            if (errorElement) {
+              errorElement.remove();
+            }
+            // 에러 시 직전 유효 SVG(lastValidSvgsRef)가 유지되므로 화면은 깨지지 않음
+          }
+        }
+
+        if (hasNewRender && !isCancelled) {
+          setRenderTrigger((prev) => prev + 1);
+        }
+      };
+
+      renderPendingBlocks();
+
+      return () => {
+        isCancelled = true;
+      };
+    }, [mermaidCodes]);
+
+    // 4. 마크다운 + 수식 + 다이어그램(캐시/직전 유효 SVG 인라인 주입) 파싱
     const sanitizedHtml = useMemo(() => {
       // 수식 변환 먼저 수행
       const withMath = renderMath(body);
 
-      // marked 설정 (GFM 활성화)
-      marked.setOptions({
+      let currentBlockIndex = 0;
+
+      // 마크다운 렌더러: Mermaid 블록은 즉시 캐시된 SVG 또는 직전 유효 SVG로 렌더링
+      const markdownRenderer = new Marked({
         gfm: true,
         breaks: true,
+        renderer: {
+          code({ text, lang }) {
+            if (lang === 'mermaid') {
+              const blockIdx = currentBlockIndex++;
+              const code = text.trim();
+
+              // 1순위: 현재 코드의 렌더링된 SVG 캐시
+              const cachedSvg = mermaidSvgCache.get(code);
+              if (cachedSvg) {
+                return `<div class="mermaid-container mermaid-diagram-container" data-mermaid-index="${blockIdx}" data-mermaid-code="${encodeURIComponent(code)}">${cachedSvg}</div>`;
+              }
+
+              // 2순위: 직전 유효 SVG (수정 타이핑 중 깜빡임 방지용 Seamless 유지)
+              const prevSvg = lastValidSvgsRef.current.get(blockIdx);
+              if (prevSvg) {
+                return `<div class="mermaid-container mermaid-diagram-container is-updating" data-mermaid-index="${blockIdx}" data-mermaid-code="${encodeURIComponent(code)}">${prevSvg}</div>`;
+              }
+
+              // 3순위: 최초 로드 시 (아직 캐시가 없을 때 조용히 빈 컨테이너 유지)
+              return `<div class="mermaid-container mermaid-diagram-container is-initial" data-mermaid-index="${blockIdx}" data-mermaid-code="${encodeURIComponent(code)}" style="min-height: 80px;"></div>`;
+            }
+            return false; // 기본 marked 코드 블록 렌더링 유지
+          },
+        },
       });
 
-      const rawHtml = marked.parse(withMath) as string;
+      const rawHtml = markdownRenderer.parse(withMath) as string;
 
-      // DOMPurify XSS 필터링 (Math, SVG 태그/속성 허용)
+      // DOMPurify XSS 필터링 (Math, SVG, foreignObject 및 텍스트 완벽 허용)
       return DOMPurify.sanitize(rawHtml, {
         ADD_TAGS: [
           'annotation',
@@ -159,17 +368,26 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = React.memo(
           'path',
           'rect',
           'text',
+          'tspan',
+          'circle',
+          'polygon',
+          'line',
           'g',
           'marker',
           'defs',
-          'line',
-          'polygon',
+          'style',
+          'foreignObject',
+          'foreignobject',
           'mark',
         ],
         ADD_ATTR: [
+          'data-mermaid-index',
+          'data-mermaid-code',
+          'data-math-code',
           'display',
           'xmlns',
           'viewbox',
+          'viewBox',
           'width',
           'height',
           'fill',
@@ -177,75 +395,29 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = React.memo(
           'stroke-width',
           'd',
           'rx',
+          'ry',
           'x',
           'y',
+          'dx',
+          'dy',
           'marker-end',
           'text-anchor',
+          'dominant-baseline',
+          'alignment-baseline',
+          'transform',
           'font-family',
           'font-size',
           'font-weight',
           'class',
           'style',
+          'id',
         ],
+        HTML_INTEGRATION_POINTS: { foreignobject: true },
       });
-    }, [body]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [body, renderTrigger]);
 
-    // 3. Mermaid 다이어그램 동적 렌더링
-    useEffect(() => {
-      if (!containerRef.current) return;
-
-      const mermaidBlocks = containerRef.current.querySelectorAll(
-        'pre code.language-mermaid',
-      );
-
-      if (mermaidBlocks.length === 0) return;
-
-      let isCancelled = false;
-
-      const renderMermaid = async () => {
-        let mermaidInstance;
-        try {
-          mermaidInstance = await getMermaid();
-        } catch {
-          return;
-        }
-        if (isCancelled) return;
-
-        for (let i = 0; i < mermaidBlocks.length; i++) {
-          if (isCancelled) break;
-          const codeElem = mermaidBlocks[i];
-          const preElem = codeElem.parentElement;
-          if (!preElem) continue;
-
-          const code = codeElem.textContent || '';
-          const id = `mermaid-svg-${Date.now()}-${i}`;
-
-          try {
-            const { svg } = await mermaidInstance.render(id, code);
-            if (isCancelled) break;
-
-            const wrapper = document.createElement('div');
-            wrapper.className =
-              'mermaid-container my-4 p-4 rounded-xl border border-zinc-800 bg-zinc-950 flex justify-center';
-            const sanitizedSvg = DOMPurify.sanitize(svg, {
-              USE_PROFILES: { svg: true, svgFilters: true },
-            });
-            wrapper.innerHTML = sanitizedSvg;
-            preElem.replaceWith(wrapper);
-          } catch {
-            // 렌더링 실패 시 일반 코드 블록 유지
-          }
-        }
-      };
-
-      renderMermaid();
-
-      return () => {
-        isCancelled = true;
-      };
-    }, [sanitizedHtml]);
-
-    // 4. 헤딩 요소 id 자동 부여 및 목차(TOC) 아이템 추출
+    // 5. 헤딩 요소 id 자동 부여 및 목차(TOC) 아이템 추출
     useEffect(() => {
       if (!containerRef.current) return;
 

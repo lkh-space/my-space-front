@@ -112,18 +112,22 @@ export interface RevisionDetail {
 }
 
 export interface RevisionCompareResponse {
-  documentId: string;
-  v1: {
+  baseVersion: number;
+  baseContent: string;
+  targetVersion: number;
+  targetContent: string;
+  documentId?: string;
+  v1?: {
     version: number;
-    title: string;
+    title?: string;
     content: string;
-    createdAt: string;
+    createdAt?: string;
   };
-  v2: {
+  v2?: {
     version: number;
-    title: string;
+    title?: string;
     content: string;
-    createdAt: string;
+    createdAt?: string;
   };
 }
 

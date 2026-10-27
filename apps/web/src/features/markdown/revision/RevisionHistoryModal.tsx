@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import * as JsDiff from 'diff';
 import {
   compareRevisions,
@@ -14,6 +14,18 @@ interface RevisionHistoryModalProps {
   onClose: () => void;
   onRestored?: () => void;
   onRestoreSuccess?: () => void;
+}
+
+interface DiffLineItem {
+  type: 'add' | 'delete' | 'context';
+  text: string;
+  oldLineNumber?: number;
+  newLineNumber?: number;
+}
+
+interface DiffHunkItem {
+  header: string;
+  lines: DiffLineItem[];
 }
 
 export const RevisionHistoryModal: React.FC<RevisionHistoryModalProps> = ({
@@ -114,12 +126,74 @@ export const RevisionHistoryModal: React.FC<RevisionHistoryModalProps> = ({
     }
   };
 
-  if (!isOpen) return null;
+  // diff 계산 (v1/v2 또는 base/target DTO 양방향 안전 지원)
+  const v1Content = diffData
+    ? (diffData.v1?.content ?? diffData.targetContent ?? '')
+    : '';
+  const v2Content = diffData
+    ? (diffData.v2?.content ?? diffData.baseContent ?? '')
+    : '';
 
-  // diff 계산
-  const diffParts = diffData
-    ? JsDiff.diffLines(diffData.v1.content, diffData.v2.content)
-    : [];
+  // Git 스타일 Diff 계산: 변경 사항 중심 앞뒤 3줄(Context: 3) Hunk 추출
+  const parsedHunks = useMemo<DiffHunkItem[]>(() => {
+    if (!v1Content && !v2Content) return [];
+    if (v1Content === v2Content) return [];
+
+    const patch = JsDiff.structuredPatch(
+      `v${selectedV1 ?? 1}`,
+      `v${selectedV2 ?? 2}`,
+      v1Content,
+      v2Content,
+      '',
+      '',
+      { context: 3 },
+    );
+
+    return patch.hunks.map((hunk) => {
+      let oldNum = hunk.oldStart;
+      let newNum = hunk.newStart;
+
+      const lines: DiffLineItem[] = hunk.lines.map((rawLine) => {
+        const marker = rawLine[0];
+        const text = rawLine.slice(1);
+
+        if (marker === '+') {
+          const item: DiffLineItem = {
+            type: 'add',
+            text,
+            newLineNumber: newNum,
+          };
+          newNum++;
+          return item;
+        }
+        if (marker === '-') {
+          const item: DiffLineItem = {
+            type: 'delete',
+            text,
+            oldLineNumber: oldNum,
+          };
+          oldNum++;
+          return item;
+        }
+        const item: DiffLineItem = {
+          type: 'context',
+          text,
+          oldLineNumber: oldNum,
+          newLineNumber: newNum,
+        };
+        oldNum++;
+        newNum++;
+        return item;
+      });
+
+      return {
+        header: `@@ -${hunk.oldStart},${hunk.oldLines} +${hunk.newStart},${hunk.newLines} @@`,
+        lines,
+      };
+    });
+  }, [v1Content, v2Content, selectedV1, selectedV2]);
+
+  if (!isOpen) return null;
 
   return (
     <div
@@ -267,40 +341,73 @@ export const RevisionHistoryModal: React.FC<RevisionHistoryModalProps> = ({
                 </div>
               )}
 
-              {diffData && diffParts.length === 0 && (
+              {diffData && parsedHunks.length === 0 && (
                 <div className="p-8 text-center text-outline text-label-sm font-label-sm">
-                  두 버전 간 변경 사항이 없습니다.
+                  두 버전 간 내용 변경 사항이 없습니다.
                 </div>
               )}
 
-              {diffData && diffParts.length > 0 && (
-                <div className="divide-y divide-outline-variant/30 border border-outline-variant rounded overflow-hidden">
-                  {diffParts.map((part, index) => {
-                    const isAdded = part.added;
-                    const isRemoved = part.removed;
-
-                    let bgClass = 'bg-surface-container-lowest text-on-surface-variant';
-                    let prefix = ' ';
-                    if (isAdded) {
-                      bgClass = 'bg-secondary/10 text-secondary border-l-2 border-secondary';
-                      prefix = '+';
-                    } else if (isRemoved) {
-                      bgClass = 'bg-error/10 text-error border-l-2 border-error line-through';
-                      prefix = '-';
-                    }
-
-                    return (
-                      <div
-                        key={index}
-                        className={`px-3 py-1 flex items-start gap-2 whitespace-pre-wrap font-mono text-xs ${bgClass}`}
-                      >
-                        <span className="select-none text-outline w-3 shrink-0">
-                          {prefix}
+              {diffData && parsedHunks.length > 0 && (
+                <div className="space-y-4">
+                  {parsedHunks.map((hunk, hIdx) => (
+                    <div
+                      key={hIdx}
+                      className="border border-outline-variant rounded overflow-hidden shadow-sm bg-surface-container-lowest"
+                    >
+                      {/* Git Hunk Header */}
+                      <div className="px-3 py-1 bg-surface-container-high/80 border-b border-outline-variant text-[11px] font-mono font-semibold text-primary/90 flex items-center gap-2 select-none">
+                        <span className="material-symbols-outlined text-[14px] text-primary">
+                          unfold_more
                         </span>
-                        <div className="flex-1 break-all">{part.value}</div>
+                        <span>{hunk.header}</span>
                       </div>
-                    );
-                  })}
+
+                      {/* Hunk Lines (Context + Diff Lines) */}
+                      <div className="divide-y divide-outline-variant/10 font-mono text-[12px] leading-5">
+                        {hunk.lines.map((line, lIdx) => {
+                          const isAdd = line.type === 'add';
+                          const isDel = line.type === 'delete';
+
+                          let rowClass =
+                            'bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container/30';
+                          let prefix = ' ';
+                          if (isAdd) {
+                            rowClass =
+                              'bg-secondary/10 text-secondary border-l-2 border-secondary font-medium';
+                            prefix = '+';
+                          } else if (isDel) {
+                            rowClass =
+                              'bg-error/10 text-error border-l-2 border-error line-through opacity-85';
+                            prefix = '-';
+                          }
+
+                          return (
+                            <div
+                              key={lIdx}
+                              className={`flex items-start transition-colors px-2 py-0.5 ${rowClass}`}
+                            >
+                              {/* Old Line Number */}
+                              <span className="select-none text-[10px] text-outline/40 w-8 text-right pr-2 shrink-0">
+                                {line.oldLineNumber ?? ''}
+                              </span>
+                              {/* New Line Number */}
+                              <span className="select-none text-[10px] text-outline/40 w-8 text-right pr-2 shrink-0">
+                                {line.newLineNumber ?? ''}
+                              </span>
+                              {/* Prefix Symbol */}
+                              <span className="select-none text-[11px] font-bold w-4 text-center shrink-0">
+                                {prefix}
+                              </span>
+                              {/* Content Line with full pre-wrap preserving linebreaks */}
+                              <div className="flex-1 whitespace-pre-wrap break-all pl-1">
+                                {line.text || ' '}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

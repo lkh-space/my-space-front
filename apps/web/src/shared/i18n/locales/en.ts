@@ -252,6 +252,9 @@ export const en: TranslationSchema = {
     },
   },
   markdownDocs: {
+    common: {
+      untagged: 'Untagged',
+    },
     library: {
       importing: 'Importing...',
       importMd: 'Import .md',

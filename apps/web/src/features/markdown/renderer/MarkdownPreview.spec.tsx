@@ -152,4 +152,41 @@ $$\\mathcal{H} = -\\sum p(x) \\log p(x)$$
       });
     });
   });
+
+  describe('Mermaid 다이어그램 깜빡임 방지 및 텍스트 보존 검증', () => {
+    it('Mermaid 코드 블록은 날것의 pre code 대신 mermaid-container 컨테이너로 렌더링되어야 한다', () => {
+      const md = `
+\`\`\`mermaid
+graph TD
+  Client[Browser Client] --> Parser[WASM AST Engine]
+\`\`\`
+`;
+      const { container } = render(<MarkdownPreview content={md} />);
+
+      // 날것의 pre code.language-mermaid가 화면에 노출되지 않아야 함
+      expect(container.querySelector('pre code.language-mermaid')).toBeNull();
+
+      // 전용 mermaid-container로 렌더링되어야 함
+      const mermaidContainer = container.querySelector('.mermaid-container');
+      expect(mermaidContainer).toBeTruthy();
+      expect(mermaidContainer?.getAttribute('data-mermaid-index')).toBe('0');
+    });
+
+    it('foreignObject 내부 HTML 태그 및 텍스트가 DOMPurify 살균 후에도 제거되지 않고 유지되어야 한다', () => {
+      const md = `
+<div>
+  <svg>
+    <foreignObject width="100" height="50">
+      <div xmlns="http://www.w3.org/1999/xhtml">
+        <span class="nodeLabel">Browser Client Text</span>
+      </div>
+    </foreignObject>
+  </svg>
+</div>
+`;
+      const { container } = render(<MarkdownPreview content={md} />);
+      expect(container.querySelector('foreignobject, foreignObject')).toBeTruthy();
+      expect(container.textContent).toContain('Browser Client Text');
+    });
+  });
 });

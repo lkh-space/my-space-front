@@ -136,8 +136,9 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
           <span className="text-label-sm font-label-sm text-outline">Applied Tags</span>
           <div className="flex flex-wrap gap-1">
             {document.tags.length === 0 ? (
-              <span className="text-outline text-xs">
-                {t('markdownDocs.inspector.noAppliedTags')}
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-surface-container-high border border-outline-variant text-outline text-label-sm font-label-sm">
+                <span className="material-symbols-outlined text-[11px] text-outline">label_off</span>
+                <span>{t('markdownDocs.common.untagged')}</span>
               </span>
             ) : (
               document.tags.map((tagName: string) => (

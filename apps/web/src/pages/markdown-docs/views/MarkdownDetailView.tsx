@@ -1,12 +1,16 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import '../../../shared/i18n';
 import {
   DocumentDetail,
   FolderDto,
   deleteDocument,
+  exportDocumentPdf,
   markdownApi,
 } from '../../../entities/markdown';
 import { MarkdownPreview, TocItem } from '../../../features/markdown/renderer/MarkdownPreview';
+import { captureRenderedAssets } from '../../../features/markdown/renderer/pdfAssetCapture';
 import { RevisionHistoryModal } from '../../../features/markdown/revision/RevisionHistoryModal';
 import { StickyToc } from '../components/StickyToc';
 
@@ -23,6 +27,7 @@ export const MarkdownDetailView: React.FC<MarkdownDetailViewProps> = ({
 }) => {
   const { id: paramId } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const documentId = propDocumentId || paramId || '';
   const onNavigateBack = useCallback(() => {
@@ -53,6 +58,7 @@ export const MarkdownDetailView: React.FC<MarkdownDetailViewProps> = ({
   const [headings, setHeadings] = useState<TocItem[]>([]);
   const [activeHeadingId, setActiveHeadingId] = useState<string>('');
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const previewRef = useRef<HTMLDivElement>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -101,12 +107,29 @@ export const MarkdownDetailView: React.FC<MarkdownDetailViewProps> = ({
     return folder ? `Documents / ${folder.name}` : 'Documents / Root';
   }, [doc, folders]);
 
-  // 단어 수 및 읽기 시간 계산
-  const { wordCount, readTimeMinutes } = useMemo(() => {
-    if (!doc?.content) return { wordCount: 0, readTimeMinutes: 1 };
-    const words = doc.content.trim().split(/\s+/).filter(Boolean).length;
-    const time = Math.max(1, Math.ceil(words / 200));
-    return { wordCount: words, readTimeMinutes: time };
+  // 단어 수, 글자 수 및 읽기 시간 계산
+  const { wordCount, charCount, readTimeDisplay } = useMemo(() => {
+    if (!doc?.content) {
+      return { wordCount: 0, charCount: 0, readTimeDisplay: '0 min read' };
+    }
+    const trimmed = doc.content.trim();
+    const chars = trimmed.replace(/\s+/g, '').length;
+    const words = trimmed.split(/\s+/).filter(Boolean).length;
+
+    // 읽기 시간: 영문 200 wpm, 한글 450 cpm 기준 복합 계산
+    const estimatedMinutes = Math.max(words / 200, chars / 450);
+
+    let display = '';
+    if (words === 0 || chars === 0) {
+      display = '0 min read';
+    } else if (words < 50 || estimatedMinutes < 0.8) {
+      display = '< 1 min read (1분 미만)';
+    } else {
+      const minutes = Math.ceil(estimatedMinutes);
+      display = `${minutes} min read (약 ${minutes}분)`;
+    }
+
+    return { wordCount: words, charCount: chars, readTimeDisplay: display };
   }, [doc?.content]);
 
   // 헤딩 변경 시 Intersection Observer 설정
@@ -144,15 +167,18 @@ export const MarkdownDetailView: React.FC<MarkdownDetailViewProps> = ({
     }
   };
 
-  // PDF 내보내기
+  // PDF 파일 직접 다운로드 (window.print 배제, 렌더링된 다이어그램 및 수식 그래픽 포함)
   const handleExportPdf = async () => {
     if (!doc) return;
     try {
       setIsExportingPdf(true);
-      await markdownApi.exportPdf(doc.id);
-      showToast('PDF 내보내기가 완료되었습니다.');
-    } catch {
-      showToast('PDF 내보내기 중 오류가 발생했습니다.');
+      const assets = await captureRenderedAssets(previewRef.current, doc.content);
+      console.log('[PDF Export] 캡처 완료된 그래픽 자산:', assets);
+      await exportDocumentPdf(doc.id, assets, `${doc.title || 'document'}.pdf`);
+      showToast('PDF 파일이 성공적으로 다운로드되었습니다.');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'PDF 다운로드에 실패했습니다.';
+      alert(msg);
     } finally {
       setIsExportingPdf(false);
     }
@@ -262,7 +288,7 @@ export const MarkdownDetailView: React.FC<MarkdownDetailViewProps> = ({
       <main className="flex-1 overflow-y-auto relative">
         <div className="max-w-7xl mx-auto px-6 py-8 flex gap-8">
           {/* Primary Article Container */}
-          <article className="flex-1 max-w-4xl mx-auto space-y-8">
+          <article ref={previewRef} className="flex-1 max-w-4xl mx-auto space-y-8">
             {/* Post Header Section */}
             <div className="space-y-4 border-b border-outline-variant pb-6">
               {/* Folder Path Badge */}
@@ -276,46 +302,70 @@ export const MarkdownDetailView: React.FC<MarkdownDetailViewProps> = ({
                 {doc.title}
               </h1>
 
-              {/* Metadata Strip */}
-              <div className="flex flex-wrap items-center gap-y-2 gap-x-4 text-label-sm font-label-sm text-outline border-y border-outline-variant/40 py-2.5">
-                <div className="flex items-center gap-1 text-on-surface-variant">
-                  <span className="material-symbols-outlined text-[14px]">account_circle</span>
-                  <span>dev@my-space.local</span>
-                </div>
-                <span className="text-outline-variant">•</span>
-                <div className="flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[14px]">calendar_today</span>
-                  <span>Created {new Date(doc.createdAt).toLocaleDateString()}</span>
-                </div>
-                <span className="text-outline-variant">•</span>
-                <div className="flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[14px]">update</span>
-                  <span>Updated {new Date(doc.updatedAt).toLocaleDateString()}</span>
-                </div>
-                <span className="text-outline-variant">•</span>
-                <span className="px-1.5 py-0.2 rounded bg-secondary/10 border border-secondary/30 text-secondary font-medium">
-                  v{doc.currentVersion} (Verified)
-                </span>
-                <span className="text-outline-variant">•</span>
-                <div className="flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[14px]">schedule</span>
-                  <span>{readTimeMinutes} min read ({wordCount.toLocaleString()} words)</span>
-                </div>
-              </div>
+              {/* Metadata Multi-line Section */}
+              <div className="rounded-xl bg-surface-container-low/60 border border-outline-variant/60 p-4 space-y-3">
+                {/* 1행: 작성자, 작성일, 최종 수정일, 버전 뱃지 */}
+                <div className="flex flex-wrap items-center justify-between gap-y-2 gap-x-4 text-label-sm font-label-sm">
+                  <div className="flex flex-wrap items-center gap-y-1 gap-x-3 text-outline">
+                    <div className="flex items-center gap-1.5 font-medium text-on-surface">
+                      <span className="material-symbols-outlined text-[16px] text-primary">account_circle</span>
+                      <span>dev@my-space.local</span>
+                    </div>
+                    <span className="text-outline-variant/60">|</span>
+                    <div className="flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[14px]">calendar_today</span>
+                      <span>Created {new Date(doc.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    <span className="text-outline-variant/60">•</span>
+                    <div className="flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[14px]">update</span>
+                      <span>Updated {new Date(doc.updatedAt).toLocaleDateString()}</span>
+                    </div>
+                  </div>
 
-              {/* Tag Pills */}
-              <div className="flex flex-wrap items-center gap-1.5">
-                {doc.tags.map((t) => (
-                  <span
-                    key={t}
-                    className="font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-container border border-outline-variant text-on-surface-variant hover:text-on-surface cursor-pointer"
-                  >
-                    #{t.replace(/^#/, '')}
-                  </span>
-                ))}
-                {doc.tags.length === 0 && (
-                  <span className="text-outline text-label-sm font-label-sm">#general</span>
-                )}
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-0.5 rounded-full bg-secondary/10 border border-secondary/30 text-secondary font-medium flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" />
+                      v{doc.currentVersion} (Verified)
+                    </span>
+                  </div>
+                </div>
+
+                {/* 구분선 */}
+                <div className="h-px bg-outline-variant/40" />
+
+                {/* 2행: 분량 통계 (읽기 소요 시간, 단어 수, 글자 수) 및 태그 목록 */}
+                <div className="flex flex-wrap items-center justify-between gap-y-2 gap-x-4 text-label-sm font-label-sm">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-outline">
+                    <div className="flex items-center gap-1.5 font-medium text-on-surface-variant">
+                      <span className="material-symbols-outlined text-[15px] text-primary">schedule</span>
+                      <span>{readTimeDisplay}</span>
+                    </div>
+                    <span className="text-outline-variant/60">•</span>
+                    <div className="flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[14px]">article</span>
+                      <span>{wordCount.toLocaleString()} words ({charCount.toLocaleString()} chars)</span>
+                    </div>
+                  </div>
+
+                  {/* Tag Pills */}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {doc.tags.map((t) => (
+                      <span
+                        key={t}
+                        className="font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-container border border-outline-variant text-on-surface-variant hover:text-on-surface cursor-pointer transition-colors"
+                      >
+                        #{t.replace(/^#/, '')}
+                      </span>
+                    ))}
+                    {doc.tags.length === 0 && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container-high/60 border border-outline-variant/50 text-outline text-label-sm font-label-sm">
+                        <span className="material-symbols-outlined text-[11px] text-outline">label_off</span>
+                        <span>{t('markdownDocs.common.untagged')}</span>
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {/* Sticky Reading Control Toolbar (Stitch Exact Match) */}
@@ -332,14 +382,15 @@ export const MarkdownDetailView: React.FC<MarkdownDetailViewProps> = ({
 
                   <button
                     type="button"
-                    onClick={handleExportPdf}
                     disabled={isExportingPdf}
-                    className="h-8 px-2.5 rounded bg-transparent border border-outline-variant text-on-surface font-label-md text-label-md hover:bg-surface-container transition-colors flex items-center gap-1.5"
+                    onClick={handleExportPdf}
+                    className="h-8 px-2.5 rounded bg-transparent border border-outline-variant text-on-surface font-label-md text-label-md hover:bg-surface-container transition-colors flex items-center gap-1.5 disabled:opacity-50"
+                    title="KaTeX 수식 및 Mermaid 다이어그램이 온전히 렌더링된 고품질 PDF 다운로드"
                   >
                     <span className="material-symbols-outlined text-[16px] text-error">
-                      picture_as_pdf
+                      {isExportingPdf ? 'progress_activity' : 'picture_as_pdf'}
                     </span>
-                    <span>PDF 내보내기</span>
+                    <span>{isExportingPdf ? 'PDF 생성 중...' : 'PDF 내보내기'}</span>
                   </button>
 
                   <button
@@ -365,16 +416,6 @@ export const MarkdownDetailView: React.FC<MarkdownDetailViewProps> = ({
 
                   <button
                     type="button"
-                    onClick={() => window.print()}
-                    className="h-8 px-2.5 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container text-label-sm font-label-sm flex items-center gap-1"
-                    title="Print document"
-                  >
-                    <span className="material-symbols-outlined text-[15px]">print</span>
-                    <span>인쇄 (Print)</span>
-                  </button>
-
-                  <button
-                    type="button"
                     onClick={handleDeleteDoc}
                     className="h-8 px-2 rounded text-error/80 hover:text-error hover:bg-surface-container text-label-sm font-label-sm flex items-center gap-1"
                     title="문서 삭제"
@@ -386,7 +427,7 @@ export const MarkdownDetailView: React.FC<MarkdownDetailViewProps> = ({
             </div>
 
             {/* Rendered Markdown Body */}
-            <div className="markdown-body-wrapper pb-16">
+            <div ref={previewRef} className="markdown-body-wrapper pb-16">
               <MarkdownPreview
                 content={doc.content}
                 onHeadingsExtracted={setHeadings}
