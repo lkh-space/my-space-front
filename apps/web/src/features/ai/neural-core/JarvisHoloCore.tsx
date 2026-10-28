@@ -65,26 +65,30 @@ export const JarvisHoloCore: React.FC<JarvisHoloCoreProps> = ({ engineState }) =
           aria-hidden="true"
         >
           {/* Inner Orbitals */}
-          <ellipse
-            className="orbital-ellipse rotate-45 holo-spin"
-            cx="100"
-            cy="100"
-            rx="76"
-            ry="24"
-            stroke="#adc6ff"
-            strokeDasharray="2 4"
-            strokeWidth="0.8"
-          />
-          <ellipse
-            className="orbital-ellipse -rotate-45 holo-spin-rev"
-            cx="100"
-            cy="100"
-            rx="76"
-            ry="24"
-            stroke="#ca8100"
-            strokeDasharray="3 3"
-            strokeWidth="0.8"
-          />
+          <g className="orbital-group-primary">
+            <ellipse
+              className="orbital-ellipse"
+              cx="100"
+              cy="100"
+              rx="76"
+              ry="24"
+              stroke="#adc6ff"
+              strokeDasharray="2 4"
+              strokeWidth="0.8"
+            />
+          </g>
+          <g className="orbital-group-secondary">
+            <ellipse
+              className="orbital-ellipse"
+              cx="100"
+              cy="100"
+              rx="76"
+              ry="24"
+              stroke="#ca8100"
+              strokeDasharray="3 3"
+              strokeWidth="0.8"
+            />
+          </g>
           <ellipse
             cx="100"
             cy="100"

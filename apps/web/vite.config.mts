@@ -26,6 +26,7 @@ export default defineConfig(({ mode }) => {
             'http://localhost:3001',
           changeOrigin: true,
           secure: false,
+          ws: true,
         },
         '/api': {
           target: backendUrl,

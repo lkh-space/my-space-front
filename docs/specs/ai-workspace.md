@@ -1,7 +1,7 @@
 ---
-status: implemented
+status: review
 owner: AI Assistant & Keunhyeok Lim
-last-updated: 2026-10-17
+last-updated: 2026-10-28
 ---
 
 # 기능 명세서: AI 워크스페이스 (JARVIS Neural Core 음성 비서)
@@ -26,8 +26,8 @@ last-updated: 2026-10-17
    * Web Audio API / 오디오 비주얼라이저 시뮬레이션 및 실제 재생 제어.
 3. **Vanilla CSS 기반 초경량 고성능 애니메이션**:
    * 외부 프레임워크(Tailwind CSS) 없이, 순수 CSS 키프레임(`spin-slow`, `spin-rev`, `pulse-glow`, `sound-bar wave-bounce`)으로 부드러운 60fps 그래픽 제공.
-4. **SSE 스트리밍 기반 실시간 응답 출력**:
-   * 백엔드 스트리밍 청크 수신 시 텍스트 타이핑 효과와 음성 재생 상태(`SPEAKING`, `LISTENING`, `THINKING`)의 긴밀한 동기화.
+4. **WebSocket 기반 실시간 양방향 음성/텍스트 스트리밍**:
+   * 브라우저 표준 WebSocket을 통해 발화 중 실시간 오디오 청크를 전송하고, 중간 전사(Interim STT), 최종 전사, AI 토큰 스트림 및 인터럽트를 전이중(Full-duplex) 채널로 처리 ([ADR-0005](../adr/0005-websocket-realtime-voice-assistant.md) 참조).
 
 ### 2.2. 제외 대상 (Non-goals)
 1. 브라우저 내 실제 On-Device 거대 언어 모델(LLM) 구동(WASM 파라미터 로딩 등)은 이번 범위에서 제외하며, 백엔드 API와의 통신을 통해 처리합니다.
@@ -101,7 +101,8 @@ apps/web/src/
      * 내부 주파수 링: `.holo-spin-fast` (14초)
      * 중심 발광 구체: `.holo-pulse` (3.5초 주기 은은한 펄스 글로우)
    * **SVG 시냅스 노드**:
-     * 중심 핵(Core) + 궤도 타원 2개 + 9개의 연결 노드(Constellation Synaptic Nodes).
+     * 중심 핵(Core) + 궤도 타원 2개(`orbital-group-primary`, `orbital-group-secondary`) + 9개의 연결 노드(Constellation Synaptic Nodes).
+     * 궤도 타원은 SVG viewBox 중심(`transform-box: view-box; transform-origin: 100px 100px`)을 기준으로 45°/-45° 교차 회전(`svg-spin-cw`, `svg-spin-ccw`)하여 정중앙에 고정.
      * 상태에 따라 시냅스 라인 발광 (JARVIS: Stark Blue/Amber/Mint).
    * **중앙 HUD 오버레이**:
      * `CORE: ACTIVE` (소형 라벨), `J.A.R.V.I.S.` (헤드라인 모노), `98.4% SYNAPSE` (서브 메트릭).
@@ -118,6 +119,12 @@ apps/web/src/
 
 3. **`SpokenMessageCard` & `BenchmarkDeltaCard` (우측 패널)**:
    * 헤더: `J.A.R.V.I.S.` + 모델 배지(`Opus`) + 온라인 펄스 램프 + 툴 액션(`add`, `delete_sweep`, `more_horiz`).
+   * **실시간 스트리밍 프로그레스바 (`stream-progress-strip`)**:
+     * API 호출 및 답변 생성 중(`isProcessing = true`) 시 트랜스크립트 헤더 직하단에 사이버틱 네온 프로그레스바 및 실시간 연산 타이머(`0.1s` 단위) 노출.
+   * **답변 생성 대기 스켈레톤 (`thinking-placeholder-card`)**:
+     * 첫 토큰 수신 전 어시스턴트 메시지 버블에 `J.A.R.V.I.S.가 답변을 생성하고 있습니다...` 안내 텍스트와 쉬머 프로그레스 라인 표시.
+   * **응답 지연 시간(레이턴시) 뱃지 (`message-latency-pill`)**:
+     * API 호출부터 첫 토큰 수신까지의 소요 시간(TTFT, `latencyMs`) 및 총 생성 소요 시간을 볼트(`bolt`) 뱃지(`⚡ 850ms` / `⚡ 1.24s`)로 표시.
    * 오디오 알약 캡슐(`AudioPlayerPill`): 재생/일시정지 토글, 미니 6바 웨이브폼, 재생 타임코드 (`0:14 / 0:38`).
    * 발화 본문: 키워드 강조가 들어간 유려한 타이포그래피.
    * `BenchmarkDeltaCard`:
@@ -174,24 +181,29 @@ stateDiagram-v2
 * **세션 목록 조회**: `GET /api/v1/ai/sessions` (`NeuralStreamSession[]`)
 * **신규 세션 생성**: `POST /api/v1/ai/sessions` (`{ title?: string }` → `NeuralStreamSession`)
 
-### 6.2. J.A.R.V.I.S. 실시간 음성/텍스트 멀티모달 스트리밍
-* **엔드포인트**: `POST /api/v1/ai/voice/stream`
-* **요청 형태**:
-  * 음성 녹음 전달 시: `multipart/form-data` (`sessionId`, `audio` File/Blob, `enableTools`, `voiceSettings`)
-  * 텍스트 쿼리 전달 시: `application/json` (`sessionId`, `textQuery`, `enableTools`, `voiceSettings`)
-* **SSE 이벤트 수신 규격 (`text/event-stream`)**:
-  1. `transcription`: 사용자 음성의 STT 전사 텍스트 (`{"text": "..."}`)
-  2. `benchmark`: 텔레메트리 지표 (`{"workerName": "...", "opfsStream": "...", "remoteSse": "..."}`)
-  3. `context_ref`: RAG 인용 문서 목록 (`{"contexts": [{ "id": "...", "title": "...", "filename": "...", "type": "doc" }]}`)
-  4. `token`: 실시간 어시스턴트 답변 토큰 (`{"delta": "..."}`)
-  5. `audio_complete`: TTS 음성 파일 URL (`{"audioUrl": "/api/v1/ai/audio/...", "duration": "0:38"}`)
-  6. `done`: 스트림 정상 종료 (`{"finished": true, "tokensUsed": 120, "contextLimit": 8192}`)
-  7. `error`: 처리 오류 (`{"error": "..."}`)
+### 6.2. J.A.R.V.I.S. 실시간 음성/텍스트 WebSocket 전이중 스트리밍
+* **아키텍처 결정**: [ADR-0005: 웹소켓(WebSocket) 기반 실시간 양방향 음성 비서(STT/TTS) 스트리밍 전환](../adr/0005-websocket-realtime-voice-assistant.md) 준수
+* **엔드포인트**: `/api/v1/ai/voice/ws` (Vite 개발 프록시: `ws://localhost:3001/api/v1/ai/voice/ws`)
+* **클라이언트 ➡️ 서버 메시지 규격**:
+  1. `session_init` (JSON): 세션 시작 및 음성 설정
+  2. 오디오 청크 (Binary / ArrayBuffer): 마이크 입력 중 100ms~250ms 주기 전송
+  3. `audio_end` (JSON): 발화 종료(스페이스바 뗌) 알림
+  4. `text_query` (JSON): 우측 패널 텍스트 질문
+  5. `interrupt` (JSON): AI 발화 즉시 중단 (Barge-in)
+* **서버 ➡️ 클라이언트 메시지 규격**:
+  1. `session_ready` (JSON): 세션 연결 준비 완료
+  2. `interim_transcription` (JSON): 실시간 중간 STT 전사 텍스트 (`{"text": "..."}`)
+  3. `final_transcription` (JSON): 확정된 사용자 발화 텍스트 (`{"text": "..."}`)
+  4. `token` (JSON): 실시간 어시스턴트 답변 토큰 (`{"delta": "..."}`)
+  5. `benchmark` (JSON): 텔레메트리 지표 (`{"workerName": "...", "opfsStream": "...", "remoteSse": "..."}`)
+  6. `context_ref` (JSON): RAG 인용 문서 목록 (`{"contexts": [...]}`)
+  7. `audio_chunk` (Binary or JSON): TTS 오디오 스트림 청크
+  8. `done` (JSON): 스트림 정상 종료 (`{"finished": true, "tokensUsed": 120}`)
+  9. `error` (JSON): 처리 오류 통지 (`{"error": "..."}`)
 
-### 6.3. 발화 즉시 중단 (Speech Interrupt)
-* **엔드포인트**: `POST /api/v1/ai/chat/interrupt`
-* **요청 Body**: `{"sessionId": string}`
-* **동작**: 클라이언트의 `AbortController` 취소와 동시에 백엔드의 LLM 추론 및 TTS 합성을 서버 레벨에서 즉시 중단합니다.
+### 6.3. 발화 즉시 중단 (Speech Interrupt / Barge-in)
+* **동작**: 클라이언트에서 웹소켓 채널로 `{"type": "interrupt"}` 메시지를 송신하는 즉시 서버의 LLM 토큰 생성 및 TTS 합성을 중단하고, 클라이언트의 브라우저 오디오 재생도 즉시 정지합니다.
+* **HTTP 폴백**: 웹소켓 단절 시 `POST /api/v1/ai/chat/interrupt` HTTP 엔드포인트를 안전 폴백으로 유지합니다.
 
 ### 6.4. 합성 오디오 서빙 및 마크다운 시맨틱 검색
 * **오디오 파일 서빙**: `GET /api/v1/ai/audio/:id` (`audio/wav`)

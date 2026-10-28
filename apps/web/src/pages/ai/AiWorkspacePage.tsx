@@ -15,6 +15,9 @@ import {
 export const AiWorkspacePage: React.FC = () => {
   const {
     engineState,
+    isProcessing,
+    processingElapsedMs,
+    lastLatencyMs,
     messages,
     audioSettings,
     isPlayingAudio,
@@ -59,15 +62,19 @@ export const AiWorkspacePage: React.FC = () => {
 
       if (isInput) return;
 
-      // Spacebar
+      // Spacebar (Push-to-Talk)
       if (e.code === 'Space' || e.key === ' ') {
         e.preventDefault();
+
+        // 키를 꾹 누르고 있을 때 발생하는 브라우저 키 반복(repeat) 무시
+        if (e.repeat) return;
+
         if (engineState === 'SPEAKING') {
           interruptSpeech();
           return;
         }
 
-        if (!isSpaceKeyDownRef.current && engineState === 'IDLE') {
+        if (!isSpaceKeyDownRef.current && (engineState === 'IDLE' || engineState === 'LISTENING')) {
           isSpaceKeyDownRef.current = true;
           startListening();
         }
@@ -171,6 +178,14 @@ export const AiWorkspacePage: React.FC = () => {
               <span>
                 Local Latency: <strong className="text-on-surface">42ms</strong>
               </span>
+              {lastLatencyMs !== null && (
+                <>
+                  <span>/</span>
+                  <span className="telemetry-api-latency">
+                    API TTFT: <strong className="text-tertiary">{lastLatencyMs < 1000 ? `${lastLatencyMs}ms` : `${(lastLatencyMs / 1000).toFixed(2)}s`}</strong>
+                  </span>
+                </>
+              )}
               <span>/</span>
               <span className="telemetry-tag-synth">Holographic Synthesis</span>
             </div>
@@ -252,6 +267,23 @@ export const AiWorkspacePage: React.FC = () => {
               </button>
             </div>
           </header>
+
+          {/* Active Streaming Indeterminate Progress Bar */}
+          {isProcessing && (
+            <div
+              className="stream-progress-strip"
+              role="progressbar"
+              aria-label="J.A.R.V.I.S. 응답 생성 중"
+            >
+              <div className="stream-progress-bar-glow" />
+              <div className="stream-progress-meta">
+                <span className="stream-progress-lamp" />
+                <span className="stream-progress-text">
+                  J.A.R.V.I.S. 신경망 연산 중 ({(processingElapsedMs / 1000).toFixed(1)}s)
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* Scrollable Transcript Area */}
           <div className="transcript-scroll-area" ref={scrollAreaRef}>

@@ -197,6 +197,45 @@ describe('AI Feature Components', () => {
       expect(onSave).toHaveBeenCalledWith('Test content message');
     });
 
+    it('SpokenMessageCard에 latencyMs가 있으면 응답 소요 시간 뱃지가 표출되어야 한다', () => {
+      const mockMsgWithLatency: SpokenTranscriptMessage = {
+        id: 'msg-latency',
+        role: 'assistant',
+        content: 'Latency measured response',
+        timestamp: '11:00 AM',
+        latencyMs: 850,
+      };
+
+      render(
+        <SpokenMessageCard
+          message={mockMsgWithLatency}
+          isPlayingAudio={false}
+          onTogglePlayAudio={vi.fn()}
+        />
+      );
+
+      expect(screen.getByText('850ms')).toBeTruthy();
+    });
+
+    it('어시스턴트 답변 생성 대기 중(content가 빈 문자열)일 때 로딩 인디케이터가 렌더링되어야 한다', () => {
+      const pendingMsg: SpokenTranscriptMessage = {
+        id: 'msg-pending',
+        role: 'assistant',
+        content: '',
+        timestamp: '11:01 AM',
+      };
+
+      render(
+        <SpokenMessageCard
+          message={pendingMsg}
+          isPlayingAudio={false}
+          onTogglePlayAudio={vi.fn()}
+        />
+      );
+
+      expect(screen.getByText('J.A.R.V.I.S.가 답변을 생성하고 있습니다...')).toBeTruthy();
+    });
+
     it('FollowUpInputBar 엔터 입력 시 onSend가 호출되어야 한다', () => {
       const onSend = vi.fn();
       render(<FollowUpInputBar onSend={onSend} />);

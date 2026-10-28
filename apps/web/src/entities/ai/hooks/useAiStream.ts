@@ -16,6 +16,7 @@ import {
 } from '../lib/browserSpeech';
 import { useNeuralSessions } from './useNeuralSessions';
 import { useMediaRecorderPtt } from './useMediaRecorderPtt';
+import { AiVoiceWebSocketClient } from '../api/aiWebSocket';
 
 function formatAudioTime(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -27,6 +28,8 @@ export function useAiStream() {
   const [engineState, setEngineState] = useState<AiEngineState>('IDLE');
   const [messages, setMessages] = useState<SpokenTranscriptMessage[]>(INITIAL_TRANSCRIPT_MESSAGES);
   const [isPlayingAudio, setIsPlayingAudio] = useState<boolean>(false);
+  const [processingElapsedMs, setProcessingElapsedMs] = useState<number>(0);
+  const [lastLatencyMs, setLastLatencyMs] = useState<number | null>(null);
   const [audioSettings, setAudioSettings] = useState<AudioSettings>({
     isMicMuted: false,
     speechSpeed: 1.0,
@@ -39,9 +42,14 @@ export function useAiStream() {
   const abortControllerRef = useRef<AbortController | null>(null);
   const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
   const speechCancelRef = useRef<(() => void) | null>(null);
+  const elapsedTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const assistantTextAccumulatorRef = useRef<string>('');
   const messagesRef = useRef<SpokenTranscriptMessage[]>(messages);
   messagesRef.current = messages;
+
+  // 현재 청취 중인 활성 사용자 메시지 ID
+  const activeUserMsgIdRef = useRef<string | null>(null);
+  const recognizedTextBufferRef = useRef<string>('');
 
   const {
     startRecording,
@@ -50,15 +58,27 @@ export function useAiStream() {
     releaseMediaStream,
   } = useMediaRecorderPtt();
 
+  // 웹소켓 클라이언트 인스턴스
+  const wsClientRef = useRef<AiVoiceWebSocketClient | null>(null);
+
+  const stopElapsedTimer = useCallback(() => {
+    if (elapsedTimerRef.current) {
+      clearInterval(elapsedTimerRef.current);
+      elapsedTimerRef.current = null;
+    }
+  }, []);
+
   const stopAllAudioAndSpeech = useCallback(() => {
     stopSpeaking();
     speechCancelRef.current?.();
     speechCancelRef.current = null;
+    stopElapsedTimer();
+    setProcessingElapsedMs(0);
     if (audioPlayerRef.current) {
       audioPlayerRef.current.pause();
       audioPlayerRef.current = null;
     }
-  }, []);
+  }, [stopElapsedTimer]);
 
   // 1. 발화 즉시 중단 (Interrupt Speech)
   const interruptSpeechRef = useRef<() => void>(() => undefined);
@@ -81,6 +101,9 @@ export function useAiStream() {
     cancelRecording();
     stopAllAudioAndSpeech();
 
+    // 웹소켓 인터럽트 프레임 발송
+    wsClientRef.current?.sendInterrupt();
+
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
       abortControllerRef.current = null;
@@ -89,7 +112,7 @@ export function useAiStream() {
     setEngineState('IDLE');
     setIsPlayingAudio(false);
 
-    // 백엔드 인터럽트 비동기 통지
+    // 백엔드 인터럽트 비동기 통지 (HTTP 폴백)
     const sessionIdToInterrupt = activeSessionId || currentSessionIdRef.current;
     if (sessionIdToInterrupt) {
       apiInterruptSpeech(sessionIdToInterrupt).catch(() => {
@@ -100,9 +123,40 @@ export function useAiStream() {
 
   interruptSpeechRef.current = interruptSpeech;
 
-  // 언마운트 시 리소스 정리
+  // 웹소켓 초기화 및 수명주기 관리
   useEffect(() => {
+    const wsClient = new AiVoiceWebSocketClient();
+
+    wsClient.setCallbacks({
+      onSessionReady: () => {
+        // 세션 연결 준비 완료
+      },
+      onTranscription: (event) => {
+        // 웹소켓 서버로부터 실시간 전사 수신 시 UI 반영
+        const targetId = activeUserMsgIdRef.current;
+        if (targetId && event.text) {
+          recognizedTextBufferRef.current = event.text;
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === targetId ? { ...msg, content: event.text } : msg
+            )
+          );
+        }
+      },
+      onToken: (delta) => {
+        assistantTextAccumulatorRef.current += delta;
+      },
+      onError: (errMsg) => {
+        console.warn('[J.A.R.V.I.S. WS]', errMsg);
+      },
+    });
+
+    wsClient.connect();
+    wsClientRef.current = wsClient;
+
     return () => {
+      wsClient.disconnect();
+      wsClientRef.current = null;
       cancelRecording();
       abortControllerRef.current?.abort();
       stopAllAudioAndSpeech();
@@ -234,11 +288,13 @@ export function useAiStream() {
     [isPlayingAudio, playBrowserSpeechForMessage]
   );
 
-  // 2. 실제 백엔드 SSE 스트리밍 처리
+  // 2. 실제 백엔드 스트리밍 처리 (HTTP SSE 또는 텍스트 질의)
   const triggerResponseStream = useCallback(
-    async (params: { textQuery?: string; audioBlob?: Blob }) => {
+    async (params: { textQuery?: string; audioBlob?: Blob; existingUserMsgId?: string }) => {
       stopAllAudioAndSpeech();
+      stopElapsedTimer();
       assistantTextAccumulatorRef.current = '';
+      setProcessingElapsedMs(0);
 
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
@@ -246,29 +302,49 @@ export function useAiStream() {
 
       setEngineState('THINKING');
 
-      const userText = params.textQuery || (params.audioBlob ? '음성 분석 중...' : 'System Query');
-      const userMsgId = `msg-user-${Date.now()}`;
+      const userText = params.textQuery || '음성 질의';
+      const userMsgId = params.existingUserMsgId || `msg-user-${Date.now()}`;
       const assistantMsgId = `msg-ai-${Date.now() + 1}`;
       const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-      // 사용자 메시지 및 빈 어시스턴트 메시지 즉시 추가
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: userMsgId,
-          role: 'user',
-          content: userText,
-          timestamp: nowTime,
-        },
-        {
-          id: assistantMsgId,
-          role: 'assistant',
-          content: '',
-          timestamp: nowTime,
-          currentTime: '0:00',
-          isTtsVerified: false,
-        },
-      ]);
+      // API 호출 시작 시간 및 실시간 경과 타이머
+      const requestStartTime = performance.now();
+      elapsedTimerRef.current = setInterval(() => {
+        setProcessingElapsedMs(Math.round(performance.now() - requestStartTime));
+      }, 100);
+
+      // 기존 사용자 메시지가 없다면 추가, 있으면 유지
+      if (!params.existingUserMsgId) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: userMsgId,
+            role: 'user',
+            content: userText,
+            timestamp: nowTime,
+          },
+          {
+            id: assistantMsgId,
+            role: 'assistant',
+            content: '',
+            timestamp: nowTime,
+            currentTime: '0:00',
+            isTtsVerified: false,
+          },
+        ]);
+      } else {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: assistantMsgId,
+            role: 'assistant',
+            content: '',
+            timestamp: nowTime,
+            currentTime: '0:00',
+            isTtsVerified: false,
+          },
+        ]);
+      }
 
       const targetSessionId = ensureSessionId();
       const abortController = new AbortController();
@@ -290,11 +366,17 @@ export function useAiStream() {
           signal: abortController.signal,
           handlers: {
             onTranscription: (transcribedText) => {
-              setMessages((prev) =>
-                prev.map((msg) =>
-                  msg.id === userMsgId ? { ...msg, content: transcribedText } : msg
-                )
-              );
+              // 백엔드의 MockSttProvider가 보낸 하드코딩 더미 텍스트는 무시하고,
+              // 클라이언트에서 실제 음성 인식을 하지 못했을 때만 백엔드 전사를 적용합니다.
+              const isMockText =
+                transcribedText === 'Compare local OPFS caching with MongoDB change streams';
+              if (transcribedText && !isMockText && !recognizedTextBufferRef.current) {
+                setMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === userMsgId ? { ...msg, content: transcribedText } : msg
+                  )
+                );
+              }
             },
             onBenchmark: (benchmark) => {
               setMessages((prev) =>
@@ -313,6 +395,13 @@ export function useAiStream() {
             onToken: (delta) => {
               if (!hasReceivedTokens) {
                 hasReceivedTokens = true;
+                const ttft = Math.round(performance.now() - requestStartTime);
+                setLastLatencyMs(ttft);
+                setMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === assistantMsgId ? { ...msg, latencyMs: ttft } : msg
+                  )
+                );
                 setEngineState('SPEAKING');
               }
               assistantTextAccumulatorRef.current += delta;
@@ -338,7 +427,21 @@ export function useAiStream() {
               );
             },
             onDone: () => {
+              stopElapsedTimer();
+              setProcessingElapsedMs(0);
               abortControllerRef.current = null;
+              const totalDuration = Math.round(performance.now() - requestStartTime);
+              setMessages((prev) =>
+                prev.map((msg) =>
+                  msg.id === assistantMsgId
+                    ? {
+                        ...msg,
+                        totalDurationMs: totalDuration,
+                        latencyMs: msg.latencyMs ?? totalDuration,
+                      }
+                    : msg
+                )
+              );
               const finalText = assistantTextAccumulatorRef.current.trim();
               if (finalText && !audioSettings.isMicMuted) {
                 playBrowserSpeechForMessage(assistantMsgId, finalText);
@@ -349,13 +452,27 @@ export function useAiStream() {
             },
             onError: (errMsg) => {
               console.warn('[J.A.R.V.I.S. SSE 오류]', errMsg);
+              stopElapsedTimer();
+              setProcessingElapsedMs(0);
               stopSpeaking();
+              setMessages((prev) =>
+                prev.map((msg) =>
+                  msg.id === assistantMsgId
+                    ? {
+                        ...msg,
+                        content: `[J.A.R.V.I.S. 시스템 알림] ${errMsg}`,
+                      }
+                    : msg
+                )
+              );
               setEngineState('IDLE');
               setIsPlayingAudio(false);
             },
           },
         });
       } catch (err) {
+        stopElapsedTimer();
+        setProcessingElapsedMs(0);
         if (abortController.signal.aborted) {
           return;
         }
@@ -376,10 +493,16 @@ export function useAiStream() {
         setIsPlayingAudio(false);
       }
     },
-    [audioSettings, ensureSessionId, playBrowserSpeechForMessage, stopAllAudioAndSpeech]
+    [
+      audioSettings,
+      ensureSessionId,
+      playBrowserSpeechForMessage,
+      stopAllAudioAndSpeech,
+      stopElapsedTimer,
+    ]
   );
 
-  // 3. PTT 음성 녹음 시작 (Spacebar 누름)
+  // 3. PTT 음성 녹음 및 실시간 STT 시작 (Spacebar 누름)
   const startListening = useCallback(() => {
     if (audioSettings.isMicMuted) return;
     if (engineState === 'SPEAKING') {
@@ -387,28 +510,114 @@ export function useAiStream() {
     }
 
     setEngineState('LISTENING');
-    startRecording();
+    recognizedTextBufferRef.current = '';
+
+    // 실시간 사용자 음성 카드 즉시 생성 (발화 중 실시간 전사용)
+    const userMsgId = `msg-user-${Date.now()}`;
+    activeUserMsgIdRef.current = userMsgId;
+    const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: userMsgId,
+        role: 'user',
+        content: '🎙️ 음성을 듣고 있습니다... (마이크에 말씀해 주세요)',
+        timestamp: nowTime,
+      },
+    ]);
+
+    // 녹음 및 실시간 STT 동시 가동
+    startRecording({
+      timesliceMs: 150,
+      onAudioChunk: (chunk) => {
+        // 웹소켓으로 오디오 바이너리 청크 실시간 송신
+        wsClientRef.current?.sendAudioChunk(chunk);
+      },
+      onInterimText: (interimText) => {
+        recognizedTextBufferRef.current = interimText;
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === userMsgId ? { ...msg, content: `🎙️ ${interimText}` } : msg
+          )
+        );
+      },
+      onFinalText: (finalText) => {
+        recognizedTextBufferRef.current = finalText;
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === userMsgId ? { ...msg, content: finalText } : msg
+          )
+        );
+      },
+      onError: (err) => {
+        console.warn('[PTT 에러]', err);
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === userMsgId
+              ? {
+                  ...msg,
+                  content: `⚠️ 마이크 인식 안내: ${err}`,
+                }
+              : msg
+          )
+        );
+      },
+    });
   }, [audioSettings.isMicMuted, engineState, interruptSpeech, startRecording]);
 
-  // 4. PTT 음성 녹음 종료 및 백엔드 전송 (Spacebar 뗌)
+  // 4. PTT 음성 녹음 종료 및 STT 최종 확정 (Spacebar 뗌)
   const stopListeningAndSend = useCallback(
     (customText?: string) => {
       if (engineState !== 'LISTENING') return;
       setEngineState('THINKING');
 
-      stopRecording((audioBlob) => {
-        if (audioBlob) {
+      const userMsgId = activeUserMsgIdRef.current;
+
+      stopRecording(({ recognizedText }) => {
+        const finalQuery =
+          customText?.trim() ||
+          recognizedText?.trim() ||
+          recognizedTextBufferRef.current.trim();
+
+        // 웹소켓에 발화 종료 통지
+        wsClientRef.current?.sendAudioEnd(finalQuery);
+
+        if (finalQuery) {
+          // 사용자 메시지를 최종 인식된 텍스트로 확정
+          if (userMsgId) {
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === userMsgId ? { ...msg, content: finalQuery } : msg
+              )
+            );
+          }
+
+          // 백엔드로 전송: 클라이언트에서 실제 인식된 텍스트가 있으므로 textQuery만 전송하여
+          // 백엔드의 MockSttProvider('Compare local OPFS...')를 타지 않고 실제 질의로 처리합니다.
           triggerResponseStream({
-            textQuery: customText,
-            audioBlob,
+            textQuery: finalQuery,
+            existingUserMsgId: userMsgId || undefined,
           });
         } else {
-          triggerResponseStream({
-            textQuery:
-              customText ||
-              'Check neural diagnostic stream and analyze local cache telemetry',
-          });
+          // 음성이 감지되지 않은 경우: 안내 메시지 표시 및 상태 복귀
+          if (userMsgId) {
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === userMsgId
+                  ? {
+                      ...msg,
+                      content: '⚠️ 음성이 감지되지 않았습니다. (마이크를 켜고 스페이스바를 누른 채 말씀해 주세요)',
+                    }
+                  : msg
+              )
+            );
+          }
+          setEngineState('IDLE');
         }
+
+        activeUserMsgIdRef.current = null;
+        recognizedTextBufferRef.current = '';
       });
     },
     [engineState, stopRecording, triggerResponseStream]
@@ -432,6 +641,9 @@ export function useAiStream() {
 
   return {
     engineState,
+    isProcessing: engineState === 'THINKING',
+    processingElapsedMs,
+    lastLatencyMs,
     sessions,
     activeSessionId,
     setActiveSessionId,

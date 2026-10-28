@@ -57,6 +57,30 @@ export const SpokenMessageCard: React.FC<SpokenMessageCardProps> = React.memo(
       );
     }
 
+    // 어시스턴트 답변 생성 중 (첫 토큰 수신 전)
+    if (!message.content.trim()) {
+      return (
+        <div
+          className="spoken-message-card thinking-placeholder-card"
+          aria-label="J.A.R.V.I.S. 답변 생성 중"
+        >
+          <div className="thinking-card-header">
+            <span className="thinking-pulse-lamp" />
+            <span className="thinking-status-text">
+              J.A.R.V.I.S.가 답변을 생성하고 있습니다...
+            </span>
+          </div>
+          <div className="thinking-progress-track">
+            <div className="thinking-progress-bar" />
+          </div>
+        </div>
+      );
+    }
+
+    const formatLatency = (ms: number) => {
+      return ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(2)}s`;
+    };
+
     return (
       <div className="spoken-message-card" aria-label="J.A.R.V.I.S. 발화 내용">
         {/* Audio Player Scrubber Pill */}
@@ -132,6 +156,18 @@ export const SpokenMessageCard: React.FC<SpokenMessageCardProps> = React.memo(
               </span>
               <span>Save to Markdown</span>
             </button>
+
+            {message.latencyMs !== undefined && (
+              <span
+                className="message-latency-pill"
+                title={`첫 응답 지연 시간: ${formatLatency(message.latencyMs)}${
+                  message.totalDurationMs ? ` (총 ${formatLatency(message.totalDurationMs)})` : ''
+                }`}
+              >
+                <span className="material-symbols-outlined text-[14px] text-tertiary">bolt</span>
+                <span>{formatLatency(message.latencyMs)}</span>
+              </span>
+            )}
           </div>
 
           <div className="action-right-group">

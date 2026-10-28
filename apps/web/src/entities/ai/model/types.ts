@@ -35,6 +35,8 @@ export interface SpokenTranscriptMessage {
   benchmarkDelta?: BenchmarkMetrics;
   contexts?: ReferencedContext[];
   audioUrl?: string;
+  latencyMs?: number; // Time To First Token (첫 응답 수신까지 소요 시간, ms)
+  totalDurationMs?: number; // 전체 응답 스트리밍 완료까지 소요 시간 (ms)
 }
 
 export interface NeuralStreamSession {
@@ -110,3 +112,92 @@ export interface AiSearchResponseDto {
   results: AiSearchResultItem[];
   total: number;
 }
+
+// ============================================================================
+// WebSocket Realtime Voice / STT Protocol Types (ADR-0005)
+// ============================================================================
+
+export type WsClientMessageType =
+  | 'session_init'
+  | 'audio_chunk'
+  | 'audio_end'
+  | 'text_query'
+  | 'interrupt';
+
+export interface WsSessionInitMessage {
+  type: 'session_init';
+  sessionId: string;
+  voiceSettings?: VoiceSettings;
+}
+
+export interface WsAudioEndMessage {
+  type: 'audio_end';
+  transcribedText?: string;
+}
+
+export interface WsTextQueryMessage {
+  type: 'text_query';
+  text: string;
+}
+
+export interface WsInterruptMessage {
+  type: 'interrupt';
+}
+
+export type WsClientMessage =
+  | WsSessionInitMessage
+  | WsAudioEndMessage
+  | WsTextQueryMessage
+  | WsInterruptMessage;
+
+export type WsServerMessageType =
+  | 'session_ready'
+  | 'interim_transcription'
+  | 'final_transcription'
+  | 'token'
+  | 'benchmark'
+  | 'context_ref'
+  | 'audio_chunk'
+  | 'done'
+  | 'error';
+
+export interface WsTranscriptionEvent {
+  type: 'interim_transcription' | 'final_transcription';
+  text: string;
+  isFinal?: boolean;
+}
+
+export interface WsTokenEvent {
+  type: 'token';
+  delta: string;
+}
+
+export interface WsBenchmarkEvent extends BenchmarkMetrics {
+  type: 'benchmark';
+}
+
+export interface WsContextRefEvent {
+  type: 'context_ref';
+  contexts: ReferencedContext[];
+}
+
+export interface WsDoneEvent {
+  type: 'done';
+  finished: boolean;
+  tokensUsed?: number;
+}
+
+export interface WsErrorEvent {
+  type: 'error';
+  error: string;
+}
+
+export type WsServerMessage =
+  | { type: 'session_ready' }
+  | WsTranscriptionEvent
+  | WsTokenEvent
+  | WsBenchmarkEvent
+  | WsContextRefEvent
+  | WsDoneEvent
+  | WsErrorEvent;
+

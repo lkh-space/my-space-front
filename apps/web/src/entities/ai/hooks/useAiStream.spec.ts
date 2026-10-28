@@ -334,5 +334,31 @@ describe('useAiStream Hook', () => {
       expect(result.current.engineState).toBe('IDLE');
       expect(result.current.isPlayingAudio).toBe(false);
     });
+
+    it('API 호출 시 isProcessing 상태가 관리되고, 토큰 수신 시 latencyMs가 어시스턴트 메시지에 기록되어야 한다', async () => {
+      const mockSseChunks = [
+        'event: token\ndata: {"delta":"테스트 답변입니다."}\n\n',
+        'event: done\ndata: {"finished":true,"tokensUsed":12}\n\n',
+      ];
+
+      vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+        const url = String(input);
+        if (url.includes('/api/v1/ai/voice/stream')) {
+          return createMockSseResponse(mockSseChunks);
+        }
+        return new Response(JSON.stringify([]), { status: 200 });
+      });
+
+      const { result } = await renderAiStreamHook();
+
+      await act(async () => {
+        result.current.sendFollowUpText('레이턴시 측정 테스트');
+      });
+
+      const assistantMsg = result.current.messages.find((m) => m.role === 'assistant');
+      expect(assistantMsg).toBeDefined();
+      expect(assistantMsg?.latencyMs).toBeTypeOf('number');
+      expect(result.current.lastLatencyMs).toBeTypeOf('number');
+    });
   });
 });

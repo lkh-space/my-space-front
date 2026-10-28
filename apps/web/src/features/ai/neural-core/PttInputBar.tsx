@@ -34,6 +34,9 @@ export const PttInputBar: React.FC<PttInputBarProps> = ({
           className={`ptt-trigger-btn ${isListening ? 'ptt-listening-active' : ''}`}
           onMouseDown={onStartListening}
           onMouseUp={() => onStopListeningAndSend(inputText)}
+          onMouseLeave={() => {
+            if (isListening) onStopListeningAndSend(inputText);
+          }}
           onTouchStart={onStartListening}
           onTouchEnd={() => onStopListeningAndSend(inputText)}
           title="길게 눌러 음성 입력 (Spacebar)"
@@ -49,7 +52,7 @@ export const PttInputBar: React.FC<PttInputBarProps> = ({
           className="ptt-query-input"
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
-          placeholder="Voice listening or type query... ('Compare local OPFS caching with MongoDB change streams')"
+          placeholder="스페이스바를 누르고 말하거나 텍스트를 입력하세요..."
           aria-label="음성 또는 텍스트 쿼리 입력"
         />
 
